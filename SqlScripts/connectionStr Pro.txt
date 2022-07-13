@@ -1,0 +1,1 @@
+Server=automationpr.mysql.database.azure.com; UserID = automatiomation_ad_pr;Password=dkQR#a9mcz$m;Database=production; Connect Timeout=900; default command timeout=900; SslMode=Preferred; SslCa=./DigiCertGlobalRootCA.crt.pem;

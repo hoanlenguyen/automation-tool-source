@@ -27,3 +27,10 @@ export function deleteData(id) {
     url: `/bank/${id}`,
     method: 'delete'})
 }
+
+export function getDropdown() {
+  return request({
+    url: '/bank/dropdown',
+    method: 'get'
+  })
+}

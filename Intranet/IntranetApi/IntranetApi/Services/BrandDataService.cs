@@ -1,10 +1,12 @@
-﻿using IntranetApi.DbContext;
+﻿using Dapper;
+using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 using System.Data;
 using System.Security.Claims;
@@ -40,7 +42,11 @@ namespace IntranetApi.Services
                 return count;
             }
         }
-
+        private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
+        {
+            using var connection = new MySqlConnection(sqlConnectionStr);
+            return connection.Query<BaseDropdown>("select Id, Name from Brand where IsDeleted = 0").ToList();
+        }
         public static void AddBrandDataService(this WebApplication app, string sqlConnectionStr)
         {
             app.MapGet("Brand/{id:int}", [Authorize]
@@ -58,6 +64,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
             [FromBody] BrandCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -65,6 +72,7 @@ namespace IntranetApi.Services
                 var entity = new Brand { Name = input.Name, CreatorUserId = userId };
                 db.Add(entity);
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBrandsDropdown);
                 return Results.Ok();
             });
 
@@ -72,6 +80,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
             [FromBody] BrandCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -83,9 +92,9 @@ namespace IntranetApi.Services
                 entity.Name = input.Name;
                 entity.Status = input.Status;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
-                //db.Update(entity);
+                entity.LastModificationTime = DateTime.Now;                
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBrandsDropdown);
                 return Results.Ok();
             });
 
@@ -93,6 +102,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
             int id) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -105,6 +115,7 @@ namespace IntranetApi.Services
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBrandsDropdown);
                 return Results.Ok();
             });
 
@@ -145,6 +156,20 @@ namespace IntranetApi.Services
 
                     return Results.Ok(new PagedResultDto<BrandCreateOrEdit>(totalCount, items));
                 }
+            });
+
+            app.MapGet("Brand/dropdown", [Authorize]
+            async Task<IResult> (
+            [FromServices] IMemoryCache memoryCache) =>
+            {
+                List<BaseDropdown> items = null;
+                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+                if (!memoryCache.TryGetValue(CacheKeys.GetBrandsDropdown, out items))
+                {
+                    items = GetBaseDropdown(sqlConnectionStr);
+                    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
+                }
+                return Results.Ok(items);
             });
         }
     }

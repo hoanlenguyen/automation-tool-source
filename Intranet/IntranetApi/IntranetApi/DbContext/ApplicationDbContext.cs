@@ -1,7 +1,6 @@
 ﻿using IntranetApi.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-
 namespace IntranetApi.DbContext
 {
     public class ApplicationDbContext : IdentityDbContext<User, UserRole, int>
@@ -26,16 +25,18 @@ namespace IntranetApi.DbContext
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<User>().ToTable("User");
+
             modelBuilder.Entity<UserRole>().ToTable("UserRole");
 
             modelBuilder.Entity<Employee>().ToTable("Employee");
 
             modelBuilder.Entity<Bank>().ToTable("Bank");
-            modelBuilder.Entity<BrandEmployee>().ToTable("BrandEmployee");
 
             modelBuilder.Entity<Department>().ToTable("Department");
 
             modelBuilder.Entity<Brand>().ToTable("Brand");
+            modelBuilder.Entity<BrandEmployee>().ToTable("BrandEmployee");
+
 
             modelBuilder.Entity<EmployeeImportHistory>().ToTable("EmployeeImportHistory");
         }

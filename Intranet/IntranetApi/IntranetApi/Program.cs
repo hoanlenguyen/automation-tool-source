@@ -1,4 +1,5 @@
 using IntranetApi.DbContext;
+using IntranetApi.Mapper;
 using IntranetApi.Models;
 using IntranetApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -145,6 +146,10 @@ builder.Services.AddMemoryCache();
 //    return new BackgroundTaskQueue(queueCapacity);
 //});
 
+
+//add extra config
+MapperConfig.AddCustomConfigs();
+
 var app = builder.Build();
 
 // response ExceptionHandler
@@ -179,16 +184,11 @@ app.UseAuthorization();
 
 //add Services
 app.AddAdminUserService();
+app.AddRoleDataService(mySQLConnection.ConnectionString);
 app.AddBankDataService(mySQLConnection.ConnectionString);
 app.AddBrandDataService(mySQLConnection.ConnectionString);
 app.AddDepartmentDataService(mySQLConnection.ConnectionString);
 app.AddEmployeeDataService(mySQLConnection.ConnectionString);
-//app.AddImportDataService(mySQLConnection.ConnectionString);
-//app.AddExportDataService(mySQLConnection.ConnectionString);
-//app.AddImportHistoryService(mySQLConnection.ConnectionString);
-//app.AddCleanDataHistoryService(mySQLConnection.ConnectionString);
-//app.AddOverallReportService(mySQLConnection.ConnectionString);
-//app.AddSourceReportService(mySQLConnection.ConnectionString);
-//app.AddSignalRService();
+
 
 app.Run();

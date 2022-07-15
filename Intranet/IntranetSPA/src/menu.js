@@ -16,8 +16,13 @@ export default [
       icon: 'domain'
     },
     {
+      to: '/role',
+      label: 'Roles',
+      icon: 'shield-account'
+    },
+    {
       to: '/employee',
-      label: 'Employee',
+      label: 'Employees',
       icon: 'account-multiple'
     }    
   ]  

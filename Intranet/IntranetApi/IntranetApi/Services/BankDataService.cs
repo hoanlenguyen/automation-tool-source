@@ -6,6 +6,7 @@ using IntranetApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 using System.Data;
 using System.Security.Claims;
@@ -65,13 +66,16 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
-            [FromBody] BankCreateOrEdit input) =>
+            [FromServices] IMemoryCache memoryCache,
+            [FromBody] BankCreateOrEdit input
+            ) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = new Bank { Name = input.Name, CreatorUserId = userId };
                 db.Add(entity);
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 return Results.Ok();
             });
 
@@ -79,6 +83,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
             [FromBody] BankCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -91,7 +96,7 @@ namespace IntranetApi.Services
                 entity.Status = input.Status;
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
-                //db.Update(entity);
+                memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 db.SaveChanges();
                 return Results.Ok();
             });
@@ -100,6 +105,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
             int id) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -112,6 +118,7 @@ namespace IntranetApi.Services
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 return Results.Ok();
             });
 
@@ -152,6 +159,20 @@ namespace IntranetApi.Services
 
                     return Results.Ok(new PagedResultDto<BankCreateOrEdit>(totalCount, items));
                 }
+            });
+
+            app.MapGet("Bank/dropdown", [Authorize]
+            async Task<IResult> (
+            [FromServices] IMemoryCache memoryCache) =>
+            {
+                List<BaseDropdown> items = null;
+                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+                if (!memoryCache.TryGetValue(CacheKeys.GetBanksDropdown, out items))
+                {
+                    items = GetBaseDropdown(sqlConnectionStr);
+                    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
+                }
+                return Results.Ok(items);
             });
         }
     }

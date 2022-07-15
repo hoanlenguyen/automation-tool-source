@@ -12,7 +12,7 @@ namespace IntranetApi.Models
     {
         public DateTime CreationTime { get; set; } = DateTime.Now;
         public int? CreatorUserId { get; set; }
-        public DateTime? LastModificationTime { get; set; } /*= DateTime.Now;*/
+        public DateTime? LastModificationTime { get; set; }
         public int? LastModifierUserId { get; set; }
         public bool Status { get; set; } = true;
         public bool IsDeleted { get; set; } = false;

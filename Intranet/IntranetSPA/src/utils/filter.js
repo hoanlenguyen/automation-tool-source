@@ -10,3 +10,9 @@ Vue.filter('roundNumber', function(value, roundTo = 2) {
   let roundNumber= 10**roundTo;
   return Math.round(value * roundNumber) / roundNumber;
 });
+
+Vue.filter('formattedNumber', function(value) {
+  if (isNaN(value)) return '0';
+  if (!value) return '';
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+});

@@ -27,3 +27,13 @@ export function deleteData(id) {
     url: `/employee/${id}`,
     method: 'delete'})
 }
+
+export function importEmployees(inputParams, inputData) {
+  return request({
+    url: '/employee/importExcel',
+    method: 'post',
+    data: inputData,
+    params:inputParams,
+    headers: {'Content-Type': 'multipart/form-data'}
+    })
+}

@@ -27,3 +27,10 @@ export function deleteData(id) {
     url: `/Department/${id}`,
     method: 'delete'})
 }
+
+export function getDropdown() {
+  return request({
+    url: '/department/dropdown',
+    method: 'get'
+  })
+}

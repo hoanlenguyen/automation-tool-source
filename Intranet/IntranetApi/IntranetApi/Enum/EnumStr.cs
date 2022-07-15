@@ -6,6 +6,20 @@
         public const string DESC = "desc";
     }
 
+    public static class StatusValue
+    {
+        public const string Active = "Active";
+        public const string Inactive = "Inactive";
+    }
+
+    public static class TableName
+    {
+        public const string Employee = "Employee";
+    }
+    public static class BrandValue
+    {
+        public const string AllBrands = "All Brands";
+    }
     public static class CacheKeys
     {
         public const string GetRolesDropdown = "GetRolesDropdown";
@@ -16,6 +30,9 @@
 
     public static class StoredProcedureName
     {
+        public const string GetRoleList = "SP_Filter_Role";
+        public const string GetRoleTotal = "SP_Filter_Role_CountTotal";
+
         public const string GetBankList = "SP_Filter_Bank";
         public const string GetBankTotal = "SP_Filter_Bank_CountTotal";
 

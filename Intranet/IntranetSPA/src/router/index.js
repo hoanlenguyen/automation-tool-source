@@ -17,6 +17,14 @@ const routes = [
   // },
   {
     meta: {
+      title: 'Role data'
+    },
+    path: '/role',
+    name: 'role',    
+    component: () => import('@/views/Role.vue')
+  },
+  {
+    meta: {
       title: 'Bank data'
     },
     path: '/bank',

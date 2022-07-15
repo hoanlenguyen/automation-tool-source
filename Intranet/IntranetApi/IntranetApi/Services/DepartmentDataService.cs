@@ -1,10 +1,12 @@
-﻿using IntranetApi.DbContext;
+﻿using Dapper;
+using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 using System.Data;
 using System.Security.Claims;
@@ -19,6 +21,12 @@ namespace IntranetApi.Services
                 input.SortBy = "Id";
             if (string.IsNullOrEmpty(input.SortDirection))
                 input.SortDirection = "desc";
+        }
+
+        private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
+        {
+            using var connection = new MySqlConnection(sqlConnectionStr);
+            return connection.Query<BaseDropdown>("select Id, Name from Department where IsDeleted = 0").ToList();
         }
 
         private static int GetTotalCountByFilter(string sqlConnectionStr, ref DepartmentFilterDto input)
@@ -58,6 +66,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
             [FromBody] DepartmentCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -65,6 +74,7 @@ namespace IntranetApi.Services
                 var entity = new Department { Name = input.Name, CreatorUserId = userId };
                 db.Add(entity);
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetDepartmentsDropdown);
                 return Results.Ok();
             });
 
@@ -72,6 +82,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
             [FromBody] DepartmentCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -84,8 +95,8 @@ namespace IntranetApi.Services
                 entity.Status = input.Status;
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
-                //db.Update(entity);
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetDepartmentsDropdown);
                 return Results.Ok();
             });
 
@@ -93,6 +104,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
             int id) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -105,6 +117,7 @@ namespace IntranetApi.Services
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetDepartmentsDropdown);
                 return Results.Ok();
             });
 
@@ -145,6 +158,20 @@ namespace IntranetApi.Services
 
                     return Results.Ok(new PagedResultDto<DepartmentCreateOrEdit>(totalCount, items));
                 }
+            });
+
+            app.MapGet("Department/dropdown", [Authorize]
+            async Task<IResult> (
+            [FromServices] IMemoryCache memoryCache) =>
+            {
+                List<BaseDropdown> items = null;
+                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+                if (!memoryCache.TryGetValue(CacheKeys.GetDepartmentsDropdown, out items))
+                {
+                    items = GetBaseDropdown(sqlConnectionStr);
+                    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
+                }
+                return Results.Ok(items);
             });
         }
     }

@@ -3,10 +3,10 @@
 This file is used by the publish/package process of your Web project. You can customize the behavior of this process
 by editing this MSBuild file. In order to learn more about this please visit https://go.microsoft.com/fwlink/?LinkID=208121. 
 -->
-<Project>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
-    <EncryptedPassword>AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAHj4JUFqguUe4laYUCVHyAQAAAAACAAAAAAADZgAAwAAAABAAAABEvjA/J11sMAo2lTOByAkbAAAAAASAAACgAAAAEAAAAN5E30jQoJENzUu+Y0EBnGiAAAAA47+nuSDibK8ZwzsdI+41FWBAsKk0dkSUsQyeTuVAp2u8TqUeoxKTwqOg/15KdQGI/+XSkPqOZb9M50OeanjfGCNQSrVolwCvspMoRFCDvdCgJGjaSjZrLyQ2SELbJGj7YDTLXDzq/tZOYfjub+X8efR9tCHj9ucobXR7D055zt8UAAAA5eFJ8nPNMlgHIuGVwqaJLZI+hG4=</EncryptedPassword>
-    <History>True|2022-07-15T09:41:34.5641474Z;True|2022-07-15T16:27:13.6860162+07:00;False|2022-07-15T16:26:44.2835185+07:00;False|2022-07-15T16:23:27.6727074+07:00;True|2022-07-14T17:20:35.1632032+07:00;True|2022-07-14T11:24:19.8279267+07:00;True|2022-07-13T17:31:54.7032457+07:00;True|2022-07-07T13:37:57.0565746+07:00;</History>
+    <EncryptedPassword>AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAasXn/uNjmEiFVtcxYAYfFwAAAAACAAAAAAAQZgAAAAEAACAAAAA6FCHW/RW72hi0Nk3kyKMOqgLxBkkf/RNGNqCtr0QoRQAAAAAOgAAAAAIAACAAAAD3UUeQfoXqpeO5nTZ4ssoGLLJThAvh3wtTJBHBQZHVPIAAAABUDvS03ozd+c7rRLTDSkEeMdTJ6BsR37MHQ0rCD5XEtPQwGWNmxFaqF0stJUD3Zs9R1sbT3ytdZLZBgJu1qzu3C8p+m+fAVwI/2UNjUGx7GiPhMWadK0VrfZKVkdyfreYJY8TCfJEPkFXSZzb+n/9JSeP8yI9EVUKINAQjum4tzEAAAABaAQD8pC98akZOJnKTEARJ2SK7PKJ8+IslMZcoqyyDzokY6eMF+iXLeGkW8KwSgIF+5nd2vk9xEXwopaTODSV3</EncryptedPassword>
+    <History>True|2022-07-18T09:19:15.2468593Z;</History>
   </PropertyGroup>
 </Project>

@@ -163,3 +163,4 @@ F:\DotNet\automation-tool-source\Intranet\IntranetApi\IntranetApi\obj\Debug\net6
 F:\DotNet\automation-tool-source\Intranet\IntranetApi\IntranetApi\obj\Debug\net6.0\ref\IntranetApi.dll
 F:\DotNet\automation-tool-source\Intranet\IntranetApi\IntranetApi\obj\Debug\net6.0\IntranetApi.pdb
 F:\DotNet\automation-tool-source\Intranet\IntranetApi\IntranetApi\obj\Debug\net6.0\IntranetApi.genruntimeconfig.cache
+F:\DotNet\automation-tool-source\Intranet\IntranetApi\IntranetApi\obj\Debug\net6.0\IntranetApi.csproj.AssemblyReference.cache

@@ -28,5 +28,6 @@ namespace IntranetApi.Models
         public string StatusStr { get; set; }
         public string? Note { get; set; }
         public int? UserId { get; set; }
+        public string LastModifierUser { get; set; }
     }
 }

@@ -19,7 +19,8 @@ namespace IntranetApi.Services
                 {
                     UserName = input.UserName ?? input.Email,
                     FullName = input.Name,
-                    Email = input.Email
+                    Email = input.Email,
+                    IsSuperAdmin =true
                 };
 
                 var result = await userManager.CreateAsync(user, input.Password);

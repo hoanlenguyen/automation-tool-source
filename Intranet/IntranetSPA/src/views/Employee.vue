@@ -41,7 +41,7 @@
         field="employeeCode"
         label="Employee code"
         sortable        
-        width="200px"
+        width="150px"
         v-slot="props"
       >       
       {{props.row.employeeCode}}
@@ -50,25 +50,16 @@
       <b-table-column
         field="role"
         label="Role (Rank)"
-        width="200px"       
+        width="150px"       
         v-slot="props"
       >       
       {{props.row.role}}
       </b-table-column>
-
+       
       <b-table-column
         field="dept"
         label="Department"
-        width="200px"       
-        v-slot="props"
-      >       
-      {{props.row.dept}}
-      </b-table-column>
-
-      <b-table-column
-        field="dept"
-        label="Department"
-        width="200px"       
+        width="150px"       
         v-slot="props"
       >       
       {{props.row.dept}}
@@ -96,7 +87,7 @@
       <b-table-column
         field="bankAccountNumber"
         label="Bank Account Number"
-        width="300px"       
+        width="150px"       
         v-slot="props">       
         {{props.row.bankAccountNumber}}
       </b-table-column>
@@ -104,7 +95,7 @@
       <b-table-column
         field="idNumber"
         label="Id Number"
-        width="300px"       
+        width="150px"       
         v-slot="props">       
         {{props.row.idNumber}}
       </b-table-column>
@@ -112,7 +103,7 @@
       <b-table-column
         field="salary"
         label="Salary"
-        width="300px"       
+        width="150px"       
         v-slot="props">       
         {{props.row.salary|formattedNumber}}
       </b-table-column>
@@ -122,7 +113,7 @@
         label="Status"
         sortable
         v-slot="props"
-        width="300px">        
+        width="120px">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
       </b-table-column>
 
@@ -131,7 +122,7 @@
         label="Start Date"
         sortable
         v-slot="props"
-        width="300px">
+        width="120px">
        {{ props.row.startDate | dateTime('DD-MMM-YYYY') }} 
       </b-table-column>
 
@@ -140,8 +131,8 @@
         label="Birth Date"
         sortable
         v-slot="props"
-        width="300px">
-       {{ props.row.birthDate | dateTime('DD-MMM-YYYY') }} 
+        width="120px">
+       {{ props.row.birthDate | dateTime('DD-MM-YYYY') }} 
       </b-table-column>
 
       <b-table-column
@@ -149,17 +140,24 @@
         label="Creation Time"
         sortable
         v-slot="props"
-        width="300px">
+        width="120px">
        {{ props.row.creationTime | dateTime }} 
       </b-table-column>
 
-       <b-table-column
-        field="lastModificationTime"
-        label="Last Modification Time"
-        sortable
+      <b-table-column
+        field="LastModificationTime"
+        label="Last Update Time"
         v-slot="props"
-        width="300px">
+        width="120px">
        {{ props.row.lastModificationTime | dateTime }} 
+      </b-table-column>
+
+      <b-table-column
+        field="lastModifierUser"
+        label="Last Update By"
+        v-slot="props"
+        width="200px">
+       {{ props.row.lastModifierUser }} 
       </b-table-column>
 
       <b-table-column
@@ -462,7 +460,7 @@
           <p class="modal-card-title">Are you sure to delete this data</p>                 
         </header>
         <footer class="modal-card-foot">
-          <b-button label="Cancel" @click="isDeleteModalActive=false; selectedId=null" />
+          <b-button label="Close" @click="isDeleteModalActive=false; selectedId=null" />
           <b-button label="Confirm" type="is-info" @click="deleteData"/>
         </footer>
         </div>
@@ -514,8 +512,6 @@ export default {
       pageOptions:[20,50,100],
       importTimeFrom:null,
       importTimeTo:null,
-      sources:[],
-      searchSource:null,
       filter:{
         page:1,
         rowsPerPage:20,

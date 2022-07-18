@@ -3,9 +3,9 @@
 This file is used by the publish/package process of your Web project. You can customize the behavior of this process
 by editing this MSBuild file. In order to learn more about this please visit https://go.microsoft.com/fwlink/?LinkID=208121. 
 -->
-<Project>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
-    <EncryptedPassword>AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAHj4JUFqguUe4laYUCVHyAQAAAAACAAAAAAADZgAAwAAAABAAAAANbv8VmfdU335nyr6F9/PiAAAAAASAAACgAAAAEAAAAHTtZFSCyygMFJx+EI9yNuOAAAAA9WSmh2BBkKwiVUdhskljrceMaCtcJVE96Ztp88UHB4pZZnOvI7td3Z1LvXPGaaa4DZa1lyGBuwLbynKmxKatgceDTvPyXKDgcElAJ/16avXFrTD4LGqDuKGp0JVYAobgV8DduR8kCNzbPrW6VBztAvgg1kasLsngwHLkGJHW67IUAAAAb/2yTJoyEUf+0k17TaXM5R17iTI=</EncryptedPassword>
+    <EncryptedPassword>AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAasXn/uNjmEiFVtcxYAYfFwAAAAACAAAAAAAQZgAAAAEAACAAAABCYPOXppvhOFsXislbStpfYpMzXYqGOIrwwBMlUtJQKwAAAAAOgAAAAAIAACAAAAD5OHsjjzcSBqzjn+IekwDi5s42agiZ4xhz68pW3zEz/IAAAAAShCvMCshDxZq6QoVpBbqk2B6VCNQWvr/YXhzhefKTit3mrcwwYEXROilKOZ6p+Xzd2LPlmTXFpCkGA945OOSLYBxK/ErIAKh3y+D1XgqJTtg1zkT9TNK+Edn8rIJrHJ7lElhLJNEfP/2ZjR4WeYoo/ddfEpymq6WZl9dXooIMc0AAAADuHLAz7oWfizYj9NU44C9BkqdzdB0WT+Hmm0sPb/UpiJW+gyWtwV5l0QXVmlsjMLYcze0jGMGOOgdi8IyoLtQV</EncryptedPassword>
   </PropertyGroup>
 </Project>

@@ -5,6 +5,7 @@ using IntranetApi.Helper;
 using IntranetApi.Models;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -40,6 +41,12 @@ namespace IntranetApi.Services
                     return result;
             }
             return null;
+        }
+
+        private static List<BaseDropdown> GetAdminUserList(string sqlConnectionStr)
+        {
+            using var connection = new MySqlConnection(sqlConnectionStr);
+            return connection.Query<BaseDropdown>("select Id, FullName as 'Name' from User").ToList();
         }
 
         private static List<BaseDropdown> GetRoleList(string sqlConnectionStr)
@@ -99,13 +106,6 @@ namespace IntranetApi.Services
             using var connection = new MySqlConnection(sqlConnectionStr);
             return connection.Query<BaseDropdown>("select Id, Name from Employee where IsDeleted = 0").ToList();
         }
-
-        private static List<BaseDropdown> GetAdminBaseDropdown(string sqlConnectionStr)
-        {
-            using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Email as 'Name' from User where IsDeleted = 0").ToList();
-        }
-
 
         public static void AddEmployeeDataService(this WebApplication app, string sqlConnectionStr)
         {
@@ -209,6 +209,7 @@ namespace IntranetApi.Services
                     List<BaseDropdown> banks = null;
                     List<BaseDropdown> brands = null;
                     List<BaseDropdown> departments = null;
+                    List<BaseDropdown> adminUsers = null;
                     var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
                     if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out roles))
                     {
@@ -233,17 +234,24 @@ namespace IntranetApi.Services
                         departments = GetDepartmentList(sqlConnectionStr);
                         memoryCache.Set(CacheKeys.GetDepartmentsDropdown, departments, cacheOptions);
                     }
+
+                    if (!memoryCache.TryGetValue(CacheKeys.GetAdminUserDropdown, out adminUsers))
+                    {
+                        adminUsers = GetAdminUserList(sqlConnectionStr);
+                        memoryCache.Set(CacheKeys.GetAdminUserDropdown, adminUsers, cacheOptions);
+                    }
                     var employeeIds = items.Select(p => p.Id);
                     foreach (var item in items)
                     {
                         item.Role = roles.FirstOrDefault(p => p.Id == item.RoleId)?.Name;
                         item.Dept = departments.FirstOrDefault(p => p.Id == item.DeptId)?.Name;
                         item.BankName = banks.FirstOrDefault(p => p.Id == item.BankId)?.Name;
-                        if(!string.IsNullOrEmpty(item.BrandIds) && !item.BrandIds.Equals(BrandValue.AllBrands, StringComparison.OrdinalIgnoreCase))
+                        item.LastModifierUser = adminUsers.FirstOrDefault(p => p.Id == (item.LastModifierUserId ?? item.CreatorUserId).GetValueOrDefault())?.Name;
+                        if (!string.IsNullOrEmpty(item.BrandIds) && !item.BrandIds.Equals(BrandValue.AllBrands, StringComparison.OrdinalIgnoreCase))
                         {
-                            item.BrandIdList = item.BrandIds.Split(',').Select(p=>int.Parse(p)).ToList();
+                            item.BrandIdList = item.BrandIds.Split(',').Select(p => int.Parse(p)).ToList();
                             item.Brand = string.Join(", ", brands.Where(p => item.BrandIdList.Contains(p.Id)).Select(p => p.Name));
-                        }                       
+                        }
                     }
                     return Results.Ok(new PagedResultDto<EmployeeExcelInput>(totalCount, items));
                 }
@@ -254,6 +262,7 @@ namespace IntranetApi.Services
                 [FromServices] IMemoryCache memoryCache,
                 [FromServices] IHttpContextAccessor httpContextAccessor,
                 [FromServices] IConfiguration config,
+                [FromServices] UserManager < User > userManager,
                 HttpRequest request) =>
             {
                 var watch = Stopwatch.StartNew();
@@ -581,7 +590,27 @@ namespace IntranetApi.Services
                     && !duplicateResult.IdNumbers.Contains(p.IdNumber)
                     && !duplicateResult.BackendUsers.Contains(p.BackendUser)
                         ).ToList();
-                    await BulkInsertEmployeesToDB(employees);                     
+                    await BulkInsertEmployeesToDB(employees);
+                    foreach (var item in employees)
+                    {
+                        try
+                        {
+                            var user = new User
+                            {
+                                UserName = item.BackendUser ?? item.EmployeeCode,
+                                FullName = item.Name,
+                                Email = $"{item.EmployeeCode}@intranet.com",
+                                IsSuperAdmin = false
+                            };
+
+                            var result = await userManager.CreateAsync(user, item.BackendPass);
+                        }
+                        catch (Exception)
+                        {
+
+                            throw;
+                        }                        
+                    }
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
                 }

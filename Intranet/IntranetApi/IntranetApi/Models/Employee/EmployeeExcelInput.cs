@@ -26,7 +26,7 @@ namespace IntranetApi.Models
         public string BackendUser { get; set; }
         public string BackendPass { get; set; }
         public string StatusStr { get; set; }
-        public string Note { get; set; }
+        public string? Note { get; set; }
         public int? UserId { get; set; }
     }
 }

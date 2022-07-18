@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace IntranetApi.Models
 {
@@ -36,7 +37,7 @@ namespace IntranetApi.Models
         public int Salary { get; set; }
 
         [MaxLength(150)]
-        public string Note { get; set; }
+        public string? Note { get; set; }
 
     }
 }

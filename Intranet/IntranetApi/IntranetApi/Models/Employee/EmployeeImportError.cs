@@ -18,6 +18,6 @@
         public string IdNumber { get; set; }
         public string BackendUser { get; set; }
         public string BackendPass { get; set; }
-        public string Note { get; set; }
+        public string? Note { get; set; }
     }
 }

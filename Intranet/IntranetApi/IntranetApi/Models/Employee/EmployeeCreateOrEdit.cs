@@ -26,7 +26,7 @@
          
         public int Salary { get; set; }
 
-        public string Note { get; set; }
+        public string? Note { get; set; }
 
         public string BrandIds { get; set; }
     }

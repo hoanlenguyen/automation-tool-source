@@ -43,7 +43,7 @@ namespace IntranetApi.Models
         public int Salary { get; set; }
 
         [MaxLength(150)]
-        public string Note { get; set; }
+        public string? Note { get; set; }
 
         [MaxLength(100)]
         public string BrandIds { get; set; }

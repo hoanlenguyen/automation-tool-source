@@ -22,9 +22,9 @@ namespace IntranetApi.Mapper
             TypeAdapterConfig<EmployeeExcelInput, EmployeeImportError>.NewConfig()
                             .Ignore(p => p.Cells)
                             .Ignore(p => p.ErrorDetails)
-                            .Map(dest => dest.StartDate, src => src.StartDateStr)
                             .Map(dest => dest.Salary, src => src.SalaryStr)
                             .Map(dest => dest.BirthDate, src => src.BirthDateStr)
+                            .Map(dest => dest.StartDate, src => src.StartDateStr)
                             ;
 
             TypeAdapterConfig<EmployeeExcelInput, User>.NewConfig()

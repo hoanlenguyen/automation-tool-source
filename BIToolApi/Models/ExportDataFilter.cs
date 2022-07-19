@@ -40,6 +40,7 @@
         public int ExportLimit { get; set; } = 0;
 
         public int? CampaignID { get; set; }
+        public int? AssignedCampaignID { get; set; }
         public int? TotalCount { get; set; }
 
         public string SignalRConnectionId { get; set; }

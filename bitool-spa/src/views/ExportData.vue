@@ -103,6 +103,30 @@
         </b-field> 
       </b-field>
 
+      <b-field class="mb-3">
+        <div class="mr-3">
+          <p class="subtitle is-6 pt-3">Last 3 Campaigns Used</p>
+        </div>
+        <b-select
+          placeholder="Select campaign"
+          v-model="filter.campaignID"
+          clearable>
+          <option
+            v-for="option in adminCampaigns"
+            :value="option.campaignID"
+            :key="option.campaignID">
+            {{ option.campaignName }}
+          </option>
+        </b-select>
+        <b-button
+          label="Confirm"
+          type="is-primary"
+          @click="assignCampaignToCustomers"
+          :disabled="!filter.campaignID"
+          :loading="isConfirmingCampaign"
+        />
+      </b-field>
+
       <b-field grouped class="mb-3">
         <div class="mr-3">
           <p class="subtitle is-6 pt-3">Last 3 Campaigns Used</p>

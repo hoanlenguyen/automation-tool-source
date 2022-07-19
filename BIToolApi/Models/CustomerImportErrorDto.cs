@@ -6,6 +6,6 @@
         public string ErrorDetail { get; set; }
         public string Source { get; set; }
         public string CustomerMobileNo { get; set; }
-        public string ScoreTitle { get; set; }
+        public string TotalPoints { get; set; }
     }
 }

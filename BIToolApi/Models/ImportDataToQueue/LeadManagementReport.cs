@@ -38,7 +38,7 @@ namespace BITool.Models.ImportDataToQueue
                                          ResultsTotalThirdScore + ResultsTotalFourthScore;
 
         //ANALYSIS
-        public int TotalPoints => TotalOccurancePoints + TotalResultsPoints;
+        public int TotalPoints { get; set; }
         public string ExportVsPointsPercentage => TotalPoints == 0 ? 
             ExportVsPoints.NoOccurance : 
                 TotalTimesExported==0?

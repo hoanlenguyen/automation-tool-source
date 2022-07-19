@@ -227,42 +227,29 @@ namespace BITool.Services
                             totalRows += rowCount - 1;
                             //read excel file data and add data
                             long? validPhoneNumber = null;
-                            var isValidScoreTiltles = true;
-                            var isValidSource = true;
-                            //string dateOccurred;
+                            bool isValidSource = true;
                             string source;
                             string customerMobileNo;
-                            string scoreTitle;
+                            string totalPointsStr;
+                            int totalPoints;
+                            bool isValidTotalPoints = true;
                             var now = DateTime.Now;
-                            int scoreId;
                             var cells = new List<string>();
                             var errorDetails = new List<string>();
-                            //worksheet.Cells[2, 1, rowCount, 1].Style.Numberformat.Format = "dd/MM/yyyy";
-                            //worksheet.Cells[2, 3, rowCount, 3].Style.Numberformat.Format = "text";
                             for (int row = 2; row <= rowCount; row++)
                             {
-                                //dateOccurred = (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();
                                 source = sourceName?? (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();
-                                customerMobileNo = (worksheet.Cells[row, 2]?/*.Value*/.Text ?? string.Empty)/*.ToString()*/.Trim();
-                                scoreTitle = (worksheet.Cells[row, 3]?.Text ?? string.Empty).Trim();
-                                //parsedDateOccurred = CheckValidDate(dateOccurred);
+                                customerMobileNo = (worksheet.Cells[row, 2]?.Text ?? string.Empty).Trim();
+                                totalPointsStr = (worksheet.Cells[row, 3]?.Text ?? string.Empty).Trim();
                                 validPhoneNumber = CheckValidPhoneNumber(customerMobileNo);
-                                isValidScoreTiltles = string.IsNullOrEmpty(scoreTitle) || scoreTiltles.Contains(scoreTitle.ToLower());
                                 isValidSource = !string.IsNullOrEmpty(source);
-                                //Console.WriteLine($"{dateOccurred} {customerMobileNo} {scoreTitle}");
-                                //if (parsedDateOccurred is null)
-                                //{
-                                //    cells.Add($"A{row}");
-                                //    errorDetails.Add("invalid date");
-                                //}
-
-                                if (isValidSource && validPhoneNumber != null && isValidScoreTiltles)
+                                isValidTotalPoints= int.TryParse(totalPointsStr, out totalPoints);
+                                if (isValidSource && isValidTotalPoints & validPhoneNumber != null)
                                 {
-                                    scoreId = adminScores.FirstOrDefault(q => q.ScoreTitle.Equals(scoreTitle, StringComparison.OrdinalIgnoreCase))?.ScoreID ?? 0;
-                                    importProcess.CustomerImports.Add(new CustomerImportDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, ScoreIds = new List<int> { scoreId } });
+                                    importProcess.CustomerImports.Add(new CustomerImportDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, TotalPoints= totalPoints });
                                     customerRows.Add(new CustomerDto { Source = source, DateFirstAdded = now, CustomerMobileNo = validPhoneNumber.Value, LastUpdatedBy = userId });
-                                    if (!string.IsNullOrEmpty(scoreTitle))
-                                        customerScoreRows.Add(new CustomerScoreDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, ScoreID = scoreId, LastUpdatedBy = userId });
+                                    //if (!string.IsNullOrEmpty(scoreTitle))
+                                    //    customerScoreRows.Add(new CustomerScoreDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, ScoreID = scoreId, LastUpdatedBy = userId });
                                 }
                                 else
                                 {
@@ -276,10 +263,10 @@ namespace BITool.Services
                                         cells.Add($"B{row}");
                                         errorDetails.Add("invalid mobile No");
                                     }
-                                    if (!isValidScoreTiltles)
+                                    if (!isValidTotalPoints)
                                     {
                                         cells.Add($"C{row}");
-                                        errorDetails.Add("invalid score title");
+                                        errorDetails.Add("invalid total points");
                                     }
                                     errorList.Add(new CustomerImportErrorDto
                                     {
@@ -287,7 +274,7 @@ namespace BITool.Services
                                         ErrorDetail = string.Join(" - ", errorDetails),
                                         Source = source,
                                         CustomerMobileNo = customerMobileNo,
-                                        ScoreTitle = scoreTitle
+                                        TotalPoints = totalPointsStr
                                     });
                                     cells = new List<string>(); //reset after add
                                     errorDetails = new List<string>(); //reset after add
@@ -297,12 +284,12 @@ namespace BITool.Services
                     }
                     Console.WriteLine($"Complete valid data from excel: time {watch.Elapsed.TotalSeconds} s");
                     Task insertCustomerModelTask = Task.Run(() => BulkInsertCustomerModelToMySQL(customerRows));
-                    Task insertCustomerScoreTask = Task.Run(() => BulkInsertCustomerScoreToMySQL(customerScoreRows));
-                    await Task.WhenAll(insertCustomerModelTask, insertCustomerScoreTask);
+                    //Task insertCustomerScoreTask = Task.Run(() => BulkInsertCustomerScoreToMySQL(customerScoreRows));
+                    //await Task.WhenAll(insertCustomerModelTask, insertCustomerScoreTask);
                     var importHistories = customerRows.GroupBy(p => p.Source)
                                     .Select(p => new ImportDataHistory { ImportName = ImportNames.ImportCustomerScore, Source = p.Key, FileName = formFile.FileName, ImportByEmail = userEmail, TotalRows = p.Count() });
                     importDataToQueueService.InsertImportHistory(sqlConnectionStr, importHistories);
-                    importProcess.ShouldSendEmail = importProcess.CustomerImports.Count > shouldSendEmailWhenReachLimit;
+                    shouldSendEmail= importProcess.ShouldSendEmail = importProcess.CustomerImports.Count > shouldSendEmailWhenReachLimit;
                     shouldSendEmail = shouldSendEmail || importProcess.ShouldSendEmail;
                     importDataToQueueService.InsertOrUpdateLeadManagementReport(sqlConnectionStr, importProcess);
                     watch.Stop();

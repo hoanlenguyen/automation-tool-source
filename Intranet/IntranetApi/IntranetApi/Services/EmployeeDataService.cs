@@ -124,7 +124,6 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
-            [FromServices] UserManager<User> userManager,
             [FromBody] EmployeeCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -133,14 +132,6 @@ namespace IntranetApi.Services
                 entity.CreatorUserId = userId;
                 db.Add(entity);
                 db.SaveChanges();
-                var user = new User
-                {
-                    UserName = input.BackendUser ?? input.EmployeeCode,
-                    FullName = input.Name,
-                    Email = $"{input.EmployeeCode}@intranet.com",
-                    IsSuperAdmin = false
-                };
-                var result = await userManager.CreateAsync(user, input.BackendPass);
                 return Results.Ok();
             });
 

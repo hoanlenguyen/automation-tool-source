@@ -171,6 +171,142 @@ namespace BITool.Services
                 return Results.Ok(items);
             });
 
+            //app.MapPost("data/importCustomerScore", [Authorize][DisableRequestSizeLimit]
+            //async Task<IResult> (
+            //    IMemoryCache memoryCache,
+            //    IImportDataToQueueService importDataToQueueService,
+            //    IHttpContextAccessor httpContextAccessor,
+            //    IConfiguration config,
+            //    IHubContext<HubClient> hubContext,
+            //    HttpRequest request) =>
+            //{
+            //    var watch = Stopwatch.StartNew();
+            //    var signalRConnectionId = request.Query["signalRConnectionId"];
+            //    Console.WriteLine($"signalRConnectionId {signalRConnectionId}");
+            //    if (!request.Form.Files.Any())
+            //        throw new Exception("No file found!");
+
+            //    var formFile = request.Form.Files.FirstOrDefault();
+
+            //    if (formFile is null || formFile.Length == 0)
+            //        throw new Exception("No file found!");
+
+            //    var userEmail = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
+            //    var errorList = new List<CustomerImportErrorDto>();
+            //    var customerRows = new List<CustomerDto>();
+            //    var customerScoreRows = new List<CustomerScoreDto>();
+            //    var importProcess = new ProcessImportedData { FileName = formFile.FileName, UserEmail = userEmail, SignalRConnectionId = signalRConnectionId };
+            //    //Console.WriteLine($"userEmail: {importProcess.UserEmail}");
+            //    List<AdminScoreDto> adminScores = null;
+            //    var rowCount = 0;
+            //    if (!memoryCache.TryGetValue(CacheKeys.GetAdminScoresKey, out adminScores))
+            //    {
+            //        adminScores = GetAdminScores();
+            //        var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+            //        memoryCache.Set(CacheKeys.GetAdminScoresKey, adminScores, cacheOptions);
+            //    }
+            //    var scoreTiltles = adminScores.Select(p => p.ScoreTitle.ToLower());
+            //    var userIdSr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //    int.TryParse(userIdSr, out var userId);
+            //    //Process excel file
+            //    using (var stream = new MemoryStream())
+            //    {
+            //        await formFile.CopyToAsync(stream);
+            //        using (ExcelPackage package = new ExcelPackage(stream))
+            //        {
+            //            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
+            //            if (worksheet == null)
+            //                throw new Exception("No worksheet found!");
+
+            //            rowCount = worksheet.Dimension.Rows; //include header
+            //            if (rowCount <= 1)
+            //                throw new Exception("No Data in worksheet found!");
+
+            //            //read excel file data and add data
+            //            long? validPhoneNumber = null;
+            //            var isValidScoreTiltles = true;
+            //            var isValidSource = true;
+            //            //string dateOccurred;
+            //            string source;
+            //            string customerMobileNo;
+            //            string scoreTitle;
+            //            var now = DateTime.Now;
+            //            int scoreId;
+            //            var cells = new List<string>();
+            //            var errorDetails = new List<string>();
+            //            //worksheet.Cells[2, 1, rowCount, 1].Style.Numberformat.Format = "dd/MM/yyyy";
+            //            //worksheet.Cells[2, 3, rowCount, 3].Style.Numberformat.Format = "text";
+            //            for (int row = 2; row <= rowCount; row++)
+            //            {
+            //                //dateOccurred = (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();
+            //                source = (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();
+            //                customerMobileNo = (worksheet.Cells[row, 2]?/*.Value*/.Text ?? string.Empty)/*.ToString()*/.Trim();
+            //                scoreTitle = (worksheet.Cells[row, 3]?.Text ?? string.Empty).Trim();
+            //                //parsedDateOccurred = CheckValidDate(dateOccurred);
+            //                validPhoneNumber = CheckValidPhoneNumber(customerMobileNo);
+            //                isValidScoreTiltles = string.IsNullOrEmpty(scoreTitle) || scoreTiltles.Contains(scoreTitle.ToLower());
+            //                isValidSource = !string.IsNullOrEmpty(source);
+            //                //Console.WriteLine($"{dateOccurred} {customerMobileNo} {scoreTitle}");
+            //                //if (parsedDateOccurred is null)
+            //                //{
+            //                //    cells.Add($"A{row}");
+            //                //    errorDetails.Add("invalid date");
+            //                //}
+
+            //                if (isValidSource && validPhoneNumber!=null && isValidScoreTiltles)
+            //                {
+            //                    scoreId = adminScores.FirstOrDefault(q => q.ScoreTitle.Equals(scoreTitle, StringComparison.OrdinalIgnoreCase))?.ScoreID ?? 0;
+            //                    importProcess.CustomerImports.Add(new CustomerImportDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, ScoreIds = new List<int> { scoreId } });
+            //                    customerRows.Add(new CustomerDto { Source = source, DateFirstAdded = now, CustomerMobileNo = validPhoneNumber.Value, LastUpdatedBy = userId });
+            //                    if (!string.IsNullOrEmpty(scoreTitle))
+            //                        customerScoreRows.Add(new CustomerScoreDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, ScoreID = scoreId, LastUpdatedBy = userId });
+            //                }
+            //                else
+            //                {
+            //                    if (!isValidSource)
+            //                    {
+            //                        cells.Add($"A{row}");
+            //                        errorDetails.Add("invalid source");
+            //                    }
+            //                    if (validPhoneNumber==null)
+            //                    {
+            //                        cells.Add($"B{row}");
+            //                        errorDetails.Add("invalid mobile No");
+            //                    }
+
+            //                    if (!isValidScoreTiltles)
+            //                    {
+            //                        cells.Add($"C{row}");
+            //                        errorDetails.Add("invalid score title");
+            //                    }
+            //                    errorList.Add(new CustomerImportErrorDto
+            //                    {
+            //                        Cell = string.Join(" - ", cells),
+            //                        ErrorDetail = string.Join(" - ", errorDetails),
+            //                        Source = source,
+            //                        CustomerMobileNo = customerMobileNo,
+            //                        ScoreTitle = scoreTitle
+            //                    });
+            //                    cells = new List<string>(); //reset after add
+            //                    errorDetails = new List<string>(); //reset after add
+            //                }
+            //            }
+            //        }
+            //    }
+            //    Console.WriteLine($"Complete valid data from excel: time {watch.Elapsed.TotalSeconds} s");
+            //    Task t1 = Task.Run(() => BulkInsertCustomerModelToMySQL(customerRows));
+            //    Task t2 = Task.Run(() => BulkInsertCustomerScoreToMySQL(customerScoreRows));
+            //    await Task.WhenAll(t1, t2);
+            //    var importHistories = customerRows.GroupBy(p => p.Source)
+            //                    .Select(p => new ImportDataHistory { ImportName = ImportNames.ImportCustomerScore, Source = p.Key, FileName = formFile.FileName, ImportByEmail = userEmail, TotalRows = p.Count() });
+            //    importDataToQueueService.InsertImportHistory(sqlConnectionStr, importHistories);
+            //    importProcess.ShouldSendEmail = importProcess.CustomerImports.Count > config.GetValue<int>("ShouldSendEmailWhenReachLimit");
+            //    importDataToQueueService.InsertOrUpdateLeadManagementReport(sqlConnectionStr, importProcess);
+            //    watch.Stop();
+            //    Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
+            //    return Results.Ok(new { TotalRows = rowCount - 1, errorList, importProcess.ShouldSendEmail });
+            //});
+
             app.MapPost("data/importCustomerScore", [Authorize][DisableRequestSizeLimit]
             async Task<IResult> (
                 [FromServices] IMemoryCache memoryCache,

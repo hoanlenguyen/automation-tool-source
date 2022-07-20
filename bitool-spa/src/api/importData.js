@@ -19,6 +19,15 @@ export function compareCustomerMobiles(input) {
     })
 }
 
+export function importTotalPoints(input) {
+  return request({
+    url: '/data/importTotalPoints',
+    method: 'post',
+    data: input,
+    headers: {'Content-Type': 'multipart/form-data'}
+    })
+}
+
 export function getAdminScores() {
     return request({
       url: '/data/getAdminScores',

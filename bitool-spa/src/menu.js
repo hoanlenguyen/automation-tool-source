@@ -1,13 +1,5 @@
 export default [
-  // 'General',
-  // [
-  //   {
-  //     to: '/',
-  //     icon: 'desktop-mac',
-  //     label: 'Dashboard'
-  //   }
-  // ],
-  // 'Examples',
+
   [
     {
       to: '/import-data',
@@ -19,6 +11,11 @@ export default [
       to: '/export-data',
       label: 'Export data',
       icon: 'database-export'
+    },
+    {
+      to: '/points-grading',
+      label: 'Points grading',
+      icon: 'checkbook'
     },
     {
       to: '/import-history',

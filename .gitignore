@@ -7,3 +7,5 @@
 /BIToolApi/obj
 /BIToolApi/bin/Debug/net6.0
 /BIToolApi/bin/Release/net6.0
+/.vs
+/Intranet/IntranetApi/.vs

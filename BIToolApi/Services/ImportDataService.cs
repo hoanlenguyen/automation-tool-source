@@ -306,7 +306,6 @@ namespace BITool.Services
             //    Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
             //    return Results.Ok(new { TotalRows = rowCount - 1, errorList, importProcess.ShouldSendEmail });
             //});
-
             app.MapPost("data/importCustomerScore", [Authorize][DisableRequestSizeLimit]
             async Task<IResult> (
                 [FromServices] IMemoryCache memoryCache,
@@ -363,29 +362,42 @@ namespace BITool.Services
                             totalRows += rowCount - 1;
                             //read excel file data and add data
                             long? validPhoneNumber = null;
-                            bool isValidSource = true;
+                            var isValidScoreTiltles = true;
+                            var isValidSource = true;
+                            //string dateOccurred;
                             string source;
                             string customerMobileNo;
-                            string totalPointsStr;
-                            int totalPoints;
-                            bool isValidTotalPoints = true;
+                            string scoreTitle;
                             var now = DateTime.Now;
+                            int scoreId;
                             var cells = new List<string>();
                             var errorDetails = new List<string>();
+                            //worksheet.Cells[2, 1, rowCount, 1].Style.Numberformat.Format = "dd/MM/yyyy";
+                            //worksheet.Cells[2, 3, rowCount, 3].Style.Numberformat.Format = "text";
                             for (int row = 2; row <= rowCount; row++)
                             {
-                                source = sourceName?? (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();
-                                customerMobileNo = (worksheet.Cells[row, 2]?.Text ?? string.Empty).Trim();
-                                totalPointsStr = (worksheet.Cells[row, 3]?.Text ?? string.Empty).Trim();
+                                //dateOccurred = (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();
+                                source = sourceName ?? (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();
+                                customerMobileNo = (worksheet.Cells[row, 2]?/*.Value*/.Text ?? string.Empty)/*.ToString()*/.Trim();
+                                scoreTitle = (worksheet.Cells[row, 3]?.Text ?? string.Empty).Trim();
+                                //parsedDateOccurred = CheckValidDate(dateOccurred);
                                 validPhoneNumber = CheckValidPhoneNumber(customerMobileNo);
+                                isValidScoreTiltles = string.IsNullOrEmpty(scoreTitle) || scoreTiltles.Contains(scoreTitle.ToLower());
                                 isValidSource = !string.IsNullOrEmpty(source);
-                                isValidTotalPoints= int.TryParse(totalPointsStr, out totalPoints);
-                                if (isValidSource && isValidTotalPoints & validPhoneNumber != null)
+                                //Console.WriteLine($"{dateOccurred} {customerMobileNo} {scoreTitle}");
+                                //if (parsedDateOccurred is null)
+                                //{
+                                //    cells.Add($"A{row}");
+                                //    errorDetails.Add("invalid date");
+                                //}
+
+                                if (isValidSource && validPhoneNumber != null && isValidScoreTiltles)
                                 {
-                                    importProcess.CustomerImports.Add(new CustomerImportDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, TotalPoints= totalPoints });
+                                    scoreId = adminScores.FirstOrDefault(q => q.ScoreTitle.Equals(scoreTitle, StringComparison.OrdinalIgnoreCase))?.ScoreID ?? 0;
+                                    importProcess.CustomerImports.Add(new CustomerImportDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, ScoreIds = new List<int> { scoreId } });
                                     customerRows.Add(new CustomerDto { Source = source, DateFirstAdded = now, CustomerMobileNo = validPhoneNumber.Value, LastUpdatedBy = userId });
-                                    //if (!string.IsNullOrEmpty(scoreTitle))
-                                    //    customerScoreRows.Add(new CustomerScoreDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, ScoreID = scoreId, LastUpdatedBy = userId });
+                                    if (!string.IsNullOrEmpty(scoreTitle))
+                                        customerScoreRows.Add(new CustomerScoreDto { Source = source, CustomerMobileNo = validPhoneNumber.Value, DateOccurred = now, ScoreID = scoreId, LastUpdatedBy = userId });
                                 }
                                 else
                                 {
@@ -399,10 +411,10 @@ namespace BITool.Services
                                         cells.Add($"B{row}");
                                         errorDetails.Add("invalid mobile No");
                                     }
-                                    if (!isValidTotalPoints)
+                                    if (!isValidScoreTiltles)
                                     {
                                         cells.Add($"C{row}");
-                                        errorDetails.Add("invalid total points");
+                                        errorDetails.Add("invalid score title");
                                     }
                                     errorList.Add(new CustomerImportErrorDto
                                     {
@@ -410,7 +422,7 @@ namespace BITool.Services
                                         ErrorDetail = string.Join(" - ", errorDetails),
                                         Source = source,
                                         CustomerMobileNo = customerMobileNo,
-                                        TotalPoints = totalPointsStr
+                                        ScoreTitle = scoreTitle
                                     });
                                     cells = new List<string>(); //reset after add
                                     errorDetails = new List<string>(); //reset after add
@@ -420,17 +432,17 @@ namespace BITool.Services
                     }
                     Console.WriteLine($"Complete valid data from excel: time {watch.Elapsed.TotalSeconds} s");
                     Task insertCustomerModelTask = Task.Run(() => BulkInsertCustomerModelToMySQL(customerRows));
-                    //Task insertCustomerScoreTask = Task.Run(() => BulkInsertCustomerScoreToMySQL(customerScoreRows));
-                    //await Task.WhenAll(insertCustomerModelTask, insertCustomerScoreTask);
+                    Task insertCustomerScoreTask = Task.Run(() => BulkInsertCustomerScoreToMySQL(customerScoreRows));
+                    await Task.WhenAll(insertCustomerModelTask, insertCustomerScoreTask);
                     var importHistories = customerRows.GroupBy(p => p.Source)
                                     .Select(p => new ImportDataHistory { ImportName = ImportNames.ImportCustomerScore, Source = p.Key, FileName = formFile.FileName, ImportByEmail = userEmail, TotalRows = p.Count() });
                     importDataToQueueService.InsertImportHistory(sqlConnectionStr, importHistories);
-                    shouldSendEmail= importProcess.ShouldSendEmail = importProcess.CustomerImports.Count > shouldSendEmailWhenReachLimit;
+                    importProcess.ShouldSendEmail = importProcess.CustomerImports.Count > shouldSendEmailWhenReachLimit;
                     shouldSendEmail = shouldSendEmail || importProcess.ShouldSendEmail;
                     importDataToQueueService.InsertOrUpdateLeadManagementReport(sqlConnectionStr, importProcess);
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
-                }                
+                }
                 return Results.Ok(new { totalRows, errorList, shouldSendEmail });
             });
 

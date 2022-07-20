@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AppExtension\**" />
+    <Content Remove="AppExtension\**" />
+    <EmbeddedResource Remove="AppExtension\**" />
+    <None Remove="AppExtension\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.12.0" />
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="EPPlus" Version="6.0.3" />
@@ -23,7 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="AppExtension\" />
     <None Include="web.config" CopyToOutputDirectory="Always" />
   </ItemGroup>
 

@@ -94,7 +94,7 @@ namespace BITool.Services
                {
                    CustomerMobileNo = p.Key,
                    DateOccurred = p.FirstOrDefault().DateOccurred,
-                   TotalPoints = p.Sum(q=>q.TotalPoints),
+                   ScoreIds = p.SelectMany(q => q.ScoreIds).ToList(),
                    Source = p.FirstOrDefault().Source
                }).ToList();
             var listCount = input.CustomerImports.Count;
@@ -102,20 +102,19 @@ namespace BITool.Services
             watch.Stop();
             logger.LogInformation($"customerImports after group-by count{listCount} Time: ${watch.Elapsed.TotalSeconds} s");
             watch.Restart();
-            
-            //List<AdminScoreDto> adminScores = null;
-            //if (!memoryCache.TryGetValue(CacheKeys.GetAdminScoresKey, out adminScores))
-            //{
-            //    adminScores = GetAdminScores(sqlConnectionStr);
-            //    var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-            //    memoryCache.Set(CacheKeys.GetAdminScoresKey, adminScores, cacheOptions);
-            //}
+            List<AdminScoreDto> adminScores = null;
+            if (!memoryCache.TryGetValue(CacheKeys.GetAdminScoresKey, out adminScores))
+            {
+                adminScores = GetAdminScores(sqlConnectionStr);
+                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+                memoryCache.Set(CacheKeys.GetAdminScoresKey, adminScores, cacheOptions);
+            }
 
-            //var occuranceScoreList = adminScores.Where(p => p.ScoreCategory.Equals(ScoreTitleType.Occurance, StringComparison.OrdinalIgnoreCase))
-            //                                   .ToList();
+            var occuranceScoreList = adminScores.Where(p => p.ScoreCategory.Equals(ScoreTitleType.Occurance, StringComparison.OrdinalIgnoreCase))
+                                               .ToList();
 
-            //var resultsScoreList = adminScores.Where(p => p.ScoreCategory.Equals(ScoreTitleType.Results, StringComparison.OrdinalIgnoreCase))
-            //                                   .ToList();
+            var resultsScoreList = adminScores.Where(p => p.ScoreCategory.Equals(ScoreTitleType.Results, StringComparison.OrdinalIgnoreCase))
+                                               .ToList();
 
             var packageCount = (listCount - 1) / DEFAULT_BATCH_SIZE + 1;
             watch.Stop();
@@ -128,7 +127,7 @@ namespace BITool.Services
                 if (i == packageCount - 1)
                     itemCount = (listCount - i * DEFAULT_BATCH_SIZE);
                 var rangeCustomerImports = input.CustomerImports.GetRange(i * DEFAULT_BATCH_SIZE, itemCount);
-                await ProcessRangeReportItems(sqlConnectionStr, /*adminScores, occuranceScoreList,resultsScoreList,*/ rangeCustomerImports);
+                await ProcessRangeReportItems(sqlConnectionStr, adminScores, occuranceScoreList, resultsScoreList, rangeCustomerImports);
                 watch.Stop();
                 timeCount += watch.Elapsed.TotalSeconds;
                 logger.LogInformation($"ProcessRangeReportItems pack: {i}. Time: {watch.Elapsed.TotalSeconds} s");
@@ -189,9 +188,9 @@ namespace BITool.Services
 
         private async Task ProcessRangeReportItems(
             string sqlConnectionStr,
-            //List<AdminScoreDto> adminScores,
-            //List<AdminScoreDto> occuranceScoreList,
-            //List<AdminScoreDto> resultsScoreList,
+            List<AdminScoreDto> adminScores,
+            List<AdminScoreDto> occuranceScoreList,
+            List<AdminScoreDto> resultsScoreList,
             List<CustomerImportDto> customerImports)
         {
             int index = 0;
@@ -207,48 +206,43 @@ namespace BITool.Services
                         Source = item.Source,
                         CustomerMobileNo = item.CustomerMobileNo,
                         DateFirstAdded = item.DateOccurred,
-                        TotalPoints= item.TotalPoints,
                         //DateLastOccurred = item.DateOccurred
                     };
                     newLeadManagementReports.Add(reportItem);
                 }
-                else
-                {
-                    reportItem.TotalPoints += item.TotalPoints;
-                }
                 reportItem.DateLastOccurred = item.DateOccurred;
-                //foreach (var scoreId in item.ScoreIds)
-                //{
-                //    var score = adminScores.FirstOrDefault(p => p.ScoreID == scoreId);
-                //    if (score != null)
-                //    {
-                //        if (score.ScoreCategory.Equals(ScoreTitleType.Occurance, StringComparison.OrdinalIgnoreCase))
-                //        {
-                //            index = occuranceScoreList.FindIndex(p => p.ScoreID == score.ScoreID);
-                //            switch (index)
-                //            {
-                //                case 0: { reportItem.OccuranceTotalFirstScore += score.Points; break; }
-                //                case 1: { reportItem.OccuranceTotalSecondScore += score.Points; break; }
-                //                case 2: { reportItem.OccuranceTotalThirdScore += score.Points; break; }
-                //                case 3: { reportItem.OccuranceTotalFourthScore += score.Points; break; }
-                //                case 4: { reportItem.OccuranceTotalFifthScore += score.Points; break; }
-                //                default: break;
-                //            }
-                //        }
-                //        else
-                //        {
-                //            index = resultsScoreList.FindIndex(p => p.ScoreID == score.ScoreID);
-                //            switch (index)
-                //            {
-                //                case 0: { reportItem.ResultsTotalFirstScore += score.Points; break; }
-                //                case 1: { reportItem.ResultsTotalSecondScore += score.Points; break; }
-                //                case 2: { reportItem.ResultsTotalThirdScore += score.Points; break; }
-                //                case 3: { reportItem.ResultsTotalFourthScore += score.Points; break; }
-                //                default: break;
-                //            }
-                //        }
-                //    }
-                //}
+                foreach (var scoreId in item.ScoreIds)
+                {
+                    var score = adminScores.FirstOrDefault(p => p.ScoreID == scoreId);
+                    if (score != null)
+                    {
+                        if (score.ScoreCategory.Equals(ScoreTitleType.Occurance, StringComparison.OrdinalIgnoreCase))
+                        {
+                            index = occuranceScoreList.FindIndex(p => p.ScoreID == score.ScoreID);
+                            switch (index)
+                            {
+                                case 0: { reportItem.OccuranceTotalFirstScore += score.Points; break; }
+                                case 1: { reportItem.OccuranceTotalSecondScore += score.Points; break; }
+                                case 2: { reportItem.OccuranceTotalThirdScore += score.Points; break; }
+                                case 3: { reportItem.OccuranceTotalFourthScore += score.Points; break; }
+                                case 4: { reportItem.OccuranceTotalFifthScore += score.Points; break; }
+                                default: break;
+                            }
+                        }
+                        else
+                        {
+                            index = resultsScoreList.FindIndex(p => p.ScoreID == score.ScoreID);
+                            switch (index)
+                            {
+                                case 0: { reportItem.ResultsTotalFirstScore += score.Points; break; }
+                                case 1: { reportItem.ResultsTotalSecondScore += score.Points; break; }
+                                case 2: { reportItem.ResultsTotalThirdScore += score.Points; break; }
+                                case 3: { reportItem.ResultsTotalFourthScore += score.Points; break; }
+                                default: break;
+                            }
+                        }
+                    }
+                }
             }
             if (leadManagementReports.Any())
             {
@@ -310,6 +304,7 @@ namespace BITool.Services
                 connection.Open();
                 var bulkCopy = new MySqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = TableName.LeadManagementReport;
+                //bulkCopy.ColumnMappings.AddRange(dataTable.GetMySqlColumnMapping());
                 bulkCopy.BulkCopyTimeout = 0;
                 await bulkCopy.WriteToServerAsync(dataTable);
             }

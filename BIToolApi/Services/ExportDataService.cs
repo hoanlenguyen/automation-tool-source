@@ -1,5 +1,6 @@
 ﻿using BITool.Enums;
 using BITool.Models;
+using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
@@ -141,6 +142,12 @@ namespace BITool.Services
             {
                 ProcessInputValues(ref input);               
                 var totalCount = GetTotalCountByFilter(sqlConnectionStr, ref input);
+                if (input.AssignedCampaignID != null)
+                {
+                    using var connection = new MySqlConnection(sqlConnectionStr);
+                    var recordCount = connection.Query<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID= {input.AssignedCampaignID.Value} ;").FirstOrDefault();
+                    if(recordCount< totalCount) totalCount = recordCount;
+                }     
                 return Results.Ok(new { totalCount });
             });
 
@@ -218,6 +225,43 @@ namespace BITool.Services
                     () => { exportDataToQueue.UpdateLastUsedCampaign(sqlConnectionStr, processAssign); });
 
                 return Results.Ok(new { processAssign.ShouldSendEmail });
+            });
+
+            app.MapDelete("data/removeAssignedCampaign/{id:int}", [Authorize]
+            async Task<IResult> (int id) =>
+            {
+                using var connection = new MySqlConnection(sqlConnectionStr);
+                connection.Open();
+                var commandStr = $"delete from RecordCustomerExport where CampaignID = {id}";
+                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                {
+                    myCmd.CommandType = CommandType.Text;
+                    myCmd.ExecuteNonQuery();
+                }
+ 
+                commandStr = $"update leadmanagementreport set LastUsedCampaignId = null where LastUsedCampaignId = {id}";
+                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                {
+                    myCmd.CommandType = CommandType.Text;
+                    myCmd.ExecuteNonQuery();
+                }
+
+                commandStr = $"update leadmanagementreport set SecondLastUsedCampaignId = null where SecondLastUsedCampaignId = {id}";
+                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                {
+                    myCmd.CommandType = CommandType.Text;
+                    myCmd.ExecuteNonQuery();
+                }
+
+                commandStr = $"update leadmanagementreport set ThirdLastUsedCampaignId = null where ThirdLastUsedCampaignId = {id}";
+                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                {
+                    myCmd.CommandType = CommandType.Text;
+                    myCmd.ExecuteNonQuery();
+                }
+
+                connection.Close();
+                return Results.Ok();
             });
         }
     }

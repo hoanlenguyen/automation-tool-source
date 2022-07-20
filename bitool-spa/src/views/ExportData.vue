@@ -105,11 +105,11 @@
 
       <b-field class="mb-3">
         <div class="mr-3">
-          <p class="subtitle is-6 pt-3">Last 3 Campaigns Used</p>
+          <p class="subtitle is-6 pt-3">Assgined Campaign</p>
         </div>
         <b-select
           placeholder="Select campaign"
-          v-model="filter.campaignID"
+          v-model="filter.assignedCampaignID"
           clearable>
           <option
             v-for="option in adminCampaigns"
@@ -117,14 +117,7 @@
             :key="option.campaignID">
             {{ option.campaignName }}
           </option>
-        </b-select>
-        <b-button
-          label="Confirm"
-          type="is-primary"
-          @click="assignCampaignToCustomers"
-          :disabled="!filter.campaignID"
-          :loading="isConfirmingCampaign"
-        />
+        </b-select>        
       </b-field>
 
       <b-field grouped class="mb-3">
@@ -437,6 +430,7 @@ export default {
         dateLastExportedFrom: null,
         dateLastExportedTo: null,
 
+        assignedCampaignID:null,
         last3CampaignsUsed:null,
 
         dateLastOccurredFrom:null,
@@ -481,6 +475,7 @@ export default {
         dateLastExportedFrom: null,
         dateLastExportedTo: null,
 
+        assignedCampaignID:null,
         last3CampaignsUsed:null,
 
         dateLastOccurredFrom:null,

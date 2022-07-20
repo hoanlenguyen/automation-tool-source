@@ -429,7 +429,7 @@ namespace BITool.Services
                 watch.Stop();
                 Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
 
-                return Results.Ok(new { totalRows= rowCount, errorList, shouldSendEmail=false });
+                return Results.Ok(new { totalRows= rowCount -1, errorList, shouldSendEmail=false });//remove the header in total rows
             });
 
             app.MapPost("data/compareCustomerMobiles", [Authorize][DisableRequestSizeLimit]

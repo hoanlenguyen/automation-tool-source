@@ -181,7 +181,6 @@ namespace BITool.Services
             }
             catch (Exception ex)
             {
-                //throw;
                 logger.LogError($"ImplementInsertImportHistory error: {ex.Message}");
             }
         }
@@ -206,7 +205,6 @@ namespace BITool.Services
                         Source = item.Source,
                         CustomerMobileNo = item.CustomerMobileNo,
                         DateFirstAdded = item.DateOccurred,
-                        //DateLastOccurred = item.DateOccurred
                     };
                     newLeadManagementReports.Add(reportItem);
                 }
@@ -258,7 +256,6 @@ namespace BITool.Services
 
                 var bulkCopy = new MySqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = "temp_leadmanagementreport";
-                //bulkCopy.ColumnMappings.AddRange(dataTable.GetMySqlColumnMapping());
                 bulkCopy.BulkCopyTimeout = 0;
                 await bulkCopy.WriteToServerAsync(dataTable);
                 commandStr = "UPDATE leadmanagementreport AS l " +

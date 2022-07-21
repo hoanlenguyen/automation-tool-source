@@ -221,7 +221,6 @@ namespace BITool.Services
                             long? validPhoneNumber = null;
                             var isValidScoreTiltles = true;
                             var isValidSource = true;
-                            //string dateOccurred;
                             string source;
                             string customerMobileNo;
                             string scoreTitle;
@@ -229,13 +228,10 @@ namespace BITool.Services
                             int scoreId;
                             var cells = new List<string>();
                             var errorDetails = new List<string>();
-                            //worksheet.Cells[2, 1, rowCount, 1].Style.Numberformat.Format = "dd/MM/yyyy";
-                            //worksheet.Cells[2, 3, rowCount, 3].Style.Numberformat.Format = "text";
                             for (int row = 2; row <= rowCount; row++)
                             {
-                                //dateOccurred = (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();
                                 source = sourceName ?? (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();
-                                customerMobileNo = (worksheet.Cells[row, 2]?/*.Value*/.Text ?? string.Empty)/*.ToString()*/.Trim();
+                                customerMobileNo = (worksheet.Cells[row, 2]?.Text ?? string.Empty).Trim();
                                 scoreTitle = (worksheet.Cells[row, 3]?.Text ?? string.Empty).Trim();
                                 //parsedDateOccurred = CheckValidDate(dateOccurred);
                                 validPhoneNumber = CheckValidPhoneNumber(customerMobileNo);

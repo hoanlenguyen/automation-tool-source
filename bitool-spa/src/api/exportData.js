@@ -31,3 +31,9 @@ export function assignCampaignToCustomers(data) {
       data
     })
 }
+
+export function removeAssignedCampaign(id) {
+  return request({
+    url: `/data/removeAssignedCampaign/${id}`,
+    method: 'delete'})
+}

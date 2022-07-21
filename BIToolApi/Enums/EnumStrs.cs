@@ -50,6 +50,8 @@
         public const string GetTotalCountByPointsRange = "SP_Filter_GetTotalCountByRange";
 
         public const string GetSummarySourceReport = "SP_Filter_GetSummarySourceReport";
+
+        public const string GetRecordCustomerExport = "SP_Filter_RecordCustomerExport";
     }
 
     public static class AzureBlobConfig

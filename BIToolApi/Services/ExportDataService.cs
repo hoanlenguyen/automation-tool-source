@@ -140,13 +140,22 @@ namespace BITool.Services
             app.MapPost("data/getCustomerCountBySP", [Authorize]
             async Task<IResult>([FromBody] ExportDataFilter input) =>
             {
+                Console.WriteLine($"AssignedCampaignID {input.AssignedCampaignID}");
                 ProcessInputValues(ref input);               
                 var totalCount = GetTotalCountByFilter(sqlConnectionStr, ref input);
                 if (input.AssignedCampaignID != null)
                 {
                     using var connection = new MySqlConnection(sqlConnectionStr);
-                    var recordCount = connection.Query<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID= {input.AssignedCampaignID.Value} ;").FirstOrDefault();
-                    if(recordCount< totalCount) totalCount = recordCount;
+                    if (input.AssignedCampaignID.Value == 0)
+                    {
+                        var recordCount = connection.Query<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport;").FirstOrDefault();
+                        if (recordCount < totalCount) totalCount -= recordCount;
+                    }
+                    else
+                    {
+                        var recordCount = connection.Query<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID= {input.AssignedCampaignID.Value} ;").FirstOrDefault();
+                        if (recordCount < totalCount) totalCount = recordCount;
+                    }  
                 }     
                 return Results.Ok(new { totalCount });
             });
@@ -179,7 +188,8 @@ namespace BITool.Services
                 var result = new List<string>();
                 using var conn = new MySqlConnection(sqlConnectionStr);
                 conn.Open();
-                var cmd = GetMySqlCommandStoreProcedureFromFilter(conn, StoredProcedureName.GetCustomersByFilter, ref input);
+                Console.WriteLine($"AssignedCampaignID: {input.AssignedCampaignID}");
+                var cmd = GetMySqlCommandStoreProcedureFromFilter(conn,input.AssignedCampaignID==null? StoredProcedureName.GetCustomersByFilter:StoredProcedureName.GetRecordCustomerExport, ref input);
                 for (int i = 0; i < packageCount; i++)
                 {
                     var itemCount = maxSheetCount;
@@ -195,6 +205,7 @@ namespace BITool.Services
                     sheet.Cells[1, 1, itemCount, 1].LoadFromDataReader(rdr, false);
                     result.Add(await fileService.SaveAndGetFullUrl(package.GetAsByteArray(), $"{nowStr}-customer-page-{i + 1}.xlsx", folder: folderName));
                 }
+                await conn.CloseAsync();
                 return Results.Ok(new { result });
             });
 

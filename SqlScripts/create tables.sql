@@ -45,7 +45,7 @@ create table AdminCampaign(
 create table Customer(
    CustomerID INT NOT NULL AUTO_INCREMENT,
    DateFirstAdded DATETIME NOT NULL,
-   CustomerMobileNo VARCHAR(20) NOT NULL,
+   CustomerMobileNo BigInt NOT NULL,
    Status INT NOT null,
    LastUpdatedBy INT,
    LastUpdatedON DATETIME, 
@@ -57,7 +57,7 @@ create table Customer(
 
 create table CustomerScore(
    CustomerScoreID INT NOT NULL AUTO_INCREMENT,
-   CustomerMobileNo VARCHAR(20) NOT NULL,
+   CustomerMobileNo BigInt NOT NULL,
    ScoreID INT NOT NULL,
    DateOccurred DATETIME NOT NULL,
    Status INT NOT null,
@@ -69,7 +69,7 @@ create table CustomerScore(
 
 create table RecordCustomerExport(
    ID INT NOT NULL AUTO_INCREMENT,
-   CustomerMobileNo VARCHAR(20) NOT NULL,
+   CustomerMobileNo BigInt NOT NULL,
    CampaignID INT NOT NULL,
    DateExported DATETIME NOT NULL,
    Status INT NOT null,
@@ -97,7 +97,7 @@ create table LeadManagementReport(
    ID INT NOT NULL AUTO_INCREMENT,
    
    -- customer
-   CustomerMobileNo VARCHAR(20) NOT NULL,
+   CustomerMobileNo BigInt NOT NULL,
    DateFirstAdded DATETIME NOT NULL,
    
    -- CAMPAIGNS

@@ -100,6 +100,7 @@ export default {
             });
             this.$router.push({ name: 'import-data' });
           }else{
+            //console.log('login fail');
             setToken('');
             this.$buefy.snackbar.open({
               message: "login failed!",
@@ -109,10 +110,12 @@ export default {
         })
         .catch((error) => {
           setToken('');
-          // this.$buefy.snackbar.open({
-          //   message: "login failed!",
-          //   queue: false
-          // });
+          console.log('login fail');
+          console.log(error.response);
+          this.$buefy.snackbar.open({
+            message: "Login failed!",
+            queue: false
+          });
         })
         .finally(() => {
           this.isLoading = false;

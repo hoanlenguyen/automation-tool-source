@@ -105,7 +105,7 @@
 
       <b-field class="mb-3">
         <div class="mr-3">
-          <p class="subtitle is-6 pt-3">Assgined Campaign</p>
+          <p class="subtitle is-6 pt-3">Tagged Campaign</p>
         </div>
         <!--<b-select
           placeholder="Select campaign"
@@ -122,22 +122,14 @@
           <multiselect
             v-model="selectAssignedCampaign"
             tag-placeholder=""
-            placeholder="Select assigned campaign"
+            placeholder="Select Tagged campaign"
             label="campaignName"
             track-by="campaignID"
             :options="customizedAdminCampaigns"
             selectLabel="Add"
             deselectLabel="Remove"
           ></multiselect>  
-        </b-field>
-        <b-button
-          v-show="selectAssignedCampaign &&selectAssignedCampaign.campaignID>0"
-          label="Remove Assigned campaign"
-          type="is-info"
-          class="ml-3"
-          :loading="loadingRemoveAssignedCampaign"
-          @click="removeAssignedCampaign"
-          />
+        </b-field>        
       </b-field>
 
       <b-field grouped class="mb-3">
@@ -333,6 +325,7 @@
           <b-input v-model="filter.exportVsPointsNumberTo" type="number"></b-input>
         </b-field>  
       </b-field>
+      
 
       <b-field grouped class="mb-3">
         <div class="mr-3">
@@ -404,7 +397,7 @@
             @click="assignCampaignToCustomers"
             :disabled="!filter.campaignID"
             :loading="isConfirmingCampaign"
-          />
+          />          
         </b-field>
       </b-field>
         <b-modal v-model="isImageModalActive"  :width="`100%`" scroll="keep">

@@ -10,3 +10,5 @@
 /BIToolApi/Properties/PublishProfiles
 /BIToolApi/Properties/ServiceDependencies
 /.vs
+.vs
+obj

@@ -141,7 +141,7 @@ namespace BITool.Services
             List<AdminCampaignDto> GetAdminCampaigns()
             {
                 using var connection = new MySqlConnection(sqlConnectionStr);
-                return connection.Query<AdminCampaignDto>("SELECT * FROM admincampaign").ToList();
+                return connection.Query<AdminCampaignDto>("SELECT * FROM campaign where IsDeleted = 0").ToList();
             }
 
             #endregion Private

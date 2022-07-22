@@ -363,7 +363,7 @@ export default {
         channel:null,
         amount:0,
         pointRangeFrom:0,
-        pPointRangeTo:0,
+        pointRangeTo:0,
         remarks:null,
         id:0
       },
@@ -376,7 +376,7 @@ export default {
         channel:null,
         amount:0,
         pointRangeFrom:0,
-        pPointRangeTo:0,
+        pointRangeTo:0,
         remarks:null,
         id:0
       },

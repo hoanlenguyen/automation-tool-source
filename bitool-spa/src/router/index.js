@@ -63,6 +63,14 @@ const routes = [
   }, 
   {
     meta: {
+      title: 'Campaign'
+    },
+    path: '/campaign',
+    name: 'campaign',    
+    component: () => import('@/views/Campaign.vue')
+  },
+  {
+    meta: {
       title: 'Profile'
     },
     path: '/profile',

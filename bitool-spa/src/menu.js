@@ -18,6 +18,11 @@ export default [
       icon: 'checkbook'
     },
     {
+      to: '/campaign',
+      label: 'Campaign',
+      icon: 'book-open'
+    },
+    {
       to: '/import-history',
       label: 'Import history',
       icon: 'calendar-clock',

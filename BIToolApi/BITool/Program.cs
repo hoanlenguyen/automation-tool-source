@@ -1,5 +1,6 @@
 using BITool.BackgroundJobs;
 using BITool.DBContext;
+using BITool.Helpers;
 using BITool.Models.SignalR;
 using BITool.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -145,6 +146,9 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
     return new BackgroundTaskQueue(queueCapacity);
 });
 
+//add extra config
+MapperConfig.AddCustomConfigs();
+
 var app = builder.Build();
 
 // response ExceptionHandler
@@ -186,6 +190,7 @@ app.AddImportHistoryService(mySQLConnection.ConnectionString);
 app.AddCleanDataHistoryService(mySQLConnection.ConnectionString);
 app.AddOverallReportService(mySQLConnection.ConnectionString);
 app.AddSourceReportService(mySQLConnection.ConnectionString);
+app.AddCampaignDataService(mySQLConnection.ConnectionString);
 app.AddSignalRService();
 
 app.Run();

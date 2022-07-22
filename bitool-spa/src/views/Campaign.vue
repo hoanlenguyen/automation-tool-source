@@ -28,19 +28,82 @@
         field="Name"
         label="Name"
         sortable        
-        width="350px"
+        width="200px"
         v-slot="props"
       >       
       {{ props.row.name}}
       </b-table-column>
 
       <b-table-column
-        field="Status"
-        label="Status"
+        field="StartDate"
+        label="StartDate"
         sortable
         v-slot="props"
-        width="300px">        
-       <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
+        width="200px">
+       {{ props.row.startDate | dateTime('DD-MM-YYYY') }} 
+      </b-table-column>
+
+      <b-table-column
+        field="Brand"
+        label="Brand"
+        sortable
+        v-slot="props"
+        width="150px">
+       {{ props.row.brand }} 
+      </b-table-column>
+
+      <b-table-column
+        field="Channel"
+        label="Channel"
+        sortable
+        v-slot="props"
+        width="150px">
+       {{ props.row.channel }} 
+      </b-table-column>
+      
+      <b-table-column
+        field="Amount"
+        label="Amount"
+        sortable
+        v-slot="props"
+        width="150px">
+       {{ props.row.amount }} 
+      </b-table-column>
+
+      <b-table-column
+        field="PointRangeFrom"
+        label="Point Range From"
+        sortable
+        v-slot="props"
+        width="150px">
+       {{ props.row.pointRangeFrom }} 
+      </b-table-column>
+
+      <b-table-column
+        field="PointRangeTo"
+        label="Point Range To"
+        sortable
+        v-slot="props"
+        width="150px">
+       {{ props.row.pointRangeTo }} 
+      </b-table-column>
+       
+      <b-table-column
+        field="ExportTimeFrom"
+        label="Export Time From"
+        sortable
+        v-slot="props"
+        width="300px">
+       {{ props.row.exportTimeFrom |  dateTime('DD-MM-YYYY') }} 
+      </b-table-column>
+
+      <b-table-column
+        field="ExportTimeFrom"
+        label="ExportTimeTo"
+        sortable
+        v-slot="props"
+        width="300px">
+       {{ props.row.exportTimeTo |  dateTime('DD-MM-YYYY') }} 
       </b-table-column>
 
       <b-table-column
@@ -132,31 +195,105 @@
         </b-pagination>        
       </div>
     </b-table>
-    <b-modal v-model="isModalActive" trap-focus has-modal-card :can-cancel="false" width="1200" scroll="keep">
-      <form action="">
-        <div class="modal-card">
-            <header class="modal-card-head">
-                <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
-            </header>
-            <section class="modal-card-body">
-              <b-field>
-                <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
-              </b-field>
-              <b-field label="Name">
-                  <b-input
-                    type="Text"
-                    v-model="model.name"
-                    placeholder="Name...."
-                    required>
-                  </b-input>
-              </b-field>                 
-            </section>
-            <footer class="modal-card-foot">
-                <b-button label="Cancel" @click="cancelCreateOrUpdate" />
-                <b-button :label="model.id==0?'Create':'Update'"type="is-primary" @click="createOrUpdateModel"/>
-            </footer>
-        </div>
-      </form>
+    <b-modal v-model="isModalActive" trap-focus has-modal-card full-screen :can-cancel="false" scroll="keep">
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
+        </header>
+        <section class="modal-card-body">
+          <div class="columns">
+            <b-field label="Name" class="column is-3">
+              <b-input
+                type="Text"
+                v-model="model.name"
+                required>
+              </b-input>
+            </b-field>
+
+            <b-field label="Start Date" class="column is-3">
+              <b-datepicker
+              icon="calendar-today"
+              locale="en-SG"
+              v-model="startDate"
+              editable>
+              </b-datepicker>
+            </b-field> 
+
+            <b-field label="Brand" class="column is-3">
+              <b-input
+                type="Text"
+                v-model="model.brand"
+                required>
+              </b-input>
+            </b-field>
+
+            <b-field label="Channel" class="column is-3">
+              <b-input
+                type="Text"
+                v-model="model.channel"
+                required>
+              </b-input>
+            </b-field>          
+          </div>
+
+          <div class="columns">
+            <b-field label="Amount" class="column is-3">
+              <b-input
+                type="Number"
+                v-model="model.amount"
+                required>
+              </b-input>
+            </b-field>
+
+            <b-field label="Point Range From" class="column is-3">
+              <b-input
+                type="Number"
+                v-model="model.pointRangeFrom"
+                required>
+              </b-input>
+            </b-field>
+
+            <b-field label="Point Range To" class="column is-3">
+              <b-input
+                type="Number"
+                v-model="model.pointRangeTo"
+                required>
+              </b-input>
+            </b-field>
+
+            <b-field label="Remarks" class="column is-3">
+              <b-input
+                type="Text"
+                v-model="model.remarks">
+              </b-input>
+            </b-field>          
+          </div>
+
+        <div class="columns">
+          <b-field label="Export Time From" class="column is-3">
+            <b-datepicker
+            icon="calendar-today"
+            locale="en-SG"
+            v-model="exportTimeFrom"
+            editable>
+            </b-datepicker>
+          </b-field> 
+
+          <b-field label="Export Time To" class="column is-3">
+            <b-datepicker
+            icon="calendar-today"
+            locale="en-SG"
+            v-model="exportTimeTo"
+            editable>
+            </b-datepicker>
+          </b-field> 
+        </div>                 
+        </section>
+        <footer class="modal-card-foot">
+            <b-button label="Close" @click="cancelCreateOrUpdate" />
+            <b-button :label="model.id==0?'Create':'Update'"type="is-primary" @click="createOrUpdateModel"/>
+        </footer>
+    </div>
     </b-modal>
 
     <b-modal v-model="isDeleteModalActive" trap-focus has-modal-card auto-focus :can-cancel="false" scroll="keep">
@@ -173,9 +310,10 @@
   </section>
 </template>
 <script>
-//import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/bank";
+import moment from "moment";
+import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/campaign";
 export default {
-  name:"bank",
+  name:"campaign",
   created() {
     this.getList();
   },
@@ -218,17 +356,36 @@ export default {
       },
       model:{
         name:null,
-        status:true,
+        startDate:null,
+        exportTimeFrom:null,
+        exportTimeTo:null,    
+        brand:null,
+        channel:null,
+        amount:0,
+        pointRangeFrom:0,
+        pPointRangeTo:0,
+        remarks:null,
         id:0
       },
       defaultModel:{
         name:null,
-        status:true,
+        startDate:null,
+        exportTimeFrom:null,
+        exportTimeTo:null,   
+        brand:null,
+        channel:null,
+        amount:0,
+        pointRangeFrom:0,
+        pPointRangeTo:0,
+        remarks:null,
         id:0
       },
       isModalActive:false,
       isDeleteModalActive:false,
       selectedId:null,
+      startDate:null,
+      exportTimeFrom:null,
+      exportTimeTo:null      
     };
   },
   watch: {},
@@ -270,12 +427,26 @@ export default {
     },
     closeModalDialog(){
       this.model= {...this.defaultModel};
+      this.startDate= null;
+      this.exportTimeFrom= null;
+      this.exportTimeTo= null;
       this.isModalActive= false;
     },
     cancelCreateOrUpdate(){
       this.closeModalDialog();
     },
     createOrUpdateModel(){
+      if(this.startDate){
+        this.model.startDate = `${this.startDate.getFullYear()}-${('0' + (this.startDate.getMonth()+1)).slice(-2)}-${('0' + this.startDate.getDate()).slice(-2)}`;
+      }
+
+      if(this.exportTimeFrom){
+        this.model.exportTimeFrom = `${this.exportTimeFrom.getFullYear()}-${('0' + (this.exportTimeFrom.getMonth()+1)).slice(-2)}-${('0' + this.exportTimeFrom.getDate()).slice(-2)}`;
+      }
+
+      if(this.exportTimeTo){
+        this.model.exportTimeTo = `${this.exportTimeTo.getFullYear()}-${('0' + (this.exportTimeTo.getMonth()+1)).slice(-2)}-${('0' + this.exportTimeTo.getDate()).slice(-2)}`;
+      }
       createOrUpdate(this.model)
       .then((response) => {
         if (response.status == 200) {
@@ -293,6 +464,9 @@ export default {
     },
     editModel(input){
       this.model= {...input};
+      this.startDate=this.model.startDate? moment(this.model.startDate,'YYYY-MM-DD').toDate():null;
+      this.exportTimeFrom=this.model.exportTimeFrom? moment(this.model.exportTimeFrom,'YYYY-MM-DD').toDate():null;
+      this.exportTimeTo=this.model.exportTimeTo? moment(this.model.exportTimeTo,'YYYY-MM-DD').toDate():null;
       this.isModalActive= true;
     },
     deleteData(){

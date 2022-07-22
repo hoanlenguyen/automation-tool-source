@@ -1,9 +1,15 @@
 ﻿namespace BITool.Enums
 {
+    public static class SortDirection
+    {
+        public const string ASC = "asc";
+        public const string DESC = "desc";
+    }
+
     public static class CacheKeys
     {
-        public const string GetAdminScoresKey = "getAdminScores";
-        public const string GetAdminCampaignsKey = "getAdminCampaigns";
+        public const string GetAdminScoresKey = "GetAdminScoresKey";
+        public const string GetCampaignsDropdown = "GetCampaignsDropdown";
     }
 
     public static class ScoreTitleType

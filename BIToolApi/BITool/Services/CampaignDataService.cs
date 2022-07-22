@@ -1,102 +1,153 @@
-﻿using BITool.Enums;
+﻿using BITool.DBContext;
+using BITool.Enums;
 using BITool.Helpers;
 using BITool.Models;
 using Dapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 using System.Data;
+using System.Security.Claims;
 
 namespace BITool.Services
 {
     public static class CampaignDataService
     {
+        private static void ProcessFilterValues(ref CampaignFilterDto input)
+        {
+            if (!string.IsNullOrEmpty(input.Keyword))
+                input.Keyword = input.Keyword.Trim();
+
+            if (string.IsNullOrEmpty(input.SortBy))
+                input.SortBy = "Id";
+            if (string.IsNullOrEmpty(input.SortDirection))
+                input.SortDirection = SortDirection.DESC;
+        }
+
+        private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
+        {
+            using var connection = new MySqlConnection(sqlConnectionStr);
+            return connection.Query<BaseDropdown>("select Id, Name from Campaign where IsDeleted = 0").ToList();
+        }
+
         public static void AddCampaignDataService(this WebApplication app, string sqlConnectionStr)
         {
-            static void ProcessInputValues(ref CleanDataHistoryFilter input)
+            app.MapGet("Campaign/{id:int}", [Authorize]
+            async Task<IResult> (
+            [FromServices] ApplicationDbContext db,
+            int id) =>
             {
-                if (input.CleanTimeFrom != null)
-                    input.CleanTimeFrom = input.CleanTimeFrom.Value.Date;
-
-                if (input.CleanTimeTo != null)
-                    input.CleanTimeTo = input.CleanTimeTo.Value.Date.AddDays(1).AddMilliseconds(-1);
-
-                if (string.IsNullOrEmpty(input.SortBy))
-                    input.SortBy = "ID";
-                if (string.IsNullOrEmpty(input.SortDirection))
-                    input.SortDirection = "desc";
-            }
-
-            static int GetTotalCountByFilter(string sqlConnectionStr, ref CleanDataHistoryFilter input)
-            {
-                using (var conn = new MySqlConnection(sqlConnectionStr))
-                {
-                    conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetCleanDataHistoryCountByFilter, conn);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@source", input.Source);
-
-                    cmd.Parameters.AddWithValue("@cleanTimeFrom", input.CleanTimeFrom);
-                    cmd.Parameters.AddWithValue("@cleanTimeTo", input.CleanTimeTo);
-
-                    MySqlDataReader rdr = cmd.ExecuteReader();
-                    int count = 0;
-                    while (rdr.Read())
-                        count = (int)rdr.GetInt64(0);
-                    rdr.Close();
-                    conn.Close();
-                    return count;
-                }
-            }
-
-            app.MapGet("cleanDataHistory/getSource", [Authorize] async Task<IResult> () =>
-            {
-                using var connection = new MySqlConnection(sqlConnectionStr);
-                var result = connection.Query<string>("select distinct Source from CleanDataHistory where Source is not null;");
-                return Results.Ok(result);
+                var entity = db.Campaign.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                if (entity == null)
+                    return Results.NotFound();
+                return Results.Ok(entity);
             });
 
-            app.MapPost("cleanDataHistory/paging", [AllowAnonymous] async Task<IResult> ([FromBody] CleanDataHistoryFilter input) =>
+            app.MapPost("Campaign", [Authorize]
+            async Task<IResult> (
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
+            [FromBody] CampaignCreateOrEditDto input
+            ) =>
             {
-                ProcessInputValues(ref input);
-                var totalCount = GetTotalCountByFilter(sqlConnectionStr, ref input);
-                using (var conn = new MySqlConnection(sqlConnectionStr))
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
+                var entity = input.Adapt<Campaign>();
+                entity.CreatorUserId = userId;
+                db.Add(entity);
+                db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetCampaignsDropdown);
+                return Results.Ok();
+            });
+
+            app.MapPut("Campaign", [Authorize]
+            async Task<IResult> (
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
+            [FromBody] CampaignCreateOrEditDto input) =>
+            {
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
+                var entity = db.Campaign.FirstOrDefault(x => x.Id == input.Id);
+                if (entity == null)
+                    return Results.NotFound();
+
+                input.Adapt(entity);
+                entity.LastModifierUserId = userId;
+                entity.LastModificationTime = DateTime.Now;
+                memoryCache.Remove(CacheKeys.GetCampaignsDropdown);
+                db.SaveChanges();
+                return Results.Ok();
+            });
+
+            app.MapDelete("Campaign/{id:int}", [Authorize]
+            async Task<IResult> (
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
+            int id) =>
+            {
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
+                var entity = db.Campaign.FirstOrDefault(x => x.Id == id);
+                if (entity == null)
+                    return Results.NotFound();
+
+                entity.IsDeleted = true;
+                entity.LastModifierUserId = userId;
+                entity.LastModificationTime = DateTime.Now;
+                db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetCampaignsDropdown);
+                return Results.Ok();
+            });
+
+            app.MapPost("Campaign/list", [Authorize]
+            async Task<IResult> (
+            [FromServices] ApplicationDbContext db,
+            [FromBody] CampaignFilterDto input) =>
+            {
+                ProcessFilterValues(ref input);
+                var query = db.Campaign.AsNoTracking()
+                            .Where(p => !p.IsDeleted)
+                            .WhereIf(!string.IsNullOrEmpty(input.Keyword),p=>p.Name.Contains(input.Keyword))
+                            ;
+                var totalCount= query.Count();
+                query = input.SortDirection switch
                 {
-                    conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetCleanDataHistoryByFilter, conn);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@source", input.Source);
-
-                    cmd.Parameters.AddWithValue("@cleanTimeFrom", input.CleanTimeFrom);
-                    cmd.Parameters.AddWithValue("@cleanTimeTo", input.CleanTimeTo);
-
-                    cmd.Parameters.AddWithValue("@sortBy", input.SortBy);
-                    cmd.Parameters.AddWithValue("@sortDirection", input.SortDirection);
-
-                    cmd.Parameters.AddWithValue("@exportOffset", input.SkipCount);
-                    cmd.Parameters.AddWithValue("@exportLimit", input.RowsPerPage);
-
-                    MySqlDataReader rdr = cmd.ExecuteReader();
-                    var items = new List<CleanDataHistory>();
-                    while (rdr.Read())
+                    SortDirection.ASC => input.SortBy switch
                     {
-                        items.Add(new CleanDataHistory
-                        {
-                            ID = CommonHelper.ConvertFromDBVal<int>(rdr["ID"]),
-                            FileName = CommonHelper.ConvertFromDBVal<string>(rdr["FileName"]),
-                            CleanTime = CommonHelper.ConvertFromDBVal<DateTime>(rdr["CleanTime"]),
-                            Source = CommonHelper.ConvertFromDBVal<string>(rdr["Source"]),
-                            TotalRows = CommonHelper.ConvertFromDBVal<int>(rdr["TotalRows"]),
-                            TotalInvalidNumbers = CommonHelper.ConvertFromDBVal<int>(rdr["TotalInvalidNumbers"]),
-                            TotalDuplicateNumbersInFile = CommonHelper.ConvertFromDBVal<int>(rdr["TotalDuplicateNumbersInFile"]),
-                            TotalDuplicateNumbersWithSystem = CommonHelper.ConvertFromDBVal<int>(rdr["TotalDuplicateNumbersWithSystem"])
-                        });
+                        nameof(Campaign.Name)=> query.OrderBy(p=>p.Name),
+                        nameof(Campaign.StartDate)=> query.OrderBy(p=>p.StartDate),
+                        _ => query.OrderBy(p => p.Id)
+                    },
+                    _ => input.SortBy switch
+                    {
+                        nameof(Campaign.Name) => query.OrderByDescending(p => p.Name),
+                        nameof(Campaign.StartDate)=> query.OrderByDescending(p=>p.StartDate),
+                        _ => query.OrderByDescending(p => p.Id)
                     }
-                    rdr.Close();
-                    conn.Close();
+                };
+                var items = query.Skip(input.SkipCount).Take(input.RowsPerPage).ToList();
+                return Results.Ok(new PagedResultDto<Campaign>(totalCount, items));                
+            });
 
-                    return Results.Ok(new PagedResultDto<CleanDataHistory>(totalCount, items));
+            app.MapGet("Campaign/dropdown", [Authorize]
+            async Task<IResult> (
+            [FromServices] IMemoryCache memoryCache) =>
+            {
+                List<BaseDropdown> items = null;
+                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+                if (!memoryCache.TryGetValue(CacheKeys.GetCampaignsDropdown, out items))
+                {
+                    items = GetBaseDropdown(sqlConnectionStr);
+                    memoryCache.Set(CacheKeys.GetCampaignsDropdown, items, cacheOptions);
                 }
+                return Results.Ok(items);
             });
         }
     }

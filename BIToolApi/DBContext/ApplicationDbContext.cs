@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using BITool.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BITool.DBContext
@@ -13,6 +14,7 @@ namespace BITool.DBContext
 
         public DbSet<AdminUser> AdminUser { get; set; }
         public DbSet<AdminUserRole> AdminUserRole { get; set; }
+        public DbSet<Campaign> Campaign { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -21,6 +23,7 @@ namespace BITool.DBContext
 
             modelBuilder.Entity<AdminUser>().ToTable("AdminUser");
             modelBuilder.Entity<AdminUserRole>().ToTable("AdminUserRole");
+            modelBuilder.Entity<Campaign>().ToTable("Campaign");
         }
     }
 }

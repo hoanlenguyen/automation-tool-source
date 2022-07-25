@@ -123,8 +123,8 @@
             v-model="selectAssignedCampaign"
             tag-placeholder=""
             placeholder="Select Tagged campaign"
-            label="campaignName"
-            track-by="campaignID"
+            label="name"
+            track-by="id"
             :options="customizedAdminCampaigns"
             selectLabel="Add"
             deselectLabel="Remove"
@@ -141,8 +141,8 @@
             v-model="selectLast3CampaignsUsed"
             tag-placeholder=""
             placeholder="Select campaigns"
-            label="campaignName"
-            track-by="campaignID"
+            label="name"
+            track-by="id"
             :options="adminCampaigns"
             :multiple="true"
             :max="3"
@@ -594,7 +594,7 @@ export default {
         .then((response) => {
           if (response.status == 200) {
             this.adminCampaigns = response.data;
-            this.customizedAdminCampaigns= [{campaignName:"None", campaignID:0},...this.adminCampaigns]
+            this.customizedAdminCampaigns= [{name:"None", id:0},...this.adminCampaigns]
           }
         })
         .catch((error) => {

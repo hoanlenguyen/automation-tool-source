@@ -138,10 +138,10 @@ namespace BITool.Services
                 return connection.Query<AdminScoreDto>("SELECT * FROM adminscore").ToList();
             }
 
-            List<AdminCampaignDto> GetAdminCampaigns()
+            List<BaseDropdown> GetAdminCampaigns()
             {
                 using var connection = new MySqlConnection(sqlConnectionStr);
-                return connection.Query<AdminCampaignDto>("SELECT * FROM campaign where IsDeleted = 0").ToList();
+                return connection.Query<BaseDropdown>("SELECT * FROM campaign where IsDeleted = 0").ToList();
             }
 
             #endregion Private

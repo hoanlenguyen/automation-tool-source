@@ -9,14 +9,16 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 using System.Data;
+using System.Diagnostics;
 
 namespace BITool.Services
 {
     public interface IExportDataToQueueService
     {
         void UpdateLastUsedCampaign(string sqlConnectionStr, ProcessLastUsedCampaign input);
-
         void BulkInsertCustomerCampaignToMySQL(string sqlConnectionStr, IEnumerable<long> customerMobileList, int campaignID, int userId);
+        void BulkInsertRecordCustomerExport(string sqlConnectionStr, int userId, CampaignCreateOrEditDto campaign);
+        void UpdateLastUsedCampaignOnLeadManagement(string sqlConnectionStr, CampaignCreateOrEditDto campaign);
     }
 
     public class ExportDataToQueueService : IExportDataToQueueService
@@ -56,6 +58,68 @@ namespace BITool.Services
         {
             Task.Run(async () => await taskQueue.QueueBackgroundWorkItemAsync(ct => ImplementBulkInsertCustomerCampaignToMySQL(cancellationToken, sqlConnectionStr, customerMobileList, campaignID, userId)));
         }
+
+        public void BulkInsertRecordCustomerExport(string sqlConnectionStr, int userId, CampaignCreateOrEditDto campaign)
+        {
+            Task.Run(async () => await taskQueue.QueueBackgroundWorkItemAsync(ct => ImplementBulkInsertRecordCustomerExport(cancellationToken, sqlConnectionStr, userId, campaign)));
+        }
+
+        public void UpdateLastUsedCampaignOnLeadManagement(string sqlConnectionStr, CampaignCreateOrEditDto campaign)
+        {
+            Task.Run(async () => await taskQueue.QueueBackgroundWorkItemAsync(ct => ImplementUpdateLastUsedCampaignOnLeadManagement(cancellationToken, sqlConnectionStr, campaign)));
+        }
+
+        private async ValueTask ImplementBulkInsertRecordCustomerExport(CancellationToken token,string sqlConnectionStr, int userId, CampaignCreateOrEditDto campaign)
+        {
+            if (token.IsCancellationRequested) return;
+            var watch = Stopwatch.StartNew();
+            logger.LogInformation($"{nameof(ImplementUpdateLastUsedCampaign) } - CampaignId {campaign.Id}");
+            using var connection = new MySqlConnection(sqlConnectionStr);
+            connection.Open();
+            var nowStr = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
+            if (campaign.PointRangeTo == 0) campaign.PointRangeTo = int.MaxValue;//
+            var commandStr = $"INSERT INTO recordcustomerexport (CustomerMobileNo, CampaignID, DateExported, Status, LastUpdatedBy, LastUpdatedON) " +
+                             $"SELECT l.CustomerMobileNo, {campaign.Id}, '{nowStr}', 1, {userId},'{nowStr}' " +
+                             $"FROM leadmanagementreport l " +
+                             $"WHERE l.TotalPoints >= {campaign.PointRangeFrom} and l.TotalPoints <= {campaign.PointRangeTo} " +
+                             $"order by l.ID desc " +
+                             $"limit {campaign.Amount}; ";
+            using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+            {
+                myCmd.CommandType = CommandType.Text;
+                myCmd.ExecuteNonQuery();
+            }
+            connection.Close();
+            watch.Stop();
+            logger.LogInformation($"Complete {nameof(ImplementUpdateLastUsedCampaign)}; Total time: {watch.Elapsed.TotalSeconds} s");
+        }
+
+        private async ValueTask ImplementUpdateLastUsedCampaignOnLeadManagement(CancellationToken token, string sqlConnectionStr, CampaignCreateOrEditDto campaign)
+        {
+            if (token.IsCancellationRequested) return;
+            var watch = Stopwatch.StartNew();
+            logger.LogInformation($"{nameof(ImplementUpdateLastUsedCampaignOnLeadManagement) } - CampaignId {campaign.Id}");
+            using var connection = new MySqlConnection(sqlConnectionStr);
+            connection.Open();
+            var nowStr = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
+            if (campaign.PointRangeTo == 0) campaign.PointRangeTo = int.MaxValue;//
+             var commandStr =   $"update leadmanagementreport " +
+                                $"set ThirdLastUsedCampaignId = SecondLastUsedCampaignId, SecondLastUsedCampaignId = LastUsedCampaignId, LastUsedCampaignId = {campaign.Id}, " +
+                                    $"DateLastExported = '{nowStr}', TotalTimesExported = TotalTimesExported + 1, " +
+                                    $"ExportVsPointsPercentage = if (TotalPoints = 0, 'No Occurance', CONCAT(CEILING(TotalPoints / TotalTimesExported) * 100, '%')), " +
+                                    $"ExportVsPointsNumber = TotalPoints - TotalTimesExported " +
+                                $"order by ID desc " +
+                                $"limit {campaign.Amount};";
+            using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+            {
+                myCmd.CommandType = CommandType.Text;
+                myCmd.ExecuteNonQuery();
+            }
+            connection.Close();
+            watch.Stop();
+            logger.LogInformation($"Complete {nameof(ImplementUpdateLastUsedCampaignOnLeadManagement)}; Total time: {watch.Elapsed.TotalSeconds} s");
+        }
+
 
         private async ValueTask ImplementUpdateLastUsedCampaign(CancellationToken token, string sqlConnectionStr, ProcessLastUsedCampaign input)
         {
@@ -141,7 +205,6 @@ namespace BITool.Services
 
                 var bulkCopy = new MySqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = "temp_leadmanagementreport";
-                //bulkCopy.ColumnMappings.AddRange(dataTable.GetMySqlColumnMapping());
                 bulkCopy.BulkCopyTimeout = 0;
                 var result = bulkCopy.WriteToServer(dataTable);
                 commandStr = "UPDATE leadmanagementreport AS l " +
@@ -169,6 +232,7 @@ namespace BITool.Services
                     myCmd.CommandType = CommandType.Text;
                     myCmd.ExecuteNonQuery();
                 }
+                connection.Close();
             }
         }
 
@@ -204,7 +268,7 @@ namespace BITool.Services
                 myCmd.CommandType = CommandType.Text;
                 myCmd.ExecuteNonQuery();
             }
-
+            connection.Close();
             return data;
         }
 
@@ -231,9 +295,9 @@ namespace BITool.Services
             bulkCopy.DestinationTableName = TableName.RecordCustomerExport;
             bulkCopy.BulkCopyTimeout = 0;
             await bulkCopy.WriteToServerAsync(dataTable);
-
             watch.Stop();
             Console.WriteLine($"Complete ImplementBulkInsertCustomerCampaignToMySQL: time {watch.Elapsed.TotalSeconds} s");
+            await connection.CloseAsync();
         }
     }
 }

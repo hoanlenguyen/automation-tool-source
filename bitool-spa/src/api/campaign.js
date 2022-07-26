@@ -34,3 +34,11 @@ export function getDropdown() {
     method: 'get'
   })
 }
+
+export function assignCampaign(input) {
+  return request({
+    url: 'campaign/assign',
+    method:'post',
+    data:input    
+  })
+}

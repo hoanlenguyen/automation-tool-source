@@ -29,6 +29,7 @@
         label="Name"
         sortable        
         width="200px"
+        header-class="is-size-7"
         v-slot="props"
       >       
       {{ props.row.name}}
@@ -36,10 +37,12 @@
 
       <b-table-column
         field="StartDate"
-        label="StartDate"
+        label="Start Date"
         sortable
         v-slot="props"
-        width="200px">
+        header-class="is-size-7"
+        cell-class="is-size-6"
+        width="250px">
        {{ props.row.startDate | dateTime('DD-MM-YYYY') }} 
       </b-table-column>
 
@@ -48,6 +51,7 @@
         label="Brand"
         sortable
         v-slot="props"
+        header-class="is-size-7"
         width="150px">
        {{ props.row.brand }} 
       </b-table-column>
@@ -57,6 +61,7 @@
         label="Channel"
         sortable
         v-slot="props"
+        header-class="is-size-7"
         width="150px">
        {{ props.row.channel }} 
       </b-table-column>
@@ -66,6 +71,7 @@
         label="Amount"
         sortable
         v-slot="props"
+        header-class="is-size-7"
         width="150px">
        {{ props.row.amount }} 
       </b-table-column>
@@ -75,7 +81,8 @@
         label="Point Range From"
         sortable
         v-slot="props"
-        width="150px">
+        header-class="is-size-7"
+        width="200px">  
        {{ props.row.pointRangeFrom }} 
       </b-table-column>
 
@@ -84,7 +91,8 @@
         label="Point Range To"
         sortable
         v-slot="props"
-        width="150px">
+        header-class="is-size-7"
+        width="200px">      
        {{ props.row.pointRangeTo }} 
       </b-table-column>
        
@@ -93,6 +101,7 @@
         label="Export Time From"
         sortable
         v-slot="props"
+        header-class="is-size-7"
         width="300px">
        {{ props.row.exportTimeFrom |  dateTime('DD-MM-YYYY') }} 
       </b-table-column>
@@ -102,6 +111,7 @@
         label="ExportTimeTo"
         sortable
         v-slot="props"
+        header-class="is-size-7"
         width="300px">
        {{ props.row.exportTimeTo |  dateTime('DD-MM-YYYY') }} 
       </b-table-column>
@@ -111,6 +121,7 @@
         label="CreationTime"
         sortable
         v-slot="props"
+        header-class="is-size-7"
         width="300px">
        {{ props.row.creationTime | dateTime }} 
       </b-table-column>
@@ -119,7 +130,7 @@
         field="Edit"
         label="Edit"        
         v-slot="props"
-        width="100px">        
+        width="120px">        
         <b-button 
           title="edit"          
           class="button mr-5"
@@ -287,11 +298,19 @@
             editable>
             </b-datepicker>
           </b-field> 
+
+          <b-field label="Campaign Action" class="column is-3" v-if="model.id">
+            <b-button
+            label="Assign Campaign"
+            type="is-primary"
+            @click="isAssignCampaignModalActive= true"
+            :loading="isLoadingAssignCampaign"/>
+          </b-field> 
         </div>                 
         </section>
         <footer class="modal-card-foot">
             <b-button label="Close" @click="cancelCreateOrUpdate" />
-            <b-button :label="model.id==0?'Create':'Update'"type="is-primary" @click="createOrUpdateModel"/>
+            <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
         </footer>
     </div>
     </b-modal>
@@ -299,11 +318,23 @@
     <b-modal v-model="isDeleteModalActive" trap-focus has-modal-card auto-focus :can-cancel="false" scroll="keep">
       <div class="modal-card" style="width:300px">
         <header class="modal-card-head">
-          <p class="modal-card-title">Are you sure to delete this data</p>                 
+          <p class="modal-card-title">Are you sure to delete this data?</p>                 
         </header>
         <footer class="modal-card-foot">
           <b-button label="Cancel" @click="isDeleteModalActive=false; selectedId=null" />
-          <b-button label="Confirm" type="is-info" @click="deleteData"/>
+          <b-button label="Confirm" type="is-danger is-dark" @click="deleteData"/>
+        </footer>
+        </div>
+    </b-modal>
+
+    <b-modal v-model="isAssignCampaignModalActive" trap-focus has-modal-card auto-focus :can-cancel="false" scroll="keep">
+      <div class="modal-card" style="width:500px">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Are you sure to assign this campaign to customers?</p>                 
+        </header>
+        <footer class="modal-card-foot">
+          <b-button label="Cancel" @click="isAssignCampaignModalActive=false" />
+          <b-button label="Confirm" type="is-info" @click="assignCampaign();isAssignCampaignModalActive=false"/>
         </footer>
         </div>
     </b-modal>
@@ -311,7 +342,7 @@
 </template>
 <script>
 import moment from "moment";
-import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/campaign";
+import { getDetail, getList, createOrUpdate, deleteData, assignCampaign  } from "@/api/campaign";
 export default {
   name:"campaign",
   created() {
@@ -382,6 +413,8 @@ export default {
       },
       isModalActive:false,
       isDeleteModalActive:false,
+      isLoadingAssignCampaign:false,
+      isAssignCampaignModalActive:false,
       selectedId:null,
       startDate:null,
       exportTimeFrom:null,
@@ -491,7 +524,38 @@ export default {
         this.isDeleteModalActive=true;
         this.selectedId= id;
       }
-    }
+    },
+    assignCampaign() {
+      this.isLoadingAssignCampaign = true;
+      assignCampaign(this.model)
+        .then((response) => {
+          if (response.status == 200) {
+                 this.$buefy.snackbar.open({
+                  message: `Assign campaign successfully!`,
+                  queue: false,
+                });
+            // var data = response.data;
+            // if(!data.shouldSendEmail){
+            //      this.$buefy.snackbar.open({
+            //       message: `Assign campaign successfully!`,
+            //       queue: false,
+            //     });
+            //   }else{
+            //     this.$buefy.snackbar.open({
+            //       message: `Assign campaign successfully!\nSystem will send email to inform when the new export data is ready`,
+            //       queue: false,
+            //       duration: 6000
+            //     });
+            //   }
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          this.isLoadingAssignCampaign = false;
+        });
+    },
   }
 };
 </script>

@@ -141,7 +141,7 @@ namespace BITool.Services
             List<BaseDropdown> GetAdminCampaigns()
             {
                 using var connection = new MySqlConnection(sqlConnectionStr);
-                return connection.Query<BaseDropdown>("SELECT * FROM campaign where IsDeleted = 0").ToList();
+                return connection.Query<BaseDropdown>("select Id, Name from Campaign where IsDeleted = 0").ToList();
             }
 
             #endregion Private

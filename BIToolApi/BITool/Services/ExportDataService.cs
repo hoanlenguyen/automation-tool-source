@@ -82,7 +82,7 @@ namespace BITool.Services
             if (string.IsNullOrEmpty(input.SortBy))
                 input.SortBy = "ID";
             if (string.IsNullOrEmpty(input.SortDirection))
-                input.SortDirection = "asc";
+                input.SortDirection = "desc";
         }
 
         private static MySqlCommand GetMySqlCommandStoreProcedureFromFilter(MySqlConnection mysqlConn, string spName,ref ExportDataFilter input)
@@ -189,7 +189,8 @@ namespace BITool.Services
                 using var conn = new MySqlConnection(sqlConnectionStr);
                 conn.Open();
                 Console.WriteLine($"AssignedCampaignID: {input.AssignedCampaignID}");
-                var cmd = GetMySqlCommandStoreProcedureFromFilter(conn,input.AssignedCampaignID==null? StoredProcedureName.GetCustomersByFilter:StoredProcedureName.GetRecordCustomerExport, ref input);
+                Console.WriteLine($"IsRemoveTaggedCampaign: {input.IsRemoveTaggedCampaign}");
+                var cmd = GetMySqlCommandStoreProcedureFromFilter(conn,input.AssignedCampaignID ==null? StoredProcedureName.GetCustomersByFilter:StoredProcedureName.GetRecordCustomerExport, ref input);
                 for (int i = 0; i < packageCount; i++)
                 {
                     var itemCount = maxSheetCount;
@@ -205,6 +206,15 @@ namespace BITool.Services
                     sheet.Cells[1, 1, itemCount, 1].LoadFromDataReader(rdr, false);
                     result.Add(await fileService.SaveAndGetFullUrl(package.GetAsByteArray(), $"{nowStr}-customer-page-{i + 1}.xlsx", folder: folderName));
                 }
+                if (input.IsRemoveTaggedCampaign && input.AssignedCampaignID !=null)
+                {
+                    var commandStr = $"delete from RecordCustomerExport where CampaignID = {input.AssignedCampaignID} order by {input.SortBy} {input.SortDirection} limit {input.ExportLimit}";
+                    using (MySqlCommand myCmd = new MySqlCommand(commandStr, conn))
+                    {
+                        myCmd.CommandType = CommandType.Text;
+                        myCmd.ExecuteNonQuery();
+                    }
+                }                
                 await conn.CloseAsync();
                 return Results.Ok(new { result });
             });

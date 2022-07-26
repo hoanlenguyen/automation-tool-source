@@ -107,17 +107,6 @@
         <div class="mr-3">
           <p class="subtitle is-6 pt-3">Tagged Campaign</p>
         </div>
-        <!--<b-select
-          placeholder="Select campaign"
-          v-model="filter.assignedCampaignID"
-          :clearable="true">
-          <option
-            v-for="option in adminCampaigns"
-            :value="option.campaignID"
-            :key="option.campaignID">
-            {{ option.campaignName }}
-          </option>
-        </b-select> -->
         <b-field>
           <multiselect
             v-model="selectAssignedCampaign"
@@ -366,15 +355,18 @@
             :disabled="isDisableDownload"
             :loading="isLoadingDownload"
           />
-
-          <b-button
-            label="Assign campaign"
+          <b-button            
+            class="mr-3"
             type="is-primary"
-            @click="isShowCampaign = !isShowCampaign"
+            @click="downloadCustomerList(true)"
             :disabled="isDisableDownload"
-          />
+            :loading="isLoadingDownloadAndRemove"
+          >
+          <p class="is-align-content-space-evenly	"></p>
+            <span>Download and Remove 'Tagged Campaign'</span>
+          </b-button>
         </p>
-        <b-field
+       <!-- <b-field
           class="control"
           v-show="isShowCampaign"
         >
@@ -385,10 +377,10 @@
           >
             <option
               v-for="option in adminCampaigns"
-              :value="option.campaignID"
-              :key="option.campaignID"
+              :value="option.id"
+              :key="option.id"
             >
-              {{ option.campaignName }}
+              {{ option.name }}
             </option>
           </b-select>
           <b-button
@@ -398,7 +390,7 @@
             :disabled="!filter.campaignID"
             :loading="isConfirmingCampaign"
           />          
-        </b-field>
+        </b-field> -->
       </b-field>
         <b-modal v-model="isImageModalActive"  :width="`100%`" scroll="keep">
           <figure  class="image is-3by1 is-fullwidth">
@@ -477,7 +469,9 @@ export default {
         exportTop:null,
 
         campaignID: null,
-        totalCount: 0
+        totalCount: 0,
+
+        isRemoveTaggedCampaign:false
       },
       defaultFilter: {
         dateFirstAddedFrom: null,
@@ -522,7 +516,9 @@ export default {
         exportTop:null,
 
         campaignID: null,
-        totalCount: 0
+        totalCount: 0,
+
+        isRemoveTaggedCampaign:false
       },
       dateFirstAddedFrom: null,
       dateFirstAddedTo: null,   
@@ -535,6 +531,7 @@ export default {
       isShowResult: false,
       isLoading: false,
       isLoadingDownload: false,
+      isLoadingDownloadAndRemove: false,
       isShowCampaign: false,
       isConfirmingCampaign: false,
       isImageModalActive:false,
@@ -639,7 +636,7 @@ export default {
       if(!this.filter.exportTop ||isNaN(this.filter.exportTop))
         this.filter.exportTop=null;
 
-      this.filter.assignedCampaignID = this.selectAssignedCampaign? this.selectAssignedCampaign.campaignID:null;
+      this.filter.assignedCampaignID = this.selectAssignedCampaign? this.selectAssignedCampaign.id:null;
     },
     getCustomerCount() {
       this.isLoading = true;
@@ -660,8 +657,15 @@ export default {
           this.isShowCampaign = false;
         });
     },
-    downloadCustomerList() {
-      this.isLoadingDownload = true;
+    downloadCustomerList(isRemoveTaggedCampaign=false) {
+      if(isRemoveTaggedCampaign){
+        this.isLoadingDownloadAndRemove = true;
+        this.filter.isRemoveTaggedCampaign= true;
+      }  
+      else{
+        this.isLoadingDownload=true;
+        this.filter.isRemoveTaggedCampaign= false;
+      }
       this.processFilter();
       downloadCustomersBySP(this.filter)
         .then((response) => {
@@ -676,7 +680,6 @@ export default {
                   console.log(filename);
                   saveAs(fileUrl, filename); },200);
               }
-              this.isLoadingDownload=false;
             } 
           }
         })
@@ -685,6 +688,8 @@ export default {
         })
         .finally(() => {
           this.isLoadingDownload=false;
+          this.isLoadingDownloadAndRemove=false;
+          this.filter.isRemoveTaggedCampaign= false;
         });
     },
     downloadCustomerExcel() {

@@ -103,6 +103,37 @@ namespace BITool.Services
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetCampaignsDropdown);
+                using var connection = new MySqlConnection(sqlConnectionStr);
+                connection.Open();
+                var commandStr = $"delete from RecordCustomerExport where CampaignID = {id}";
+                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                {
+                    myCmd.CommandType = CommandType.Text;
+                    myCmd.ExecuteNonQuery();
+                }
+
+                //commandStr = $"update leadmanagementreport set LastUsedCampaignId = null where LastUsedCampaignId = {id}";
+                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                //{
+                //    myCmd.CommandType = CommandType.Text;
+                //    myCmd.ExecuteNonQuery();
+                //}
+
+                //commandStr = $"update leadmanagementreport set SecondLastUsedCampaignId = null where SecondLastUsedCampaignId = {id}";
+                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                //{
+                //    myCmd.CommandType = CommandType.Text;
+                //    myCmd.ExecuteNonQuery();
+                //}
+
+                //commandStr = $"update leadmanagementreport set ThirdLastUsedCampaignId = null where ThirdLastUsedCampaignId = {id}";
+                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                //{
+                //    myCmd.CommandType = CommandType.Text;
+                //    myCmd.ExecuteNonQuery();
+                //}
+
+                connection.Close();
                 return Results.Ok();
             });
 
@@ -148,6 +179,27 @@ namespace BITool.Services
                     memoryCache.Set(CacheKeys.GetCampaignsDropdown, items, cacheOptions);
                 }
                 return Results.Ok(items);
+            });
+
+            app.MapPost("Campaign/assign", [Authorize]
+            async Task<IResult> (
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IExportDataToQueueService exportDataToQueue,
+            [FromServices] IConfiguration config,
+            [FromBody] CampaignCreateOrEditDto input) =>
+            {
+                if (input.Id == 0)
+                    throw new Exception("No selected Campaign");
+                
+                Console.WriteLine($"Campaign/assign: {input.Id}");
+                var userIdSr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdSr, out var userId);
+                //var shouldSendEmail = processAssign.CustomerList.Count > config.GetValue<int>("ShouldSendEmailWhenReachLimit");
+                Parallel.Invoke(
+                    () => { exportDataToQueue.BulkInsertRecordCustomerExport(sqlConnectionStr, userId, input);},
+                    () => { exportDataToQueue.UpdateLastUsedCampaignOnLeadManagement(sqlConnectionStr, input); });
+
+                return Results.Ok(/*new { shouldSendEmail }*/);
             });
         }
     }

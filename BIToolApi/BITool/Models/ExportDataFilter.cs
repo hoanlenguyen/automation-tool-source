@@ -43,6 +43,7 @@
         public int? AssignedCampaignID { get; set; }
         public int? TotalCount { get; set; }
 
-        public string SignalRConnectionId { get; set; }
+        public string? SignalRConnectionId { get; set; }
+        public bool IsRemoveTaggedCampaign { get; set; }=false;
     }
 }

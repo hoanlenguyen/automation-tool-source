@@ -97,23 +97,23 @@
       </b-table-column>
        
       <b-table-column
-        field="ExportTimeFrom"
+        field="exportTimesFrom"
         label="Export Time From"
         sortable
         v-slot="props"
         header-class="is-size-7"
         width="300px">
-       {{ props.row.exportTimeFrom |  dateTime('DD-MM-YYYY') }} 
+       {{ props.row.exportTimesFrom}} 
       </b-table-column>
 
       <b-table-column
-        field="ExportTimeFrom"
-        label="ExportTimeTo"
+        field="exportTimesFrom"
+        label="Export Times To"
         sortable
         v-slot="props"
         header-class="is-size-7"
         width="300px">
-       {{ props.row.exportTimeTo |  dateTime('DD-MM-YYYY') }} 
+       {{ props.row.exportTimesTo }} 
       </b-table-column>
 
       <b-table-column
@@ -281,25 +281,23 @@
           </div>
 
         <div class="columns">
-          <b-field label="Export Time From" class="column is-3">
-            <b-datepicker
-            icon="calendar-today"
-            locale="en-SG"
-            v-model="exportTimeFrom"
-            editable>
-            </b-datepicker>
+          <b-field label="Export Times From" class="column is-3">
+            <b-input
+              type="Number"
+              v-model="model.exportTimesFrom"
+              required>
+            </b-input>
           </b-field> 
 
-          <b-field label="Export Time To" class="column is-3">
-            <b-datepicker
-            icon="calendar-today"
-            locale="en-SG"
-            v-model="exportTimeTo"
-            editable>
-            </b-datepicker>
+          <b-field label="Export Times To" class="column is-3">
+           <b-input
+              type="Number"
+              v-model="model.exportTimesTo"
+              required>
+            </b-input>
           </b-field> 
 
-          <b-field label="Campaign Action" class="column is-3" v-if="model.id">
+          <b-field label="Campaign Action" class="column is-3">
             <b-button
             label="Assign Campaign"
             type="is-primary"
@@ -334,7 +332,7 @@
         </header>
         <footer class="modal-card-foot">
           <b-button label="Cancel" @click="isAssignCampaignModalActive=false" />
-          <b-button label="Confirm" type="is-info" @click="assignCampaign();isAssignCampaignModalActive=false"/>
+          <b-button label="Confirm" type="is-info" @click="assignCampaign();"/>
         </footer>
         </div>
     </b-modal>
@@ -388,8 +386,8 @@ export default {
       model:{
         name:null,
         startDate:null,
-        exportTimeFrom:null,
-        exportTimeTo:null,    
+        exportTimesFrom:0,
+        exportTimesTo:0,    
         brand:null,
         channel:null,
         amount:0,
@@ -401,8 +399,8 @@ export default {
       defaultModel:{
         name:null,
         startDate:null,
-        exportTimeFrom:null,
-        exportTimeTo:null,   
+        exportTimesFrom:0,
+        exportTimesTo:0,   
         brand:null,
         channel:null,
         amount:0,
@@ -417,8 +415,6 @@ export default {
       isAssignCampaignModalActive:false,
       selectedId:null,
       startDate:null,
-      exportTimeFrom:null,
-      exportTimeTo:null      
     };
   },
   watch: {},
@@ -461,8 +457,6 @@ export default {
     closeModalDialog(){
       this.model= {...this.defaultModel};
       this.startDate= null;
-      this.exportTimeFrom= null;
-      this.exportTimeTo= null;
       this.isModalActive= false;
     },
     cancelCreateOrUpdate(){
@@ -471,14 +465,6 @@ export default {
     createOrUpdateModel(){
       if(this.startDate){
         this.model.startDate = `${this.startDate.getFullYear()}-${('0' + (this.startDate.getMonth()+1)).slice(-2)}-${('0' + this.startDate.getDate()).slice(-2)}`;
-      }
-
-      if(this.exportTimeFrom){
-        this.model.exportTimeFrom = `${this.exportTimeFrom.getFullYear()}-${('0' + (this.exportTimeFrom.getMonth()+1)).slice(-2)}-${('0' + this.exportTimeFrom.getDate()).slice(-2)}`;
-      }
-
-      if(this.exportTimeTo){
-        this.model.exportTimeTo = `${this.exportTimeTo.getFullYear()}-${('0' + (this.exportTimeTo.getMonth()+1)).slice(-2)}-${('0' + this.exportTimeTo.getDate()).slice(-2)}`;
       }
       createOrUpdate(this.model)
       .then((response) => {
@@ -498,8 +484,6 @@ export default {
     editModel(input){
       this.model= {...input};
       this.startDate=this.model.startDate? moment(this.model.startDate,'YYYY-MM-DD').toDate():null;
-      this.exportTimeFrom=this.model.exportTimeFrom? moment(this.model.exportTimeFrom,'YYYY-MM-DD').toDate():null;
-      this.exportTimeTo=this.model.exportTimeTo? moment(this.model.exportTimeTo,'YYYY-MM-DD').toDate():null;
       this.isModalActive= true;
     },
     deleteData(){
@@ -527,26 +511,22 @@ export default {
     },
     assignCampaign() {
       this.isLoadingAssignCampaign = true;
+      this.isAssignCampaignModalActive=false;
+      if(this.startDate){
+        this.model.startDate = `${this.startDate.getFullYear()}-${('0' + (this.startDate.getMonth()+1)).slice(-2)}-${('0' + this.startDate.getDate()).slice(-2)}`;
+      }
       assignCampaign(this.model)
         .then((response) => {
           if (response.status == 200) {
-                 this.$buefy.snackbar.open({
-                  message: `Assign campaign successfully!`,
-                  queue: false,
-                });
-            // var data = response.data;
-            // if(!data.shouldSendEmail){
-            //      this.$buefy.snackbar.open({
-            //       message: `Assign campaign successfully!`,
-            //       queue: false,
-            //     });
-            //   }else{
-            //     this.$buefy.snackbar.open({
-            //       message: `Assign campaign successfully!\nSystem will send email to inform when the new export data is ready`,
-            //       queue: false,
-            //       duration: 6000
-            //     });
-            //   }
+            this.$buefy.snackbar.open({
+            message: this.model.id?'Assign campaign successfully!':'Create and assign new campaign successfully!',
+            queue: false,
+            });
+
+            if(!this.model.id){
+              let data = response.data;
+              this.model.id=data.id
+            }            
           }
         })
         .catch((error) => {

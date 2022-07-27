@@ -185,21 +185,31 @@ namespace BITool.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] IExportDataToQueueService exportDataToQueue,
-            [FromServices] IConfiguration config,
+            [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
             [FromBody] CampaignCreateOrEditDto input) =>
             {
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
                 if (input.Id == 0)
-                    throw new Exception("No selected Campaign");
+                {
+                    var entity = input.Adapt<Campaign>();
+                    entity.CreatorUserId = userId;
+                    db.Add(entity);
+                    db.SaveChanges();
+                    memoryCache.Remove(CacheKeys.GetCampaignsDropdown);
+                    Console.WriteLine($"new Campaign id: {entity.Id}");
+                    input.Id = entity.Id;
+                }
                 
                 Console.WriteLine($"Campaign/assign: {input.Id}");
-                var userIdSr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdSr, out var userId);
                 //var shouldSendEmail = processAssign.CustomerList.Count > config.GetValue<int>("ShouldSendEmailWhenReachLimit");
                 Parallel.Invoke(
                     () => { exportDataToQueue.BulkInsertRecordCustomerExport(sqlConnectionStr, userId, input);},
-                    () => { exportDataToQueue.UpdateLastUsedCampaignOnLeadManagement(sqlConnectionStr, input); });
+                    () => { exportDataToQueue.UpdateLastUsedCampaignOnLeadManagement(sqlConnectionStr, input);}
+                    );
 
-                return Results.Ok(/*new { shouldSendEmail }*/);
+                return Results.Ok(input);
             });
         }
     }

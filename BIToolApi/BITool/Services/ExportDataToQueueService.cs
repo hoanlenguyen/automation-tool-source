@@ -144,7 +144,6 @@ namespace BITool.Services
             }
             if (input.ShouldSendEmail)
             {
-               
                 try
                 {
                     var content = $"<p>Last Used Campaign has been successfully updated for {listCount} Customer Mobile Nos. Total time: {(int)timeCount} s.</p>" +

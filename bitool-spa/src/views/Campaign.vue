@@ -297,7 +297,7 @@
             </b-input>
           </b-field> 
 
-          <b-field label="Campaign Action" class="column is-3">
+          <b-field label="Campaign Action" class="column is-3" v-if="model.id">
             <b-button
             label="Assign Campaign"
             type="is-primary"
@@ -308,7 +308,7 @@
         </section>
         <footer class="modal-card-foot">
             <b-button label="Close" @click="cancelCreateOrUpdate" />
-            <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
+            <b-button :label="model.id==0?'Create and Assign':'Update'" type="is-primary" @click="createOrUpdateModel"/>
         </footer>
     </div>
     </b-modal>
@@ -470,7 +470,7 @@ export default {
       .then((response) => {
         if (response.status == 200) {
           this.$buefy.snackbar.open({
-              message: `${this.model.id==0?'Create':'Update'} successfully!`,
+              message: `${this.model.id==0?'Create and assign':'Update'} campaign successfully!`,
               queue: false,
             });
           }

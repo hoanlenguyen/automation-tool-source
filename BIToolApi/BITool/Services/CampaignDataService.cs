@@ -51,6 +51,7 @@ namespace BITool.Services
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
+            [FromServices] IExportDataToQueueService exportDataToQueue,
             [FromBody] CampaignCreateOrEditDto input
             ) =>
             {
@@ -60,6 +61,11 @@ namespace BITool.Services
                 entity.CreatorUserId = userId;
                 db.Add(entity);
                 db.SaveChanges();
+                input.Id = entity.Id;
+                Parallel.Invoke(
+                    () => { exportDataToQueue.BulkInsertRecordCustomerExport(sqlConnectionStr, userId, input); },
+                    () => { exportDataToQueue.UpdateLastUsedCampaignOnLeadManagement(sqlConnectionStr, input); }
+                    );
                 memoryCache.Remove(CacheKeys.GetCampaignsDropdown);
                 return Results.Ok();
             });

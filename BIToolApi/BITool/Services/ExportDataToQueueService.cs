@@ -78,10 +78,12 @@ namespace BITool.Services
             connection.Open();
             var nowStr = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
             if (campaign.PointRangeTo == 0) campaign.PointRangeTo = int.MaxValue;//
+            if (campaign.ExportTimesTo == 0) campaign.ExportTimesTo = int.MaxValue;//
             var commandStr = $"INSERT INTO recordcustomerexport (CustomerMobileNo, CampaignID, DateExported, Status, LastUpdatedBy, LastUpdatedON) " +
                              $"SELECT l.CustomerMobileNo, {campaign.Id}, '{nowStr}', 1, {userId},'{nowStr}' " +
                              $"FROM leadmanagementreport l " +
                              $"WHERE l.TotalPoints >= {campaign.PointRangeFrom} and l.TotalPoints <= {campaign.PointRangeTo} " +
+                                    $"and l.TotalTimesExported >= {campaign.ExportTimesFrom} and l.TotalTimesExported <= {campaign.ExportTimesTo} " +
                              $"order by l.ID desc " +
                              $"limit {campaign.Amount}; ";
             using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
@@ -102,13 +104,18 @@ namespace BITool.Services
             using var connection = new MySqlConnection(sqlConnectionStr);
             connection.Open();
             var nowStr = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
-            if (campaign.PointRangeTo == 0) campaign.PointRangeTo = int.MaxValue;//
-             var commandStr =   $"update leadmanagementreport " +
+            if (campaign.PointRangeTo == 0) 
+                campaign.PointRangeTo = int.MaxValue;//
+            if (campaign.ExportTimesTo == 0) 
+                campaign.ExportTimesTo = int.MaxValue;//
+            var commandStr =   $"update leadmanagementreport " +
                                 $"set ThirdLastUsedCampaignId = SecondLastUsedCampaignId, SecondLastUsedCampaignId = LastUsedCampaignId, LastUsedCampaignId = {campaign.Id}, " +
                                     $"DateLastExported = '{nowStr}', TotalTimesExported = TotalTimesExported + 1, " +
                                     $"ExportVsPointsPercentage = if (TotalPoints = 0, 'No Occurance', CONCAT(CEILING(TotalPoints / TotalTimesExported) * 100, '%')), " +
                                     $"ExportVsPointsNumber = TotalPoints - TotalTimesExported " +
-                                $"order by ID desc " +
+                                $"where TotalPoints >= {campaign.PointRangeFrom} and TotalPoints <= {campaign.PointRangeTo} " +
+                                    $"and TotalTimesExported >= {campaign.ExportTimesFrom} and TotalTimesExported <= {campaign.ExportTimesTo} "+
+                                    $"order by ID desc " +
                                 $"limit {campaign.Amount};";
             using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
             {

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <NameOfLastUsedPublishProfile>C:\STS\automation-tool-source\BIToolApi\BITool\Properties\PublishProfiles\automation-tool-api - Zip Deploy.pubxml</NameOfLastUsedPublishProfile>
+    <NameOfLastUsedPublishProfile>C:\STS\automation-tool-source\BIToolApi\BITool\Properties\PublishProfiles\automation-tool-api - Web Deploy.pubxml</NameOfLastUsedPublishProfile>
     <ActiveDebugProfile>BITool</ActiveDebugProfile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -23,6 +23,7 @@
     public static class CacheKeys
     {
         public const string GetRolesDropdown = "GetRolesDropdown";
+        public const string GetRanksDropdown = "GetRanksDropdown";
         public const string GetBanksDropdown = "GetBanksDropdown";
         public const string GetBrandsDropdown = "GetBrandsDropdown";
         public const string GetDepartmentsDropdown = "GetDepartmentsDropdown";

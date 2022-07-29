@@ -18,6 +18,7 @@ namespace IntranetApi.DbContext
         public DbSet<BrandEmployee> BrandEmployee { get; set; }
         public DbSet<Department> Department { get; set; }
         public DbSet<Employee> Employee { get; set; }
+        public DbSet<Rank> Rank { get; set; }
         public DbSet<EmployeeImportHistory> EmployeeImportHistory { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -34,12 +35,11 @@ namespace IntranetApi.DbContext
             modelBuilder.Entity<Employee>().HasIndex(p=>p.BackendUser).IsUnique();
 
             modelBuilder.Entity<Bank>().ToTable("Bank");
-
             modelBuilder.Entity<Department>().ToTable("Department");
+            modelBuilder.Entity<Rank>().ToTable("Rank");
 
             modelBuilder.Entity<Brand>().ToTable("Brand");
             modelBuilder.Entity<BrandEmployee>().ToTable("BrandEmployee");
-
 
             modelBuilder.Entity<EmployeeImportHistory>().ToTable("EmployeeImportHistory");
         }

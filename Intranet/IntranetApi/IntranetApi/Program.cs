@@ -147,8 +147,8 @@ builder.Services.AddMemoryCache();
 //});
 
 
-//add extra config
-MapperConfig.AddCustomConfigs();
+//add extra mapp config
+MapperConfig.AddMapperConfigs();
 
 var app = builder.Build();
 

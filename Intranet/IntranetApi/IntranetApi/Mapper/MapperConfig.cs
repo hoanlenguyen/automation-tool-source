@@ -6,7 +6,7 @@ namespace IntranetApi.Mapper
 {
     public static class MapperConfig
     {
-        public static void AddCustomConfigs()
+        public static void AddMapperConfigs()
         {
             TypeAdapterConfig<EmployeeExcelInput, Employee>.NewConfig()
                             .Map(dest => dest.Status, src => src.StatusStr.Equals(StatusValue.Active,StringComparison.OrdinalIgnoreCase))

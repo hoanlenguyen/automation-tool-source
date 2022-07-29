@@ -18,7 +18,7 @@ namespace IntranetApi.Services
                 var user = new User
                 {
                     UserName = input.UserName ?? input.Email,
-                    FullName = input.Name,
+                    Name = input.Name,
                     Email = input.Email,
                     IsSuperAdmin =true
                 };
@@ -62,7 +62,7 @@ namespace IntranetApi.Services
                     {
                         accessToken = accessToken,
                         email = user.Email,
-                        name = user.FullName
+                        name = user.Name
                     });
                 }
 
@@ -97,7 +97,7 @@ namespace IntranetApi.Services
 
                 return Results.Ok(new
                 {
-                    Name = user.FullName,
+                    Name = user.Name,
                     Email = user.Email
                 });
             });

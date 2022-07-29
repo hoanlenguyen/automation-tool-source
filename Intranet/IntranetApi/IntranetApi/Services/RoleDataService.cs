@@ -4,6 +4,7 @@ using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -172,6 +173,28 @@ namespace IntranetApi.Services
                     memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
                 }
                 return Results.Ok(items);
+            });
+
+            app.MapPost("Role/addPermission", [AllowAnonymous]
+            async Task<IResult> (
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] ApplicationDbContext db,
+            [FromServices] RoleManager<UserRole> roleManager,
+            [FromQuery] int roleId,
+            [FromQuery] string module
+            ) =>
+            {
+                var role = await db.Roles.FirstOrDefaultAsync(p=>p.Id==roleId);
+                var allClaims = await roleManager.GetClaimsAsync(role);
+                var allPermissions = Permissions.GeneratePermissionsForModule(module);
+                foreach (var permission in allPermissions)
+                {
+                    if (!allClaims.Any(a => a.Type.Equals("Permission", StringComparison.OrdinalIgnoreCase) && a.Value.Equals(permission, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        await roleManager.AddClaimAsync(role, new Claim("Permission", permission));
+                    }
+                }
+                return Results.Ok();
             });
         }
     }

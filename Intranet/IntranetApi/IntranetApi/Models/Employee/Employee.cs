@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace IntranetApi.Models
 {
@@ -12,10 +11,13 @@ namespace IntranetApi.Models
         public string EmployeeCode { get; set; }
 
         public int RoleId { get; set; }
+        public int RankId { get; set; }
         public int DeptId { get; set; }
         public int BankId { get; set; }
+
         [MaxLength(20)]
         public string BankAccountNumber { get; set; }
+
         [MaxLength(100)]
         public string BrandIds { get; set; }
 
@@ -38,6 +40,5 @@ namespace IntranetApi.Models
 
         [MaxLength(150)]
         public string? Note { get; set; }
-
     }
 }

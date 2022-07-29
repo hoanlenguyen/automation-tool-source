@@ -8,6 +8,11 @@ namespace IntranetApi.Mapper
     {
         public static void AddMapperConfigs()
         {
+            TypeAdapterConfig<RankCreateOrEdit, Rank>.NewConfig()
+                            .Ignore(p => p.CreationTime)
+                            .Map(dest => dest.IsDeleted, src => false)
+                            ;
+
             TypeAdapterConfig<EmployeeExcelInput, Employee>.NewConfig()
                             .Map(dest => dest.Status, src => src.StatusStr.Equals(StatusValue.Active,StringComparison.OrdinalIgnoreCase))
                             .Map(dest => dest.IsDeleted, src => false)
@@ -29,7 +34,6 @@ namespace IntranetApi.Mapper
 
             TypeAdapterConfig<EmployeeExcelInput, User>.NewConfig()
                            .Map(dest => dest.Email, src => $"{src.EmployeeCode}@intranet.com")
-                           .Map(dest => dest.FullName, src => src.Name)
                            .Map(dest => dest.UserName, src => src.BackendUser)
                            ;
         }

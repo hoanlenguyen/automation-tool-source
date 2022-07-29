@@ -51,6 +51,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 
 //add identity
 builder.Services.AddIdentity<User, UserRole>()
+                .AddRoles<UserRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
@@ -150,6 +151,7 @@ builder.Services.AddMemoryCache();
 //add extra mapp config
 MapperConfig.AddMapperConfigs();
 
+
 var app = builder.Build();
 
 // response ExceptionHandler
@@ -188,6 +190,7 @@ app.AddRoleDataService(mySQLConnection.ConnectionString);
 app.AddBankDataService(mySQLConnection.ConnectionString);
 app.AddBrandDataService(mySQLConnection.ConnectionString);
 app.AddDepartmentDataService(mySQLConnection.ConnectionString);
+app.AddRankDataService(mySQLConnection.ConnectionString);
 app.AddEmployeeDataService(mySQLConnection.ConnectionString);
 
 

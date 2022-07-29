@@ -6,7 +6,8 @@ namespace IntranetApi.Models
     public class User : IdentityUser<int>
     {
         [MaxLength(300)]
-        public string FullName { get; set; }
+        public string Name { get; set; }
         public bool IsSuperAdmin { get; set; }
+        public bool IsDeleted { get; set; } = false;
     }
 }

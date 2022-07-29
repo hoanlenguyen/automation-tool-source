@@ -173,7 +173,7 @@
   </section>
 </template>
 <script>
-import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/role";
+import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/rank";
 export default {
   name:"role",
   created() {

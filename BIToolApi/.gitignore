@@ -1,0 +1,21 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Intranet/IntranetApi/IntranetApi/bin
+/Intranet/IntranetApi/IntranetApi/obj/Release/net6.0
+/BIToolApi/obj
+/BIToolApi/bin/Debug/net6.0
+/BIToolApi/bin/Release/net6.0
+/.vs
+/obj
+/Intranet/IntranetApi/.vs
+/BIToolApi/BIToolApi/bin/Debug/net6.0
+/BIToolApi/BIToolApi/Properties/PublishProfiles
+/BIToolApi/BITool/bin
+/BIToolApi/BITool/Properties/PublishProfiles
+/BIToolApi/.vs/BITool/FileContentIndex
+BIToolApi/.vs/BITool/v17/.futdcache.v1
+BIToolApi/.vs/BITool/v17/.suo
+BIToolApi/.vs/BITool/v17/.suo
+BIToolApi/.vs/BITool/DesignTimeBuild/.dtbcache.v2

@@ -11,6 +11,9 @@
 /obj
 .vs
 obj
+Debug
+/bin
+bin
 /Intranet/IntranetApi/.vs
 /BIToolApi/BIToolApi/bin/Debug/net6.0
 /BIToolApi/BIToolApi/Properties/PublishProfiles

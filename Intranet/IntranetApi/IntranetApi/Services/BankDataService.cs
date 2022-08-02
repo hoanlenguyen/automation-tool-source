@@ -56,11 +56,13 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.Bank.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity =await db.Bank.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
-            });
+            })
+            .RequireAuthorization(BankPermissions.Update)
+            ;
 
             app.MapPost("bank", [Authorize]
             async Task<IResult> (
@@ -77,7 +79,9 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(BankPermissions.Create)
+            ;
 
             app.MapPut("bank", [Authorize]
             async Task<IResult> (
@@ -99,7 +103,9 @@ namespace IntranetApi.Services
                 memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 db.SaveChanges();
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(BankPermissions.Update)
+            ;
 
             app.MapDelete("bank/{id:int}", [Authorize]
             async Task<IResult> (
@@ -120,7 +126,9 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(BankPermissions.Delete)
+            ; 
 
             app.MapPost("bank/list", [Authorize]
             async Task<IResult> (

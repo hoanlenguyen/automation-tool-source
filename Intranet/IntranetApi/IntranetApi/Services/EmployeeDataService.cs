@@ -165,7 +165,7 @@ namespace IntranetApi.Services
                 var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
                 if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out roles))
                 {
-                    roles = GetDataList(sqlConnectionStr, nameof(UserRole));
+                    roles = GetDataList(sqlConnectionStr, nameof(Role));
                     memoryCache.Set(CacheKeys.GetRolesDropdown, roles, cacheOptions);
                 }
 
@@ -246,7 +246,7 @@ namespace IntranetApi.Services
                 var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
                 if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out roles))
                 {
-                    roles = GetDataList(sqlConnectionStr, nameof(UserRole));                    
+                    roles = GetDataList(sqlConnectionStr, nameof(Role));                    
                     memoryCache.Set(CacheKeys.GetRolesDropdown, roles, cacheOptions);                    
                 }
 

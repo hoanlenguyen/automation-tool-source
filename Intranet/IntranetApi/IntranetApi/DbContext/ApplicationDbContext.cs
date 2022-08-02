@@ -1,9 +1,10 @@
 ﻿using IntranetApi.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 namespace IntranetApi.DbContext
 {
-    public class ApplicationDbContext : IdentityDbContext<User, UserRole, int>
+    public class ApplicationDbContext : IdentityDbContext<User, Role, int, IdentityUserClaim<int>, UserRole, IdentityUserLogin<int>, RoleClaim, IdentityUserToken<int>>
     {
         public ApplicationDbContext
            (DbContextOptions<ApplicationDbContext> options)
@@ -12,7 +13,9 @@ namespace IntranetApi.DbContext
         }
 
         public DbSet<User> User { get; set; }
+        public DbSet<Role> Role { get; set; }
         public DbSet<UserRole> UserRole { get; set; }
+        public DbSet<RoleClaim> RoleClaim { get; set; }
         public DbSet<Bank> Bank { get; set; }
         public DbSet<Brand> Brand { get; set; }
         public DbSet<BrandEmployee> BrandEmployee { get; set; }
@@ -26,8 +29,9 @@ namespace IntranetApi.DbContext
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<User>().ToTable("User");
-
+            modelBuilder.Entity<Role>().ToTable("Role");
             modelBuilder.Entity<UserRole>().ToTable("UserRole");
+            modelBuilder.Entity<RoleClaim>().ToTable("RoleClaim");
 
             modelBuilder.Entity<Employee>().ToTable("Employee");
             modelBuilder.Entity<Employee>().HasIndex(p=>p.EmployeeCode).IsUnique();

@@ -12,7 +12,7 @@ const store = new Vuex.Store({
     userName: null,
     userEmail: null,
     userAvatar: null,
-
+      
     /* NavBar */
     isNavBarVisible: true,
 

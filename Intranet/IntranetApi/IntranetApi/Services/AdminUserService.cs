@@ -1,4 +1,5 @@
-﻿using IntranetApi.Models;
+﻿using IntranetApi.DbContext;
+using IntranetApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -31,12 +32,17 @@ namespace IntranetApi.Services
                 return Results.BadRequest();
             });
 
-            app.MapPost("auth/login", [AllowAnonymous] async (IConfiguration config, UserManager<User> userManager, UserLoginDto input) =>
+            app.MapPost("auth/login", 
+                [AllowAnonymous] async (
+                [FromServices] IConfiguration config,
+                [FromServices] UserManager<User> userManager,
+                [FromServices] ApplicationDbContext db, 
+                [FromBody] UserLoginDto input) => 
             {
                 var user = await userManager.FindByNameAsync(input.UserName);
                 if (user is null)
                     user = await userManager.FindByEmailAsync(input.UserName);
-
+                
                 if (user is null)
                     return Results.Unauthorized();
 
@@ -51,18 +57,36 @@ namespace IntranetApi.Services
                         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                         new Claim(ClaimTypes.Email, user.Email)
                     };
+
+                    var query = from s in db.UserRole
+                                join sa in db.RoleClaims on s.RoleId equals sa.RoleId
+                                where s.UserId == user.Id && sa.ClaimType == Permissions.Type
+                                select sa.ClaimValue;
+
+                    var permissions = query.ToList();
+
+                    query = from s in db.UserRole
+                            join sa in db.Role on s.RoleId equals sa.Id
+                            where s.UserId == user.Id
+                            select sa.Name;
+
+                    var roleName= query.FirstOrDefault();
+
                     var token = new JwtSecurityToken(
                         issuer: issuer,
                         audience: audience,
                         signingCredentials: credentials,
                         claims: claims);
+
                     var tokenHandler = new JwtSecurityTokenHandler();
                     var accessToken = tokenHandler.WriteToken(token);
                     return Results.Ok(new
                     {
                         accessToken = accessToken,
                         email = user.Email,
-                        name = user.Name
+                        name = user.Name,
+                        roleName,
+                        permissions
                     });
                 }
 

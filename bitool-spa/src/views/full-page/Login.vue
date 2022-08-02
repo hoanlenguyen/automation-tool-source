@@ -94,9 +94,10 @@ export default {
             //console.log(userInfo);
             setToken(userInfo.accessToken);
             this.$store.commit('user', {
-            name: userInfo.name,
-            email: userInfo.email,
-            avatar: ''
+              name: userInfo.name,
+              email: userInfo.email,
+              roleName: userInfo.roleName,
+              permissions: userInfo.permissions
             });
             this.$router.push({ name: 'import-data' });
           }else{

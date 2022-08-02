@@ -1,8 +1,10 @@
 using IntranetApi.DbContext;
 using IntranetApi.Mapper;
 using IntranetApi.Models;
+using IntranetApi.Models.Permission;
 using IntranetApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -50,8 +52,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(
                     }));
 
 //add identity
-builder.Services.AddIdentity<User, UserRole>()
-                .AddRoles<UserRole>()
+builder.Services.AddIdentity<User, Role>()
+                .AddRoles<Role>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
@@ -96,7 +98,16 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(
+    options => options.AddCustomizedAuthorizationOptions(
+        nameof(Bank),
+        nameof(Brand), 
+        nameof(Rank),
+        nameof(Department),
+        nameof(Role),
+        nameof(Employee)
+        )
+    );
 
 // add Swagger & JWT authen to Swagger
 var securityScheme = new OpenApiSecurityScheme()
@@ -137,6 +148,7 @@ builder.Services.AddMemoryCache();
 //builder.Services.AddSingleton<IImportDataToQueueService, ImportDataToQueueService>();
 //builder.Services.AddSingleton<IExportDataToQueueService, ExportDataToQueueService>();
 //builder.Services.AddSingleton<IHubClient, HubClient>();
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
 //add Queue job in background
 //builder.Services.AddHostedService<QueuedHostedService>();

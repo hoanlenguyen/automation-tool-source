@@ -57,26 +57,32 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.UserRole.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity = db.Role.AsNoTracking().FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
             });
 
-            app.MapPost("Role", [Authorize]
+            app.MapPost("Role", [AllowAnonymous]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
-            [FromBody] RoleCreateOrEdit input) =>
+            [FromQuery] string roleName,
+            RoleManager<Role> roleManager) =>
             {
+                if (string.IsNullOrEmpty(roleName))
+                    throw new Exception("No valid role name!");
+                roleName= roleName.Trim();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = new UserRole { Name = input.Name, CreatorUserId = userId, NormalizedName = input.Name.ToUpper() };
-                db.Add(entity);
-                db.SaveChanges();
+                var entity = new Role { Name = roleName, CreatorUserId = userId, NormalizedName = roleName.ToUpper() };
+                await roleManager.CreateAsync(entity);
+
+                //db.Add(entity);
+                //db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
-                return Results.Ok();
+                return Results.Ok(entity);
             });
 
             app.MapPut("Role", [Authorize]
@@ -88,7 +94,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.UserRole.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Role.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -110,7 +116,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.UserRole.FirstOrDefault(x => x.Id == id);
+                var entity = db.Role.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -179,7 +185,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
-            [FromServices] RoleManager<UserRole> roleManager,
+            [FromServices] RoleManager<Role> roleManager,
             [FromQuery] int roleId,
             [FromQuery] string module
             ) =>
@@ -189,12 +195,56 @@ namespace IntranetApi.Services
                 var allPermissions = Permissions.GeneratePermissionsForModule(module);
                 foreach (var permission in allPermissions)
                 {
-                    if (!allClaims.Any(a => a.Type.Equals("Permission", StringComparison.OrdinalIgnoreCase) && a.Value.Equals(permission, StringComparison.OrdinalIgnoreCase)))
+                    if (!allClaims.Any(a => a.Type.Equals(Permissions.Type, StringComparison.OrdinalIgnoreCase) && a.Value.Equals(permission, StringComparison.OrdinalIgnoreCase)))
                     {
-                        await roleManager.AddClaimAsync(role, new Claim("Permission", permission));
+                        await roleManager.AddClaimAsync(role, new Claim(Permissions.Type, permission));
                     }
                 }
                 return Results.Ok();
+            });
+
+            app.MapGet("Role/assign", [AllowAnonymous]
+            async Task<IResult> (
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] ApplicationDbContext db,
+            [FromServices] RoleManager<Role> roleManager,
+            [FromServices] UserManager<User> userManager,
+            [FromQuery] int roleId,
+            [FromQuery] int userId
+            ) =>
+            {
+                var role = await db.Role.AsNoTracking().FirstOrDefaultAsync(p => p.Id == roleId);
+                var user = await db.User/*.AsNoTracking()*/.FirstOrDefaultAsync(p => p.Id == userId);
+                var result1 = await userManager.AddToRoleAsync(user, role.Name);
+
+                return Results.Ok(result1);
+            });
+
+            app.MapGet("Role/claims", [AllowAnonymous]
+            async Task<IResult> (
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] ApplicationDbContext db,
+            [FromServices] RoleManager<Role> roleManager,
+            [FromServices] UserManager<User> userManager,
+            [FromQuery] string id
+            ) =>
+            {
+                Console.WriteLine(id);
+                var user= await userManager.FindByIdAsync(id);
+                var roles = await userManager.GetRolesAsync(user);
+                //var role =await roleManager.FindByIdAsync(id);
+                //var claims = await roleManager.GetClaimsAsync(role);
+                var permissions = new List<string>();
+                foreach (var roleName in roles)
+                {
+                    var role = await roleManager.FindByNameAsync(roleName);
+                    if(role != null)
+                    {
+                        var claims = await roleManager.GetClaimsAsync(role);
+                        permissions.AddRange(claims.Select(p=>p.Value).ToArray());
+                    }
+                }
+                return Results.Ok(permissions);
             });
         }
     }

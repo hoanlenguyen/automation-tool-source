@@ -56,8 +56,9 @@
         field="Edit"
         label="Edit"        
         v-slot="props"
-        width="100px">        
+        width="100px">
         <b-button 
+          v-if="canUpdate"
           title="edit"          
           class="button mr-5"
           @click="editModel(props.row)" 
@@ -68,6 +69,7 @@
           </b-icon>
         </b-button> 
         <b-button 
+          v-if="canDelete"
           title="delete"          
           class="button has-text-grey"
           @click="deleteSelectedModel(props.row.id)" 
@@ -96,8 +98,8 @@
             class="mr-4"
             icon-left="note-plus"
             @click="isModalActive=true"
+            v-if="canCreate"
           />
-        
         <b-button
             label="Reset"
             type="is-light"
@@ -173,9 +175,9 @@
   </section>
 </template>
 <script>
-import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/brand";
+import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/brand.js";
 export default {
-  name:"brand",
+  name:"Brand",
   created() {
     this.getList();
   },
@@ -286,7 +288,7 @@ export default {
             this.data = result.items;             
           }
         })
-      .catch((error) => {
+        .catch((error) => {
           this.openErrorMessage(error.response.status); 
         })
         .finally(() => {

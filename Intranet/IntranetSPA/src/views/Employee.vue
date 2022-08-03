@@ -471,7 +471,7 @@
 import moment from "moment";
 import Multiselect from "vue-multiselect";
 import { getDetail, getList, createOrUpdate, deleteData, importEmployees  } from "@/api/employee";
-import { getDropdown as getRoleDropdown } from "@/api/role";
+import { getDropdown as getRoleDropdown } from "@/api/rank";
 import { getDropdown as getBankDropdown } from "@/api/bank";
 import { getDropdown as getBrandDropdown } from "@/api/brand";
 import { getDropdown as getDepartmentDropdown } from "@/api/department";

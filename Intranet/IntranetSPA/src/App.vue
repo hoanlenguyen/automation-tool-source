@@ -1,9 +1,10 @@
 <template>
   <div id="app">
     <nav-bar :title-stack="currentRouteName" />
-    <aside-menu :menu="menu" />
+    <aside-menu :menu="filteredMenu" />
     <router-view />
     <!-- <footer-bar /> -->
+    <!-- {{filteredMenu}} -->
   </div>
 </template>
 
@@ -35,7 +36,21 @@ export default {
   computed: {
     currentRouteName() {
         return [this.$route.meta.title];
-    }
+    },
+    filteredMenu(){
+      var items=[];
+      if(this.$store.state.userPermissions &&
+      this.$store.state.userPermissions.includes(
+        "Permissions.Bank.View"
+      ))
+      items.push({
+        to: '/bank',
+        label: 'Banks',
+        icon: 'bank'
+      });
+      //return items;
+       return [items];
+    },
  }
   
 }

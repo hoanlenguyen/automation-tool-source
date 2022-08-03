@@ -3,6 +3,7 @@ using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -68,15 +69,15 @@ namespace IntranetApi.Services
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
-            [FromQuery] string roleName,
-            RoleManager<Role> roleManager) =>
+            [FromServices] RoleManager<Role> roleManager,
+            [FromBody] RoleCreateOrEdit input) =>
             {
-                if (string.IsNullOrEmpty(roleName))
+                if (string.IsNullOrEmpty(input.Name))
                     throw new Exception("No valid role name!");
-                roleName= roleName.Trim();
+                input.Name = input.Name.Trim();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = new Role { Name = roleName, CreatorUserId = userId, NormalizedName = roleName.ToUpper() };
+                var entity = new Role { Name = input.Name, CreatorUserId = userId, NormalizedName = input.Name.ToUpper() };
                 await roleManager.CreateAsync(entity);
 
                 //db.Add(entity);
@@ -134,37 +135,15 @@ namespace IntranetApi.Services
             [FromBody] RoleFilterDto input) =>
             {
                 ProcessFilterValues(ref input);
-                var totalCount = GetTotalCountByFilter(sqlConnectionStr, ref input);
-                using (var conn = new MySqlConnection(sqlConnectionStr))
-                {
-                    conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetRoleList, conn);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@keyword", input.Keyword);
-                    cmd.Parameters.AddWithValue("@status", input.Status);
-                    cmd.Parameters.AddWithValue("@sortBy", input.SortBy);
-                    cmd.Parameters.AddWithValue("@sortDirection", input.SortDirection);
-
-                    cmd.Parameters.AddWithValue("@exportOffset", input.SkipCount);
-                    cmd.Parameters.AddWithValue("@exportLimit", input.RowsPerPage);
-
-                    MySqlDataReader rdr = cmd.ExecuteReader();
-                    var items = new List<RoleCreateOrEdit>();
-                    while (rdr.Read())
-                    {
-                        items.Add(new RoleCreateOrEdit
-                        {
-                            Id = CommonHelper.ConvertFromDBVal<int>(rdr["Id"]),
-                            Name = CommonHelper.ConvertFromDBVal<string>(rdr["Name"]),
-                            Status = CommonHelper.ConvertFromDBVal<bool>(rdr["Status"]),
-                            CreationTime = CommonHelper.ConvertFromDBVal<DateTime>(rdr["CreationTime"])
-                        });
-                    }
-                    rdr.Close();
-                    conn.Close();
-
-                    return Results.Ok(new PagedResultDto<RoleCreateOrEdit>(totalCount, items));
-                }
+                var query = db.Role.AsNoTracking()
+                           .Where(p => !p.IsDeleted)
+                           .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
+                           ;
+                var totalCount = await query.CountAsync();
+                query = query.OrderByDynamic(input.SortBy, input.SortDirection);
+                var data = await query.Skip(input.SkipCount).Take(input.RowsPerPage).ToListAsync();
+                var items = data.Adapt<List<RoleCreateOrEdit>>();                 
+                return Results.Ok(new PagedResultDto<RoleCreateOrEdit>(totalCount, items));
             });
 
             app.MapGet("Role/dropdown", [Authorize]

@@ -56,8 +56,9 @@
         field="Edit"
         label="Edit"        
         v-slot="props"
-        width="100px">        
+        width="100px">
         <b-button 
+          v-if="canUpdate"
           title="edit"          
           class="button mr-5"
           @click="editModel(props.row)" 
@@ -68,6 +69,7 @@
           </b-icon>
         </b-button> 
         <b-button 
+          v-if="canDelete"
           title="delete"          
           class="button has-text-grey"
           @click="deleteSelectedModel(props.row.id)" 
@@ -96,8 +98,8 @@
             class="mr-4"
             icon-left="note-plus"
             @click="isModalActive=true"
+            v-if="canCreate"
           />
-        
         <b-button
             label="Reset"
             type="is-light"
@@ -232,7 +234,32 @@ export default {
     };
   },
   watch: {},
-  computed: { },
+  computed: {
+    canCreate() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Bank.Create"
+        )
+      );
+    },
+    canUpdate() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Bank.Update"
+        )
+      );
+    },
+    canDelete() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Bank.Delete"
+        )
+      );
+    }
+   },
   methods: {
     resetFilter() {
       this.filter = { ...this.defaultFilter };       
@@ -262,7 +289,7 @@ export default {
           }
         })
         .catch((error) => {
-          console.log(error);
+          this.openErrorMessage(error.response.status); 
         })
         .finally(() => {
           this.isLoading = false;
@@ -285,7 +312,9 @@ export default {
             });
           }
         })
-      .catch((error) => {})
+      .catch((error) => {
+          this.openErrorMessage(error.response.status); 
+        })
       .finally(() => {
         this.closeModalDialog();
         this.getList();
@@ -305,7 +334,9 @@ export default {
             });
           }
         })
-      .catch((error) => {})
+      .catch((error) => {
+          this.openErrorMessage(error.response.status); 
+        })
       .finally(() => {
         this.isDeleteModalActive=false;
         this.selectedId= null;

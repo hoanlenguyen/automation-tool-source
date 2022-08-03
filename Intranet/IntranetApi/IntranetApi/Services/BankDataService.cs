@@ -61,7 +61,7 @@ namespace IntranetApi.Services
                     return Results.NotFound();
                 return Results.Ok(entity);
             })
-            .RequireAuthorization(BankPermissions.Update)
+            .RequireAuthorization(BankPermissions.View)
             ;
 
             app.MapPost("bank", [Authorize]
@@ -167,7 +167,9 @@ namespace IntranetApi.Services
 
                     return Results.Ok(new PagedResultDto<BankCreateOrEdit>(totalCount, items));
                 }
-            });
+            })
+            .RequireAuthorization(BankPermissions.View)
+            ;
 
             app.MapGet("Bank/dropdown", [Authorize]
             async Task<IResult> (

@@ -12,6 +12,8 @@ const store = new Vuex.Store({
     userName: null,
     userEmail: null,
     userAvatar: null,
+    userRoleName:null,
+    userPermissions:[],
 
     /* NavBar */
     isNavBarVisible: true,
@@ -73,15 +75,11 @@ const store = new Vuex.Store({
 
     /* User */
     user (state, payload) {
-      if (payload.name) {
-        state.userName = payload.name
-      }
-      if (payload.email) {
-        state.userEmail = payload.email
-      }
-      if (payload.avatar) {
-        state.userAvatar = payload.avatar
-      }
+      state.userName = payload.name;
+      state.userEmail = payload.email;
+      state.userAvatar = payload.avatar;
+      state.userRoleName= payload.roleName;
+      state.userPermissions= payload.permissions;
     },
 
     /* Aside Mobile */

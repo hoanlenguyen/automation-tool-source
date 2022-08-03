@@ -175,9 +175,9 @@
   </section>
 </template>
 <script>
-import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/department";
+import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/rank";
 export default {
-  name:"Department",
+  name:"Rank",
   created() {
     this.getList();
   },
@@ -239,7 +239,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Department.Create"
+          "Permissions.Rank.Create"
         )
       );
     },
@@ -247,7 +247,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Department.Update"
+          "Permissions.Rank.Update"
         )
       );
     },
@@ -255,7 +255,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Department.Delete"
+          "Permissions.Rank.Delete"
         )
       );
     }

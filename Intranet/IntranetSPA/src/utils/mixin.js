@@ -1,5 +1,7 @@
 import XLSX from "xlsx-js-style";
 import moment from "moment";
+import { getToken, setToken } from '@/utils/auth'
+
 var myMixin = {
     methods: {
         exportExcelData(data, excelName, wch = null, isAddHeader=true) {
@@ -29,6 +31,23 @@ var myMixin = {
                 `${excelName}_${moment(new Date()).format("DD/MM/YYYY hh:mm:ss")}.xlsx`
             ); // name of the file is 'book.xlsx'
         },
+        openErrorMessage(code){
+            if(code==401){
+                setToken('');
+                this.$buefy.snackbar.open({
+                  message: 'Login failed!',
+                  queue: false,
+                  type: 'is-warning'
+                });
+             }else if(code==403){
+                this.$buefy.snackbar.open({
+                  message: 'No permission!',
+                  queue: false,
+                  duration: 5000,
+                  type: 'is-danger'
+                });
+             }    
+        }
     }
 }
 export default myMixin;

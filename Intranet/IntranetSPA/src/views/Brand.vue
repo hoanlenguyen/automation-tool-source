@@ -232,7 +232,32 @@ export default {
     };
   },
   watch: {},
-  computed: { },
+  computed: {
+    canCreate() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Brand.Create"
+        )
+      );
+    },
+    canUpdate() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Brand.Update"
+        )
+      );
+    },
+    canDelete() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Brand.Delete"
+        )
+      );
+    }
+   },
   methods: {
     resetFilter() {
       this.filter = { ...this.defaultFilter };       
@@ -261,8 +286,8 @@ export default {
             this.data = result.items;             
           }
         })
-        .catch((error) => {
-          console.log(error);
+      .catch((error) => {
+          this.openErrorMessage(error.response.status); 
         })
         .finally(() => {
           this.isLoading = false;
@@ -285,7 +310,9 @@ export default {
             });
           }
         })
-      .catch((error) => {})
+      .catch((error) => {
+          this.openErrorMessage(error.response.status); 
+        })
       .finally(() => {
         this.closeModalDialog();
         this.getList();
@@ -305,7 +332,9 @@ export default {
             });
           }
         })
-      .catch((error) => {})
+      .catch((error) => {
+          this.openErrorMessage(error.response.status); 
+        })
       .finally(() => {
         this.isDeleteModalActive=false;
         this.selectedId= null;

@@ -16,8 +16,13 @@ export default [
       icon: 'domain'
     },
     {
+      to: '/rank',
+      label: 'Ranks',
+      icon: 'shield-account'
+    },
+    {
       to: '/role',
-      label: 'Roles',
+      label: 'User rights',
       icon: 'shield-account'
     },
     {

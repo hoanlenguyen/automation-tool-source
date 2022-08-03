@@ -1,7 +1,7 @@
 import axios from 'axios'
-import store from '@/store'
-import { getToken } from '@/utils/auth'
-
+//import store from '@/store'
+import { getToken, setToken } from '@/utils/auth'
+import { SnackbarProgrammatic as Snackbar } from 'buefy';
 // create an axios instance
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
@@ -49,7 +49,7 @@ service.interceptors.response.use(
    */
   response => {
     const res = response
-
+    console.log(res.code);
     // // if the custom code is not 20000, it is judged as an error.
     // if (res.code !== 20000) {
     //   Message({
@@ -78,16 +78,7 @@ service.interceptors.response.use(
 
     return res
   },
-  error => {
-    console.log('err' + error) // for debug
-    if (error.response) {
-      // Message({
-      //   message: error.response.data.error.message.replace(/\[|\]/g, ''),
-      //   type: 'error',
-      //   duration: 5 * 1000,
-      //   showClose: true
-      // })
-    }
+  error => {  
     return Promise.reject(error)
   }
 )

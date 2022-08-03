@@ -49,6 +49,14 @@ const routes = [
   },
   {
     meta: {
+      title: 'Rank data'
+    },
+    path: '/rank',
+    name: 'rank',    
+    component: () => import('@/views/Rank.vue')
+  },
+  {
+    meta: {
       title: 'Employee'
     },
     path: '/employee',

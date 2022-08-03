@@ -94,10 +94,13 @@ export default {
             //console.log(userInfo);
             setToken(userInfo.accessToken);
             this.$store.commit('user', {
-            name: userInfo.name,
-            email: userInfo.email,
-            avatar: ''
-            });
+              name: userInfo.name,
+              email: userInfo.email,
+              avatar: '',
+              roleName:userInfo.roleName,
+              permissions:userInfo.permissions
+              });
+            console.log(this.$store.state);
             this.$router.push({ name: 'bank' });
           }else{
             setToken('');
@@ -108,11 +111,7 @@ export default {
           }
         })
         .catch((error) => {
-          setToken('');
-          this.$buefy.snackbar.open({
-            message: "login failed!",
-            queue: false
-          });
+          this.openErrorMessage(error.response.status); 
         })
         .finally(() => {
           this.isLoading = false;

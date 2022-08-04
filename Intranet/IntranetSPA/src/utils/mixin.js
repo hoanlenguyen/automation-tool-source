@@ -47,6 +47,35 @@ var myMixin = {
                   type: 'is-danger'
                 });
              }    
+        },
+        notifyErrorMessage(error){
+            if(!error.response)
+                return;
+            console.log(error.response);
+            let code= error.response.status;
+            if(code==401){
+                setToken('');
+                this.$buefy.snackbar.open({
+                  message: 'Login failed!',
+                  queue: false,
+                  type: 'is-warning'
+                });
+             }else if(code==403){
+                this.$buefy.snackbar.open({
+                  message: 'No permission!',
+                  queue: false,
+                  duration: 5000,
+                  type: 'is-danger'
+                });
+             }else if(code==500 &&error.response.data){
+                let data =error.response.data
+                this.$buefy.snackbar.open({
+                    message: data.error,
+                    queue: false,
+                    duration: 5000,
+                    type: 'is-danger'
+                  });
+             }    
         }
     }
 }

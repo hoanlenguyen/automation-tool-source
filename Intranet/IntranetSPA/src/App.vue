@@ -39,16 +39,63 @@ export default {
     },
     filteredMenu(){
       var items=[];
-      if(this.$store.state.userPermissions &&
-      this.$store.state.userPermissions.includes(
+      if(!this.$store.state.userPermissions)
+        return [items];
+
+      if(this.$store.state.userPermissions.includes(
         "Permissions.Bank.View"
       ))
-      items.push({
-        to: '/bank',
-        label: 'Banks',
-        icon: 'bank'
-      });
-      //return items;
+        items.push({
+          to: '/bank',
+          label: 'Banks',
+          icon: 'bank'
+        });
+
+      if(this.$store.state.userPermissions.includes(
+        "Permissions.Brand.View"
+      ))
+        items.push({
+        to: '/brand',
+        label: 'Brands',
+        icon: 'watermark'
+        });
+
+      if(this.$store.state.userPermissions.includes(
+        "Permissions.Department.View"
+      ))
+        items.push({
+        to: '/department',
+        label: 'Departments',
+        icon: 'domain'
+        });
+
+      if(this.$store.state.userPermissions.includes(
+        "Permissions.Rank.View"
+      ))
+        items.push({
+          to: '/rank',
+          label: 'Ranks',
+          icon: 'shield-account'
+        });
+
+      if(this.$store.state.userPermissions.includes(
+        "Permissions.Role.View"
+      ))
+        items.push( {
+        to: '/role',
+        label: 'User rights',
+        icon: 'shield-account'
+        });
+
+      if(this.$store.state.userPermissions.includes(
+        "Permissions.Employee.View"
+      ))
+        items.push(  {
+        to: '/employee',
+        label: 'Employees',
+        icon: 'account-multiple'
+        });
+
        return [items];
     },
  }

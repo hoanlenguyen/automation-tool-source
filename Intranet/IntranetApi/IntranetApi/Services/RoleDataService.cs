@@ -61,8 +61,17 @@ namespace IntranetApi.Services
                 var entity = db.Role.AsNoTracking().FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
-                return Results.Ok(entity);
-            });
+                var result = entity.Adapt<RoleCreateOrEdit>();
+                result.Permissions =await db.RoleClaims
+                                        .AsNoTracking()     
+                                        .Where(p => p.RoleId == id)
+                                        .Select(p => p.ClaimValue)
+                                        .ToListAsync();
+
+                return Results.Ok(result);
+            })
+            .RequireAuthorization(RolePermissions.View)
+            ; 
 
             app.MapPost("Role", [AllowAnonymous]
             async Task<IResult> (
@@ -74,17 +83,29 @@ namespace IntranetApi.Services
             {
                 if (string.IsNullOrEmpty(input.Name))
                     throw new Exception("No valid role name!");
+
+                if (await roleManager.RoleExistsAsync(input.Name))
+                    throw new Exception("Role existed!");
+
                 input.Name = input.Name.Trim();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = new Role { Name = input.Name, CreatorUserId = userId, NormalizedName = input.Name.ToUpper() };
                 await roleManager.CreateAsync(entity);
-
-                //db.Add(entity);
-                //db.SaveChanges();
+ 
+                Console.WriteLine($"RoleId {entity.Id}");
+                if (input.Permissions.Any())
+                {
+                    Console.WriteLine($"permissions Count: {input.Permissions.Count}");
+                    var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
+                    await db.RoleClaim.AddRangeAsync(roleClaims);
+                }
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
+                await db.SaveChangesAsync();
                 return Results.Ok(entity);
-            });
+            })
+            .RequireAuthorization(RolePermissions.Create)
+            ;
 
             app.MapPut("Role", [Authorize]
             async Task<IResult> (
@@ -93,6 +114,9 @@ namespace IntranetApi.Services
             [FromServices] IMemoryCache memoryCache,
             [FromBody] RoleCreateOrEdit input) =>
             {
+                if(await db.Role.AnyAsync(p=>p.Name == input.Name && p.Id != input.Id))
+                    throw new Exception("Role existed!");
+
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = db.Role.FirstOrDefault(x => x.Id == input.Id);
@@ -100,13 +124,25 @@ namespace IntranetApi.Services
                     return Results.NotFound();
 
                 entity.Name = input.Name;
+                entity.NormalizedName = input.Name.ToUpper();
                 entity.Status = input.Status;
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
+                var existedRoleClaims = await db.RoleClaim.Where(p => p.RoleId == entity.Id).ToListAsync();
+                if(existedRoleClaims.Any())
+                    db.RoleClaim.RemoveRange(existedRoleClaims);
+
+                if (input.Permissions.Any())
+                {
+                    var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
+                    await db.RoleClaim.AddRangeAsync(roleClaims);
+                }
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 db.SaveChanges();
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(RolePermissions.Update)
+            ;
 
             app.MapDelete("Role/{id:int}", [Authorize]
             async Task<IResult> (
@@ -127,24 +163,50 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(RolePermissions.Delete)
+            ;
 
             app.MapPost("Role/list", [Authorize]
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromBody] RoleFilterDto input) =>
             {
-                ProcessFilterValues(ref input);
+                ProcessFilterValues(ref input);                 
                 var query = db.Role.AsNoTracking()
                            .Where(p => !p.IsDeleted)
-                           .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
-                           ;
+                           .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword));
+
                 var totalCount = await query.CountAsync();
-                query = query.OrderByDynamic(input.SortBy, input.SortDirection);
-                var data = await query.Skip(input.SkipCount).Take(input.RowsPerPage).ToListAsync();
-                var items = data.Adapt<List<RoleCreateOrEdit>>();                 
-                return Results.Ok(new PagedResultDto<RoleCreateOrEdit>(totalCount, items));
-            });
+                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                                       .Skip(input.SkipCount)
+                                       .Take(input.RowsPerPage)
+                                       .ProjectToType<RoleListItem>()
+                                       .ToListAsync();
+                if (items.Any())
+                {
+                    var creatorUserIds = items.Select(p => p.CreatorUserId.GetValueOrDefault()).Distinct().ToList();
+                    var lastModifierUserIds = items.Select(p => p.LastModifierUserId.GetValueOrDefault()).Distinct();
+                    creatorUserIds.AddRange(lastModifierUserIds);
+                    var users = db.User.AsNoTracking()
+                                    .Where(p => creatorUserIds.Contains(p.Id))
+                                    .Select(p => new BaseDropdown { Id = p.Id, Name = p.Email })
+                                    .ToList();
+                    foreach (var item in items)
+                    {
+                        if (item.CreatorUserId != null)
+                            item.CreatorUser = users.FirstOrDefault(p => p.Id == item.CreatorUserId.Value)?.Name;
+
+                        if (item.LastModifierUserId != null)
+                            item.LastModifierUser = users.FirstOrDefault(p => p.Id == item.LastModifierUserId.Value)?.Name;
+
+                        item.Count = await db.UserRole.Where(p => p.RoleId == item.Id).CountAsync();
+                    }
+                }               
+                return Results.Ok(new PagedResultDto<RoleListItem>(totalCount, items));
+            })
+            .RequireAuthorization(RolePermissions.View)
+            ;
 
             app.MapGet("Role/dropdown", [Authorize]
             async Task<IResult> (
@@ -160,7 +222,7 @@ namespace IntranetApi.Services
                 return Results.Ok(items);
             });
 
-            app.MapPost("Role/addPermission", [AllowAnonymous]
+            app.MapPost("Role/addPermission", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
@@ -169,7 +231,7 @@ namespace IntranetApi.Services
             [FromQuery] string module
             ) =>
             {
-                var role = await db.Roles.FirstOrDefaultAsync(p=>p.Id==roleId);
+                var role = await db.Roles.FirstOrDefaultAsync(p => p.Id == roleId);
                 var allClaims = await roleManager.GetClaimsAsync(role);
                 var allPermissions = Permissions.GeneratePermissionsForModule(module);
                 foreach (var permission in allPermissions)
@@ -182,7 +244,7 @@ namespace IntranetApi.Services
                 return Results.Ok();
             });
 
-            app.MapGet("Role/assign", [AllowAnonymous]
+            app.MapGet("Role/assign", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
@@ -199,7 +261,7 @@ namespace IntranetApi.Services
                 return Results.Ok(result1);
             });
 
-            app.MapGet("Role/claims", [AllowAnonymous]
+            app.MapGet("Role/claims", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
@@ -209,18 +271,16 @@ namespace IntranetApi.Services
             ) =>
             {
                 Console.WriteLine(id);
-                var user= await userManager.FindByIdAsync(id);
+                var user = await userManager.FindByIdAsync(id);
                 var roles = await userManager.GetRolesAsync(user);
-                //var role =await roleManager.FindByIdAsync(id);
-                //var claims = await roleManager.GetClaimsAsync(role);
                 var permissions = new List<string>();
                 foreach (var roleName in roles)
                 {
                     var role = await roleManager.FindByNameAsync(roleName);
-                    if(role != null)
+                    if (role != null)
                     {
                         var claims = await roleManager.GetClaimsAsync(role);
-                        permissions.AddRange(claims.Select(p=>p.Value).ToArray());
+                        permissions.AddRange(claims.Select(p => p.Value).ToArray());
                     }
                 }
                 return Results.Ok(permissions);

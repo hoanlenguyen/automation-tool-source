@@ -3,6 +3,7 @@ using IntranetApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -58,8 +59,8 @@ namespace IntranetApi.Services
                         new Claim(ClaimTypes.Email, user.Email)
                     };
 
-                    var query = from s in db.UserRole
-                                join sa in db.RoleClaims on s.RoleId equals sa.RoleId
+                    var query = from s in db.UserRole.AsNoTracking()
+                                join sa in db.RoleClaims.AsNoTracking() on s.RoleId equals sa.RoleId
                                 where s.UserId == user.Id && sa.ClaimType == Permissions.Type
                                 select sa.ClaimValue;
 

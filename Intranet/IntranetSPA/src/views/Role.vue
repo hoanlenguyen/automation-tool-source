@@ -35,12 +35,12 @@
       </b-table-column>
 
       <b-table-column
-        field="Status"
-        label="Status"
-        sortable
+        field="Count"
+        label="Count"
+        width="150px"
         v-slot="props"
-        width="300px">        
-       <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
+      >       
+      {{ props.row.count}}
       </b-table-column>
 
       <b-table-column
@@ -49,7 +49,45 @@
         sortable
         v-slot="props"
         width="300px">
-       {{ props.row.creationTime | dateTime }} 
+       {{ props.row.creationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
+      </b-table-column>
+
+      <b-table-column
+        field="CreatorUserId"
+        label="Created By"
+        width="200px"
+        sortable
+        v-slot="props"
+      >       
+      {{ props.row.creatorUser}}
+      </b-table-column>
+
+      <b-table-column
+        field="LastModificationTime"
+        label="Updated On"
+        sortable
+        v-slot="props"
+        width="300px">
+       {{ props.row.lastModificationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
+      </b-table-column>
+
+      <b-table-column
+        label="Updated By"
+        field="LastModifierUserId"
+        width="200px"
+        sortable
+        v-slot="props"
+      >       
+      {{ props.row.lastModifierUser}}
+      </b-table-column>
+
+      <b-table-column
+        field="Status"
+        label="Status"
+        sortable
+        v-slot="props"
+        width="300px">        
+       <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Disabled' }}</span>        
       </b-table-column>
 
       <b-table-column
@@ -60,7 +98,7 @@
         <b-button 
           title="edit"          
           class="button mr-5"
-          @click="editModel(props.row)" 
+          @click="getDetail(props.row.id)" 
           style="padding: 0; border: none; background: none;">
           <b-icon
             icon="pencil"
@@ -132,9 +170,8 @@
         </b-pagination>        
       </div>
     </b-table>
-    <b-modal v-model="isModalActive" trap-focus has-modal-card :can-cancel="false" width="1200" scroll="keep">
-      <form action="">
-        <div class="modal-card">
+    <b-modal v-model="isModalActive" trap-focus has-modal-card full-screen :can-cancel="false" scroll="keep">
+      <div class="modal-card">
             <header class="modal-card-head">
                 <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
             </header>
@@ -149,6 +186,9 @@
                     placeholder="Name...."
                     required>
                   </b-input>
+              </b-field>
+              <b-field label="Permissions">
+                <treeselect v-model="model.permissions" :multiple="true" :options="permissions"  :disable-branch-nodes="true" search-nested/>
               </b-field>                 
             </section>
             <footer class="modal-card-foot">
@@ -156,13 +196,12 @@
                 <b-button :label="model.id==0?'Create':'Update'"type="is-primary" @click="createOrUpdateModel"/>
             </footer>
         </div>
-      </form>
     </b-modal>
 
     <b-modal v-model="isDeleteModalActive" trap-focus has-modal-card auto-focus :can-cancel="false" scroll="keep">
       <div class="modal-card" style="width:300px">
         <header class="modal-card-head">
-          <p class="modal-card-title">Are you sure to delete this data</p>                 
+          <p class="modal-card-title">Are you sure to delete this data?</p>                 
         </header>
         <footer class="modal-card-foot">
           <b-button label="Cancel" @click="isDeleteModalActive=false; selectedId=null" />
@@ -174,8 +213,14 @@
 </template>
 <script>
 import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/role";
+import permissions from '@/utils/permissions.js'
+// import the component
+import Treeselect from '@riophae/vue-treeselect'
+// import the styles
+import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 export default {
   name:"role",
+  components: { Treeselect },
   created() {
     this.getList();
   },
@@ -219,16 +264,19 @@ export default {
       model:{
         name:null,
         status:true,
+        permissions:[],
         id:0
       },
       defaultModel:{
         name:null,
         status:true,
+        permissions:[],
         id:0
       },
       isModalActive:false,
       isDeleteModalActive:false,
       selectedId:null,
+      permissions
     };
   },
   watch: {},
@@ -285,7 +333,7 @@ export default {
             });
           }
         })
-      .catch((error) => {})
+      .catch((error) => {this.notifyErrorMessage(error)})
       .finally(() => {
         this.closeModalDialog();
         this.getList();
@@ -317,6 +365,18 @@ export default {
         this.isDeleteModalActive=true;
         this.selectedId= id;
       }
+    },
+    getDetail(id){
+      if(!id) return;
+      getDetail(id)
+      .then((response) => {
+        if (response.status == 200 && response.data) {
+          this.model= {...response.data};
+          this.isModalActive= true;
+          }
+        })
+      .catch((error) => {this.notifyErrorMessage(error)})
+      .finally(() => {});
     }
   }
 };

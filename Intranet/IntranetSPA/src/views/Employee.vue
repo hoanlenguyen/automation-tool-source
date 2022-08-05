@@ -48,12 +48,12 @@
       </b-table-column>
 
       <b-table-column
-        field="role"
-        label="Role (Rank)"
+        field="rankId"
+        label="Rank"
         width="150px"       
         v-slot="props"
       >       
-      {{props.row.role}}
+      {{props.row.rank}}
       </b-table-column>
        
       <b-table-column
@@ -166,6 +166,7 @@
         v-slot="props"
         width="120px">        
         <b-button 
+          v-if="canUpdate"
           title="edit"          
           class="button mr-5"
           @click="editModel(props.row)" 
@@ -175,7 +176,8 @@
             type="is-info">
           </b-icon>
         </b-button> 
-        <b-button 
+        <b-button
+          v-if="canDelete" 
           title="delete"          
           class="button has-text-grey"
           @click="deleteSelectedModel(props.row.id)" 
@@ -199,6 +201,7 @@
         is-align-items-center
         is-flex-wrap-wrap">
         <b-button
+          v-if="canCreate"
           label="Import"
           type="is-primary"
           class="mr-4"
@@ -207,6 +210,7 @@
           :loading="isImportLoading"          
         />
         <b-button
+          v-if="canCreate"
           label="Create"
           type="is-info"
           class="mr-4"
@@ -292,15 +296,15 @@
           </div> 
 
         <div class="columns">
-          <b-field label="Role (rank)" class="column is-3">
+          <b-field label="Rank" class="column is-3">
               <b-select
                 placeholder="Select role"
-                v-model="model.roleId"
+                v-model="model.rankId"
                 clearable
                 expanded
               >
               <option
-                v-for="option in roles"
+                v-for="option in ranks"
                 :value="option.id"
                 :key="option.id"
               >
@@ -403,7 +407,24 @@
           </multiselect>
           </b-field>
 
-          <b-field label="Note" class="column is-9">
+          <b-field label="Intranet Role" class="column is-3">
+            <b-select
+              placeholder="Select role"
+              v-model="model.roleId"
+              clearable
+              expanded
+            >
+            <option
+              v-for="option in roles"
+              :value="option.id"
+              :key="option.id"
+            >
+              {{ option.name }}
+            </option>
+            </b-select>
+          </b-field>
+
+          <b-field label="Note" class="column is-6">
             <b-input
               type="Text"
               v-model="model.note">
@@ -471,10 +492,11 @@
 import moment from "moment";
 import Multiselect from "vue-multiselect";
 import { getDetail, getList, createOrUpdate, deleteData, importEmployees  } from "@/api/employee";
-import { getDropdown as getRoleDropdown } from "@/api/rank";
+import { getDropdown as getRoleDropdown } from "@/api/role";
 import { getDropdown as getBankDropdown } from "@/api/bank";
 import { getDropdown as getBrandDropdown } from "@/api/brand";
 import { getDropdown as getDepartmentDropdown } from "@/api/department";
+import { getDropdown as getRankDropdown } from "@/api/rank";
 export default {
   name:"employee",
   components: { Multiselect },
@@ -484,6 +506,7 @@ export default {
     this.getDepartmentDropdown();
     this.getBankDropdown();
     this.getBrandDropdown();
+    this.getRankDropdown();
   },
   data() {
     return {
@@ -546,13 +569,39 @@ export default {
       departments:[],
       banks:[],
       brands:[],
+      ranks:[],
       birthDate:null,
       startDate:null,
       selectBrands:[]
     };
   },
   watch: {},
-  computed: { },
+  computed: {
+    canCreate() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Employee.Create"
+        )
+      );
+    },
+    canUpdate() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Employee.Update"
+        )
+      );
+    },
+    canDelete() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Employee.Delete"
+        )
+      );
+    }
+   },
   methods: {
     resetFilter() {
       this.filter = { ...this.defaultFilter };       
@@ -752,6 +801,19 @@ export default {
         .then((response) => {
           if (response.status == 200) {
             this.brands = response.data;
+          } 
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+        });
+    },
+    getRankDropdown() {
+      getRankDropdown()
+        .then((response) => {
+          if (response.status == 200) {
+            this.ranks = response.data;
           } 
         })
         .catch((error) => {

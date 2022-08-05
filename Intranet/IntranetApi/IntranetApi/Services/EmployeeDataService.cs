@@ -11,11 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 using OfficeOpenXml;
-using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Security.Claims;
 
 namespace IntranetApi.Services
@@ -41,13 +39,13 @@ namespace IntranetApi.Services
                     return result;
             }
             return null;
-        }         
+        }
 
         private static List<BaseDropdown> GetDataList(string sqlConnectionStr, string tableName)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
             return connection.Query<BaseDropdown>($"select Id, Name from {tableName} where IsDeleted = 0").ToList();
-        }         
+        }
 
         private static void ProcessFilterValues(ref EmployeeFilterDto input)
         {
@@ -94,7 +92,9 @@ namespace IntranetApi.Services
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
-            });
+            })
+            .RequireAuthorization(EmployeePermissions.View)
+            ;
 
             app.MapPost("employee", [Authorize]
             async Task<IResult> (
@@ -109,7 +109,9 @@ namespace IntranetApi.Services
                 db.Add(entity);
                 db.SaveChanges();
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(EmployeePermissions.Create)
+            ;
 
             app.MapPut("employee", [Authorize]
             async Task<IResult> (
@@ -128,7 +130,9 @@ namespace IntranetApi.Services
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(EmployeePermissions.Update)
+            ;
 
             app.MapDelete("employee/{id:int}", [Authorize]
             async Task<IResult> (
@@ -147,7 +151,9 @@ namespace IntranetApi.Services
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(EmployeePermissions.Delete)
+            ;
 
             app.MapPost("employee/list", [AllowAnonymous]
             async Task<IResult> (
@@ -155,7 +161,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             [FromBody] EmployeeFilterDto input) =>
             {
-                ProcessFilterValues(ref input);                
+                ProcessFilterValues(ref input);
                 List<BaseDropdown> roles = null;
                 List<BaseDropdown> banks = null;
                 List<BaseDropdown> brands = null;
@@ -197,18 +203,22 @@ namespace IntranetApi.Services
                 {
                     adminUsers = GetDataList(sqlConnectionStr, nameof(User));
                     memoryCache.Set(CacheKeys.GetAdminUserDropdown, adminUsers, cacheOptions);
-                }                
+                }
                 var query = db.Employee.AsNoTracking()
                            .Where(p => !p.IsDeleted)
                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                            ;
                 var totalCount = await query.CountAsync();
-                query = query.OrderByDynamic(input.SortBy, input.SortDirection);
-                var data = await query.Skip(input.SkipCount).Take(input.RowsPerPage).ToListAsync();
-                var items = data.Adapt<List<EmployeeExcelInput>>();
+                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                                .Skip(input.SkipCount)
+                                .Take(input.RowsPerPage)
+                                .ProjectToType<EmployeeExcelInput>()
+                                .ToListAsync();
+                //var items = data.Adapt<List<EmployeeExcelInput>>();
                 foreach (var item in items)
                 {
                     item.Role = roles.FirstOrDefault(p => p.Id == item.RoleId)?.Name;
+                    item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
                     item.Dept = departments.FirstOrDefault(p => p.Id == item.DeptId)?.Name;
                     item.BankName = banks.FirstOrDefault(p => p.Id == item.BankId)?.Name;
                     item.LastModifierUser = adminUsers.FirstOrDefault(p => p.Id == (item.LastModifierUserId ?? item.CreatorUserId).GetValueOrDefault())?.Name;
@@ -219,14 +229,16 @@ namespace IntranetApi.Services
                     }
                 }
                 return Results.Ok(new PagedResultDto<EmployeeExcelInput>(totalCount, items));
-            });
+            })
+            .RequireAuthorization(EmployeePermissions.View)
+            ;
 
             app.MapPost("employee/importExcel", [Authorize][DisableRequestSizeLimit]
             async Task<IResult> (
                 [FromServices] IMemoryCache memoryCache,
                 [FromServices] IHttpContextAccessor httpContextAccessor,
                 [FromServices] IConfiguration config,
-                [FromServices] UserManager < User > userManager,
+                [FromServices] UserManager<User> userManager,
                 HttpRequest request) =>
             {
                 var watch = Stopwatch.StartNew();
@@ -246,8 +258,8 @@ namespace IntranetApi.Services
                 var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
                 if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out roles))
                 {
-                    roles = GetDataList(sqlConnectionStr, nameof(Role));                    
-                    memoryCache.Set(CacheKeys.GetRolesDropdown, roles, cacheOptions);                    
+                    roles = GetDataList(sqlConnectionStr, nameof(Role));
+                    memoryCache.Set(CacheKeys.GetRolesDropdown, roles, cacheOptions);
                 }
 
                 if (!memoryCache.TryGetValue(CacheKeys.GetBanksDropdown, out banks))
@@ -258,7 +270,7 @@ namespace IntranetApi.Services
 
                 if (!memoryCache.TryGetValue(CacheKeys.GetBrandsDropdown, out brands))
                 {
-                    brands = GetDataList(sqlConnectionStr,nameof(Brand));
+                    brands = GetDataList(sqlConnectionStr, nameof(Brand));
                     memoryCache.Set(CacheKeys.GetBrandsDropdown, brands, cacheOptions);
                 }
 
@@ -285,8 +297,8 @@ namespace IntranetApi.Services
                     var employees = new List<EmployeeBulkInsert>();
                     var brandEmployees = new List<BrandEmployee>();
                     var rowCount = 0;
-                    var rowInput= new EmployeeExcelInput();
-                    var rowInputList= new List<EmployeeExcelInput>();
+                    var rowInput = new EmployeeExcelInput();
+                    var rowInputList = new List<EmployeeExcelInput>();
                     //Process excel file
                     using (var stream = new MemoryStream())
                     {
@@ -295,18 +307,18 @@ namespace IntranetApi.Services
                         {
                             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
                             if (worksheet == null) //continue;
-                            throw new Exception("No worksheet found!");
+                                throw new Exception("No worksheet found!");
 
                             rowCount = worksheet.Dimension.Rows; //include header
                             if (rowCount <= 1) //continue;
-                            throw new Exception("No Data in worksheet found!");
+                                throw new Exception("No Data in worksheet found!");
 
                             totalRows += rowCount - 1;
-                            //read excel file data and add data                             
+                            //read excel file data and add data
                             var now = DateTime.Now;
                             var cells = new List<string>();
                             var errorDetails = new List<string>();
-                            var brandNames= new List<string>();
+                            var brandNames = new List<string>();
                             EmployeeBulkInsert newEmployee;
                             EmployeeImportError importError;
                             //int i = 0;
@@ -382,9 +394,9 @@ namespace IntranetApi.Services
                                 }
                                 else
                                 {
-                                    brandNames = rowInput.Brand.Split(',').Select(p=>(p?.ToLower()??string.Empty).Trim()).ToList();
+                                    brandNames = rowInput.Brand.Split(',').Select(p => (p?.ToLower() ?? string.Empty).Trim()).ToList();
                                     rowInput.BrandIdList = brands.Where(p => brandNames.Contains(p.Name.ToLower())).Select(p => p.Id).ToList();
-                                    
+
                                     if (rowInput.BrandIdList.Count == 0)
                                     {
                                         cells.Add($"F{row}");
@@ -436,7 +448,7 @@ namespace IntranetApi.Services
                                 else
                                 {
                                     var salary = 0;
-                                    if (!int.TryParse(rowInput.SalaryStr,out salary))
+                                    if (!int.TryParse(rowInput.SalaryStr, out salary))
                                     {
                                         cells.Add($"K{row}");
                                         errorDetails.Add("Invalid Salary");
@@ -461,7 +473,7 @@ namespace IntranetApi.Services
                                         errorDetails.Add("Invalid BirthDate");
                                     }
                                 }
-                                 
+
                                 if (string.IsNullOrEmpty(rowInput.IdNumber)) //L
                                 {
                                     cells.Add($"F{row}");
@@ -482,7 +494,7 @@ namespace IntranetApi.Services
 
                                 if (cells.Count == 0) // if no error , add new record
                                 {
-                                    newEmployee = rowInput.Adapt<EmployeeBulkInsert>();                                    
+                                    newEmployee = rowInput.Adapt<EmployeeBulkInsert>();
                                     newEmployee.CreatorUserId = userId;
                                     employees.Add(newEmployee);
                                 }
@@ -500,12 +512,12 @@ namespace IntranetApi.Services
                         }
                     }
                     Console.WriteLine($"employees count {employees.Count}");
-                    var duplicateResult= await CheckUniqueValue(employees);
+                    var duplicateResult = await CheckUniqueValue(employees);
                     var index = 0;
                     foreach (var value in duplicateResult.EmployeeCodes)
                     {
                         Console.WriteLine($"duplicateResult.EmployeeCodes {value}");
-                        index= rowInputList.FindIndex(p=>p.EmployeeCode.Equals(value,StringComparison.OrdinalIgnoreCase));
+                        index = rowInputList.FindIndex(p => p.EmployeeCode.Equals(value, StringComparison.OrdinalIgnoreCase));
                         if (index > -1)
                         {
                             var employee = rowInputList[index].Adapt<EmployeeImportError>();
@@ -522,7 +534,7 @@ namespace IntranetApi.Services
                         {
                             var employee = rowInputList[index].Adapt<EmployeeImportError>();
                             var checkIndex = rowInputList.FindIndex(p => p.EmployeeCode.Equals(employee.EmployeeCode, StringComparison.OrdinalIgnoreCase));
-                            if(checkIndex > -1)
+                            if (checkIndex > -1)
                             {
                                 errorList[checkIndex].Cells += $"-L{index + 2}";
                                 errorList[checkIndex].ErrorDetails += "-IdNumber existed";
@@ -532,7 +544,7 @@ namespace IntranetApi.Services
                                 employee.Cells += $"-L{index + 2}";
                                 employee.ErrorDetails += "-IdNumber existed";
                                 errorList.Add(employee);
-                            }                          
+                            }
                         }
                     }
                     foreach (var value in duplicateResult.BackendUsers)
@@ -556,8 +568,8 @@ namespace IntranetApi.Services
                             }
                         }
                     }
-                    employees=employees.Where(
-                        p=>!duplicateResult.EmployeeCodes.Contains(p.EmployeeCode) 
+                    employees = employees.Where(
+                        p => !duplicateResult.EmployeeCodes.Contains(p.EmployeeCode)
                     && !duplicateResult.IdNumbers.Contains(p.IdNumber)
                     && !duplicateResult.BackendUsers.Contains(p.BackendUser)
                         ).ToList();
@@ -578,33 +590,34 @@ namespace IntranetApi.Services
                         }
                         catch (Exception)
                         {
-
                             throw;
-                        }                        
+                        }
                     }
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
                 }
                 return Results.Ok(new { totalRows, errorList, shouldSendEmail });
-            });
+            })
+            .RequireAuthorization(EmployeePermissions.Create)
+            ;
 
             app.MapGet("employee/dropdown", [Authorize]
             async Task<IResult> (
             [FromServices] ApplicationDbContext db) =>
             {
                 List<BaseDropdown> items = null;
-                 
+
                 items = GetBaseDropdown(sqlConnectionStr);
-                 
+
                 return Results.Ok(items);
             });
 
             async Task BulkInsertEmployeesToDB(IEnumerable<EmployeeBulkInsert> items)
             {
-                if (items.Count() == 0) 
+                if (items.Count() == 0)
                 {
                     Console.WriteLine($"BulkInsertEmployeesToDB -no new data");
-                    return; 
+                    return;
                 }
                 var watch = Stopwatch.StartNew();
                 var dataTable = items.ToDataTable();
@@ -622,7 +635,7 @@ namespace IntranetApi.Services
 
             async Task<EmployeeCheckUnique> CheckUniqueValue(IEnumerable<EmployeeBulkInsert> items)
             {
-                var result= new EmployeeCheckUnique();
+                var result = new EmployeeCheckUnique();
                 if (items.Count() == 0) return result;
                 var watch = Stopwatch.StartNew();
                 var dataTable = items.ToDataTable();
@@ -658,7 +671,6 @@ namespace IntranetApi.Services
                 result.BackendUsers = connection.Query<string>(commandStr).ToList();
                 Console.WriteLine($"query join table TempEmployeeList - BackendUser, time: {watch.Elapsed.TotalSeconds}");
 
-
                 watch.Restart();
                 commandStr = "select t.IdNumber " +
                              "from TempEmployeeList  t " +
@@ -666,7 +678,6 @@ namespace IntranetApi.Services
                              "on t.IdNumber = c.IdNumber ";
                 result.IdNumbers = connection.Query<string>(commandStr).ToList();
                 Console.WriteLine($"query join table TempEmployeeList - IdNumber, time: {watch.Elapsed.TotalSeconds}");
-
 
                 commandStr = "DROP TEMPORARY TABLE IF EXISTS TempEmployeeList";
                 using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))

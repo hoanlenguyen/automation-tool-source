@@ -96,6 +96,7 @@
         v-slot="props"
         width="100px">        
         <b-button 
+          v-if="canUpdate"
           title="edit"          
           class="button mr-5"
           @click="getDetail(props.row.id)" 
@@ -106,6 +107,7 @@
           </b-icon>
         </b-button> 
         <b-button 
+          v-if="canDelete"
           title="delete"          
           class="button has-text-grey"
           @click="deleteSelectedModel(props.row.id)" 
@@ -134,6 +136,7 @@
             class="mr-4"
             icon-left="note-plus"
             @click="isModalActive=true"
+            v-if="canCreate"
           />
         
         <b-button
@@ -187,9 +190,21 @@
                     required>
                   </b-input>
               </b-field>
+                
               <b-field label="Permissions">
-                <treeselect v-model="model.permissions" :multiple="true" :options="permissions"  :disable-branch-nodes="true" search-nested/>
-              </b-field>                 
+                <template #label>
+                 <span class="mr-3">Permissions</span> 
+                  <b-button label="Select all" type="is-info" size="is-small" @click="selectAllPermissions"/>
+                </template>
+                <treeselect 
+                  v-model="model.permissions" 
+                  :multiple="true" 
+                  :options="permissions"  
+                  :disable-branch-nodes="true" 
+                  search-nested 
+                  always-open/>
+              </b-field>
+                                          
             </section>
             <footer class="modal-card-foot">
                 <b-button label="Cancel" @click="cancelCreateOrUpdate" />
@@ -280,7 +295,32 @@ export default {
     };
   },
   watch: {},
-  computed: { },
+  computed: {
+    canCreate() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Role.Create"
+        )
+      );
+    },
+    canUpdate() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Role.Update"
+        )
+      );
+    },
+    canDelete() {
+      return (
+        this.$store.state.userPermissions &&
+        this.$store.state.userPermissions.includes(
+          "Permissions.Role.Delete"
+        )
+      );
+    }
+   },
   methods: {
     resetFilter() {
       this.filter = { ...this.defaultFilter };       
@@ -377,6 +417,9 @@ export default {
         })
       .catch((error) => {this.notifyErrorMessage(error)})
       .finally(() => {});
+    },
+    selectAllPermissions(){
+      this.model.permissions= this.permissions.flatMap(p=>p.children).map(p=>p.id);
     }
   }
 };

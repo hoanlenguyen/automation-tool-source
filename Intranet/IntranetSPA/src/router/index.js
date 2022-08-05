@@ -17,7 +17,15 @@ const routes = [
   // },
   {
     meta: {
-      title: 'Role data'
+      title: ''
+    },
+    path: '/dashboard',
+    name: 'dashboard',
+    component: () => import('@/views/Dashboard.vue')
+  },
+  {
+    meta: {
+      title: 'User rights'
     },
     path: '/role',
     name: 'role',    

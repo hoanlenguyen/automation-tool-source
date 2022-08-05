@@ -10,6 +10,7 @@
         public int RoleId { get; set; }
         public int DeptId { get; set; }
         public int BankId { get; set; }
+        public int RankId { get; set; }
         public string BankAccountNumber { get; set; }
 
         public DateTime? StartDate { get; set; }

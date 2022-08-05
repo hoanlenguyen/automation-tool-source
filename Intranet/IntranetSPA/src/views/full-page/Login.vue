@@ -101,7 +101,7 @@ export default {
               permissions:userInfo.permissions
               });
             console.log(this.$store.state);
-            this.$router.push({ name: 'bank' });
+            this.$router.push({ name: 'dashboard' });
           }else{
             setToken('');
             this.$buefy.snackbar.open({

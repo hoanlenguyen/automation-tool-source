@@ -9,6 +9,8 @@ namespace IntranetApi.Models
         public string Role { get; set; }
         public int? RoleId { get; set; }
         public string Dept { get; set; }
+        public int? RankId { get; set; }
+        public string Rank { get; set; }
         public int? DeptId { get; set; }
         public string Brand { get; set; }
         public string BrandIds { get; set; }

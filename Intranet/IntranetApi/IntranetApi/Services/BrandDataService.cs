@@ -58,7 +58,9 @@ namespace IntranetApi.Services
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
-            });
+            })
+            .RequireAuthorization(BrandPermissions.View)
+            ;
 
             app.MapPost("Brand", [Authorize]
             async Task<IResult> (
@@ -74,7 +76,9 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBrandsDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(BrandPermissions.Create)
+            ;
 
             app.MapPut("Brand", [Authorize]
             async Task<IResult> (
@@ -96,7 +100,9 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBrandsDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(BrandPermissions.Update)
+            ;
 
             app.MapDelete("Brand/{id:int}", [Authorize]
             async Task<IResult> (
@@ -117,7 +123,9 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBrandsDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(BrandPermissions.Delete)
+            ;
 
             app.MapPost("Brand/list", [Authorize]
             async Task<IResult> (
@@ -156,7 +164,9 @@ namespace IntranetApi.Services
 
                     return Results.Ok(new PagedResultDto<BrandCreateOrEdit>(totalCount, items));
                 }
-            });
+            })
+            .RequireAuthorization(BrandPermissions.View)
+            ;
 
             app.MapGet("Brand/dropdown", [Authorize]
             async Task<IResult> (

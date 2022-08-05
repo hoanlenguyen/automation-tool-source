@@ -44,7 +44,9 @@ namespace IntranetApi.Services
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
-            });
+            })
+            .RequireAuthorization(RankPermissions.View)
+            ;
 
             app.MapPost("Rank", [Authorize]
             async Task<IResult> (
@@ -63,7 +65,9 @@ namespace IntranetApi.Services
                 input.Id = entity.Id;                
                 memoryCache.Remove(CacheKeys.GetRanksDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(RankPermissions.Create)
+            ;
 
             app.MapPut("Rank", [Authorize]
             async Task<IResult> (
@@ -84,7 +88,9 @@ namespace IntranetApi.Services
                 memoryCache.Remove(CacheKeys.GetRanksDropdown);
                 db.SaveChanges();
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(RankPermissions.Update)
+            ;
 
             app.MapDelete("Rank/{id:int}", [Authorize]
             async Task<IResult> (
@@ -105,7 +111,9 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetRanksDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(RankPermissions.Delete)
+            ;
 
             app.MapPost("Rank/list", [Authorize]
             async Task<IResult> (
@@ -121,7 +129,9 @@ namespace IntranetApi.Services
                 query = query.OrderByDynamic(input.SortBy, input.SortDirection);
                 var items = await query.Skip(input.SkipCount).Take(input.RowsPerPage).ToListAsync();
                 return Results.Ok(new PagedResultDto<Rank>(totalCount, items));
-            });
+            })
+            .RequireAuthorization(RankPermissions.View)
+            ;
 
             app.MapGet("Rank/dropdown", [Authorize]
             async Task<IResult> (

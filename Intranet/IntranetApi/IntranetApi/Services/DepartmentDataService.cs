@@ -60,7 +60,9 @@ namespace IntranetApi.Services
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
-            });
+            })
+            .RequireAuthorization(DepartmentPermissions.View)
+            ;
 
             app.MapPost("Department", [Authorize]
             async Task<IResult> (
@@ -76,7 +78,9 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetDepartmentsDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(DepartmentPermissions.Create)
+            ;
 
             app.MapPut("Department", [Authorize]
             async Task<IResult> (
@@ -98,7 +102,9 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetDepartmentsDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(DepartmentPermissions.Update)
+            ;
 
             app.MapDelete("Department/{id:int}", [Authorize]
             async Task<IResult> (
@@ -119,7 +125,9 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetDepartmentsDropdown);
                 return Results.Ok();
-            });
+            })
+            .RequireAuthorization(DepartmentPermissions.Delete)
+            ;
 
             app.MapPost("Department/list", [Authorize]
             async Task<IResult> (
@@ -158,7 +166,9 @@ namespace IntranetApi.Services
 
                     return Results.Ok(new PagedResultDto<DepartmentCreateOrEdit>(totalCount, items));
                 }
-            });
+            })
+            .RequireAuthorization(DepartmentPermissions.View)
+            ;
 
             app.MapGet("Department/dropdown", [Authorize]
             async Task<IResult> (

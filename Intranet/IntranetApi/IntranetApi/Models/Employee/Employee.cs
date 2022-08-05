@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IntranetApi.Models
 {
@@ -34,11 +35,15 @@ namespace IntranetApi.Models
         [MaxLength(20)]
         public string BackendPass { get; set; }
 
+        [ForeignKey(nameof(User))]
         public int? UserId { get; set; }
 
         public int Salary { get; set; }
 
         [MaxLength(150)]
         public string? Note { get; set; }
+
+        [ForeignKey(nameof(UserId))]
+        public virtual User User { get; set; }
     }
 }

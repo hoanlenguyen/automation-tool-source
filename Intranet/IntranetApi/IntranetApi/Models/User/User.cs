@@ -9,5 +9,8 @@ namespace IntranetApi.Models
         public string Name { get; set; }
         public bool IsSuperAdmin { get; set; }
         public bool IsDeleted { get; set; } = false;
+        public bool IsFirstTimeLogin { get; set; } = false;
+
+        public virtual Employee Employee { get; set; }
     }
 }

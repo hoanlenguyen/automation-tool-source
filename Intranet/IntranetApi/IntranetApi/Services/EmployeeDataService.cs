@@ -100,12 +100,24 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] UserManager < User > userManager,
             [FromBody] EmployeeCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<Employee>();
                 entity.CreatorUserId = userId;
+                var user = new User
+                {
+                    UserName = entity.BackendUser ?? entity.EmployeeCode,
+                    Name = entity.Name,
+                    Email = $"{entity.EmployeeCode}@intranet.com",
+                    IsSuperAdmin = false
+                };
+                var result = await userManager.CreateAsync(user, entity.BackendPass);
+                Console.WriteLine($"UserId: {user.Id}");
+                await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
+                entity.UserId = user.Id;
                 db.Add(entity);
                 db.SaveChanges();
                 return Results.Ok();
@@ -117,6 +129,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
+            [FromServices] UserManager<User> userManager,
             [FromBody] EmployeeCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -125,9 +138,25 @@ namespace IntranetApi.Services
                 if (entity == null)
                     return Results.NotFound();
 
+                var currentPassword = entity.BackendPass;
+
                 input.Adapt(entity);
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
+                var user =await db.User.FirstOrDefaultAsync(p => p.Id == entity.UserId);
+                if(user != null && entity.BackendPass!= currentPassword)
+                {
+                    try
+                    {
+                        await userManager.ChangePasswordAsync(user, currentPassword, entity.BackendPass);
+                    }
+                    catch (Exception){}
+                }
+                var userRoles=await db.UserRole.Where(p=>p.UserId== entity.UserId).ToListAsync();
+                if (userRoles.Any())
+                    db.UserRole.RemoveRange(userRoles);
+
+                await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
                 db.SaveChanges();
                 return Results.Ok();
             })
@@ -326,7 +355,7 @@ namespace IntranetApi.Services
                             {
                                 rowInput.Name = (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();//A
                                 rowInput.EmployeeCode = (worksheet.Cells[row, 2]?.Text ?? string.Empty).Trim();//B
-                                rowInput.Role = (worksheet.Cells[row, 3]?.Text ?? string.Empty).Trim();//C
+                                rowInput.Rank = (worksheet.Cells[row, 3]?.Text ?? string.Empty).Trim();//C
                                 rowInput.Dept = (worksheet.Cells[row, 4]?.Text ?? string.Empty).Trim();//D
                                 rowInput.StatusStr = (worksheet.Cells[row, 5]?.Text ?? string.Empty).Trim();//E
                                 rowInput.Brand = (worksheet.Cells[row, 6]?.Text ?? string.Empty).Trim();//F
@@ -338,7 +367,8 @@ namespace IntranetApi.Services
                                 rowInput.IdNumber = (worksheet.Cells[row, 12]?.Text ?? string.Empty).Trim();//L
                                 rowInput.BackendUser = (worksheet.Cells[row, 13]?.Text ?? string.Empty).Trim();//M
                                 rowInput.BackendPass = (worksheet.Cells[row, 14]?.Text ?? string.Empty).Trim();//N
-                                rowInput.Note = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
+                                rowInput.Role = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
+                                rowInput.Note = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//P
 
                                 //i = 0;
                                 //check error
@@ -354,19 +384,19 @@ namespace IntranetApi.Services
                                     errorDetails.Add("Missing Employee Code");
                                 }
 
-                                if (string.IsNullOrEmpty(rowInput.Role))//C
+                                if (string.IsNullOrEmpty(rowInput.Rank))//C
                                 {
                                     cells.Add($"C{row}");
-                                    errorDetails.Add("Missing (Rank) Role");
+                                    errorDetails.Add("Missing Rank");
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"rowInput.Role {rowInput.Role}");
-                                    rowInput.RoleId = roles.FirstOrDefault(p => p.Name.Equals(rowInput.Role, StringComparison.OrdinalIgnoreCase))?.Id;
-                                    if (rowInput.RoleId == null)
+                                    Console.WriteLine($"rowInput.Rank {rowInput.Rank}");
+                                    rowInput.RankId = ranks.FirstOrDefault(p => p.Name.Equals(rowInput.Rank, StringComparison.OrdinalIgnoreCase))?.Id;
+                                    if (rowInput.RankId == null)
                                     {
                                         cells.Add($"C{row}");
-                                        errorDetails.Add("Invalid (Rank) Role");
+                                        errorDetails.Add("Invalid Rank");
                                     }
                                 }
 
@@ -490,6 +520,21 @@ namespace IntranetApi.Services
                                 {
                                     cells.Add($"N{row}");
                                     errorDetails.Add("Missing BackendPass");
+                                }
+
+                                if (string.IsNullOrEmpty(rowInput.Role)) //O
+                                {
+                                    cells.Add($"O{row}");
+                                    errorDetails.Add("Missing Role");
+                                }
+                                else
+                                {
+                                    rowInput.RoleId = roles.FirstOrDefault(p => p.Name.Equals(rowInput.Role, StringComparison.OrdinalIgnoreCase))?.Id;
+                                    if (rowInput.RoleId == null)
+                                    {
+                                        cells.Add($"O{row}");
+                                        errorDetails.Add("Invalid Role");
+                                    }
                                 }
 
                                 if (cells.Count == 0) // if no error , add new record

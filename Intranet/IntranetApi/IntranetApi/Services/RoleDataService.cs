@@ -48,7 +48,7 @@ namespace IntranetApi.Services
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from UserRole where IsDeleted = 0").ToList();
+            return connection.Query<BaseDropdown>("select Id, Name from Role where IsDeleted = 0").ToList();
         }
 
         public static void AddRoleDataService(this WebApplication app, string sqlConnectionStr)

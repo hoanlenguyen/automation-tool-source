@@ -164,14 +164,16 @@
         field="Edit"
         label="Edit"        
         v-slot="props"
-        width="120px">        
+        width="150px">        
         <b-button 
           v-if="canUpdate"
           title="edit"          
           class="button mr-5"
+
           @click="editModel(props.row)" 
           style="padding: 0; border: none; background: none;">
           <b-icon
+          size="is-small"
             icon="pencil"
             type="is-info">
           </b-icon>
@@ -183,6 +185,7 @@
           @click="deleteSelectedModel(props.row.id)" 
           style="padding: 0; border: none; background: none;">
           <b-icon
+             size="is-small"
             icon="delete">
           </b-icon>
         </b-button>       

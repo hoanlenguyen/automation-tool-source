@@ -37,6 +37,13 @@ namespace IntranetApi.DbContext
             modelBuilder.Entity<Employee>().HasIndex(p=>p.EmployeeCode).IsUnique();
             modelBuilder.Entity<Employee>().HasIndex(p=>p.IdNumber).IsUnique();
             modelBuilder.Entity<Employee>().HasIndex(p=>p.BackendUser).IsUnique();
+             
+            //modelBuilder.Entity<Employee>()
+            //           .HasOne(s => s.User)
+            //           .WithOne()
+            //           .HasForeignKey($"{nameof(IntranetApi.Models.Employee)}_{nameof(User)}")
+            //           .IsRequired(false)
+            //           .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Bank>().ToTable("Bank");
             modelBuilder.Entity<Department>().ToTable("Department");

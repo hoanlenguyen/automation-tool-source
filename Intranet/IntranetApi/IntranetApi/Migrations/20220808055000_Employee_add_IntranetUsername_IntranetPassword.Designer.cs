@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IntranetApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220805074422_Employee_update_ForeignKey")]
-    partial class Employee_update_ForeignKey
+    [Migration("20220808055000_Employee_add_IntranetUsername_IntranetPassword")]
+    partial class Employee_add_IntranetUsername_IntranetPassword
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -191,6 +191,16 @@ namespace IntranetApi.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<string>("IntranetPassword")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("IntranetUsername")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
@@ -225,7 +235,6 @@ namespace IntranetApi.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<int?>("UserId")
-                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -237,9 +246,6 @@ namespace IntranetApi.Migrations
                         .IsUnique();
 
                     b.HasIndex("IdNumber")
-                        .IsUnique();
-
-                    b.HasIndex("UserId")
                         .IsUnique();
 
                     b.ToTable("Employee", (string)null);
@@ -535,17 +541,6 @@ namespace IntranetApi.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("IntranetApi.Models.Employee", b =>
-                {
-                    b.HasOne("IntranetApi.Models.User", "User")
-                        .WithOne("Employee")
-                        .HasForeignKey("IntranetApi.Models.Employee", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("IntranetApi.Models.RoleClaim", b =>
                 {
                     b.HasOne("IntranetApi.Models.Role", null)
@@ -594,12 +589,6 @@ namespace IntranetApi.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("IntranetApi.Models.User", b =>
-                {
-                    b.Navigation("Employee")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

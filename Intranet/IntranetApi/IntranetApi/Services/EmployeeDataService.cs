@@ -369,7 +369,9 @@ namespace IntranetApi.Services
                                 rowInput.BackendUser = (worksheet.Cells[row, 13]?.Text ?? string.Empty).Trim();//M
                                 rowInput.BackendPass = (worksheet.Cells[row, 14]?.Text ?? string.Empty).Trim();//N
                                 rowInput.Role = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
-                                rowInput.Note = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//P
+                                rowInput.IntranetUsername = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//P
+                                rowInput.IntranetPassword = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//Q
+                                rowInput.Note = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//R
 
                                 //i = 0;
                                 //check error
@@ -538,6 +540,18 @@ namespace IntranetApi.Services
                                     }
                                 }
 
+                                if (string.IsNullOrEmpty(rowInput.IntranetUsername))//P
+                                {
+                                    cells.Add($"P{row}");
+                                    errorDetails.Add("Missing Intranet Username");
+                                }
+
+                                if (string.IsNullOrEmpty(rowInput.IntranetPassword))//Q
+                                {
+                                    cells.Add($"Q{row}");
+                                    errorDetails.Add("Missing Intranet Password");
+                                }
+
                                 if (cells.Count == 0) // if no error , add new record
                                 {
                                     newEmployee = rowInput.Adapt<EmployeeBulkInsert>();
@@ -618,8 +632,7 @@ namespace IntranetApi.Services
                         p => !duplicateResult.EmployeeCodes.Contains(p.EmployeeCode)
                     && !duplicateResult.IdNumbers.Contains(p.IdNumber)
                     && !duplicateResult.BackendUsers.Contains(p.BackendUser)
-                        ).ToList();
-                    await BulkInsertEmployeesToDB(employees);
+                        ).ToList();                    
                     foreach (var item in employees)
                     {
                         try
@@ -634,12 +647,14 @@ namespace IntranetApi.Services
                             };
 
                             var result = await userManager.CreateAsync(user, item.BackendPass);
+                            item.UserId= user.Id;
                         }
                         catch (Exception)
                         {
                             throw;
                         }
                     }
+                    await BulkInsertEmployeesToDB(employees);
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
                 }

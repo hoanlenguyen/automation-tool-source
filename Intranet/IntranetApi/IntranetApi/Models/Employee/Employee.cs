@@ -35,7 +35,6 @@ namespace IntranetApi.Models
         [MaxLength(20)]
         public string BackendPass { get; set; }
 
-        [ForeignKey(nameof(User))]
         public int? UserId { get; set; }
 
         public int Salary { get; set; }
@@ -43,7 +42,10 @@ namespace IntranetApi.Models
         [MaxLength(150)]
         public string? Note { get; set; }
 
-        [ForeignKey(nameof(UserId))]
-        public virtual User User { get; set; }
+        [MaxLength(20)]
+        public string IntranetUsername { get; set; }
+
+        [MaxLength(20)]
+        public string IntranetPassword { get; set; }
     }
 }

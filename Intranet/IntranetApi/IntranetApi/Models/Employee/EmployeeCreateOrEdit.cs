@@ -2,7 +2,6 @@
 {
     public class EmployeeCreateOrEdit : BaseAuditEntity
     {
-
         public string Name { get; set; }
 
         public string EmployeeCode { get; set; }
@@ -30,5 +29,8 @@
         public string? Note { get; set; }
 
         public string BrandIds { get; set; }
+        public string IntranetUsername { get; set; }
+
+        public string IntranetPassword { get; set; }
     }
 }

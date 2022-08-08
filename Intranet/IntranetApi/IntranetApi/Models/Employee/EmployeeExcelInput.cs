@@ -31,5 +31,8 @@ namespace IntranetApi.Models
         public string? Note { get; set; }
         public int? UserId { get; set; }
         public string LastModifierUser { get; set; }
+        public string IntranetUsername { get; set; }
+
+        public string IntranetPassword { get; set; }
     }
 }

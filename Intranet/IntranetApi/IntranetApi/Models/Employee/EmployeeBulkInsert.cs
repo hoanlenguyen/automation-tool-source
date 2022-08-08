@@ -45,6 +45,12 @@ namespace IntranetApi.Models
         [MaxLength(150)]
         public string? Note { get; set; }
 
+        [MaxLength(20)]
+        public string IntranetUsername { get; set; }
+
+        [MaxLength(20)]
+        public string IntranetPassword { get; set; }
+
         [MaxLength(100)]
         public string BrandIds { get; set; }
     }

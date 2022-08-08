@@ -9,6 +9,8 @@
 /BIToolApi/bin/Release/net6.0
 /.vs
 /obj
+.vs
+obj
 /Intranet/IntranetApi/.vs
 /BIToolApi/BIToolApi/bin/Debug/net6.0
 /BIToolApi/BIToolApi/Properties/PublishProfiles

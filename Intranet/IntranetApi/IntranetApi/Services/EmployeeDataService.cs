@@ -112,7 +112,8 @@ namespace IntranetApi.Services
                     UserName = entity.BackendUser ?? entity.EmployeeCode,
                     Name = entity.Name,
                     Email = $"{entity.EmployeeCode}@intranet.com",
-                    IsSuperAdmin = false
+                    IsSuperAdmin = false,
+                    IsFirstTimeLogin = true
                 };
                 var result = await userManager.CreateAsync(user, entity.BackendPass);
                 Console.WriteLine($"UserId: {user.Id}");
@@ -628,7 +629,8 @@ namespace IntranetApi.Services
                                 UserName = item.BackendUser ?? item.EmployeeCode,
                                 Name = item.Name,
                                 Email = $"{item.EmployeeCode}@intranet.com",
-                                IsSuperAdmin = false
+                                IsSuperAdmin = false,
+                                IsFirstTimeLogin = true
                             };
 
                             var result = await userManager.CreateAsync(user, item.BackendPass);

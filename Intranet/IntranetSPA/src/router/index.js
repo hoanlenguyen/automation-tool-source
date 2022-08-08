@@ -90,6 +90,14 @@ const routes = [
         path: '/login',
         name: 'login',
         component: () => import(/* webpackChunkName: "full-page" */ '@/views/full-page/Login.vue')
+      },
+      {
+        meta: {
+          title: 'Change Password'
+        },
+        path: '/change-password',
+        name: 'change-password',
+        component: () => import(/* webpackChunkName: "full-page" */ '@/views/full-page/ChangePassword.vue')
       }
     ]
   }

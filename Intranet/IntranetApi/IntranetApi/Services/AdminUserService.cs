@@ -22,7 +22,8 @@ namespace IntranetApi.Services
                     UserName = input.UserName ?? input.Email,
                     Name = input.Name,
                     Email = input.Email,
-                    IsSuperAdmin =true
+                    IsSuperAdmin =true,
+                    IsFirstTimeLogin = true
                 };
 
                 var result = await userManager.CreateAsync(user, input.Password);
@@ -83,11 +84,12 @@ namespace IntranetApi.Services
                     var accessToken = tokenHandler.WriteToken(token);
                     return Results.Ok(new
                     {
-                        accessToken = accessToken,
-                        email = user.Email,
-                        name = user.Name,
+                        accessToken,
+                        user.Email,
+                        user.Name,
                         roleName,
-                        permissions
+                        permissions,
+                        user.IsFirstTimeLogin
                     });
                 }
 
@@ -141,7 +143,10 @@ namespace IntranetApi.Services
                 {
                     var result = await userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
                     if (result.Succeeded)
+                    {
+                        user.IsFirstTimeLogin = false;
                         return Results.Ok();
+                    }
                     return Results.BadRequest("Can not change this password!");
                 }
 

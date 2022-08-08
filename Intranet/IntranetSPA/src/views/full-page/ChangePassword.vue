@@ -15,18 +15,29 @@
       method="POST"
       @submit.prevent="submit"
     >
-      <b-field label="Username">
+
+
+      <b-field label="Current password">
         <b-input
-          v-model="form.userName"
-          name="text"
-          type="text"
+          v-model="form.currentPassword"
+          type="password"
+          name="password"
           required
         />
       </b-field>
 
-      <b-field label="Password">
+      <b-field label="New password">
         <b-input
-          v-model="form.password"
+          v-model="form.newPassword"
+          type="password"
+          name="password"
+          required
+        />
+      </b-field>
+
+      <b-field label="Confirm password">
+        <b-input
+          v-model="form.confirmPassword"
           type="password"
           name="password"
           required
@@ -52,7 +63,7 @@
             type="is-black"
             :loading="isLoading"
           >
-            Login
+            Update password
           </b-button>
         </div>
         <!-- <div class="control">
@@ -79,8 +90,9 @@ export default {
     return {
       isLoading: false,
       form: {
-        userName: '',
-        password: '',
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
       }
     }
   },
@@ -101,12 +113,7 @@ export default {
               permissions:userInfo.permissions
               });
             console.log(this.$store.state);
-
-            if(userInfo.isFirstTimeLogin)
-              this.$router.push({ name: 'dashboard' });
-            else
-              this.$router.push({ name: 'dashboard' });
-
+            this.$router.push({ name: 'dashboard' });
           }else{
             setToken('');
             this.$buefy.snackbar.open({

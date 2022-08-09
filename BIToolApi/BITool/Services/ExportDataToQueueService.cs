@@ -82,8 +82,8 @@ namespace BITool.Services
             var commandStr = $"INSERT INTO recordcustomerexport (CustomerMobileNo, CampaignID, DateExported, Status, LastUpdatedBy, LastUpdatedON) " +
                              $"SELECT l.CustomerMobileNo, {campaign.Id}, '{nowStr}', 1, {userId},'{nowStr}' " +
                              $"FROM leadmanagementreport l " +
-                             $"WHERE l.TotalPoints >= {campaign.PointRangeFrom} and l.TotalPoints <= {campaign.PointRangeTo} " +
-                                    $"and l.TotalTimesExported >= {campaign.ExportTimesFrom} and l.TotalTimesExported <= {campaign.ExportTimesTo} " +
+                             $"WHERE ( l.TotalPoints >= {campaign.PointRangeFrom} and l.TotalPoints <= {campaign.PointRangeTo} )" +
+                                    $"or ( l.TotalTimesExported >= {campaign.ExportTimesFrom} and l.TotalTimesExported <= {campaign.ExportTimesTo} )" +
                              $"order by l.ID desc " +
                              $"limit {campaign.Amount}; ";
             using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))

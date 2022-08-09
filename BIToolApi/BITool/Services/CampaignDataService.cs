@@ -14,6 +14,7 @@ using System.Security.Claims;
 
 namespace BITool.Services
 {
+    [Authorize]
     public static class CampaignDataService
     {
         private static void ProcessFilterValues(ref CampaignFilterDto input)
@@ -216,6 +217,22 @@ namespace BITool.Services
                     );
 
                 return Results.Ok(input);
+            });
+
+            app.MapGet("Campaign/maxAmount", [AllowAnonymous]
+            async Task<IResult> () =>
+            {
+                using var connection = new MySqlConnection(sqlConnectionStr);
+                var value = connection.Query<int>($"select count(1) from LeadManagementReport;").FirstOrDefault();
+                return Results.Ok(value);
+            });
+
+            app.MapGet("Campaign/maxTotalPoints", [AllowAnonymous]
+            async Task<IResult> () =>
+            {
+                using var connection = new MySqlConnection(sqlConnectionStr);
+                var value = connection.Query<int>($"select MAX(TotalPoints) from LeadManagementReport;").FirstOrDefault();
+                return Results.Ok(value);
             });
         }
     }

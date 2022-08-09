@@ -42,3 +42,17 @@ export function assignCampaign(input) {
     data:input    
   })
 }
+
+export function getMaxAmount() {
+  return request({
+    url: '/campaign/maxAmount',
+    method: 'get'
+  })
+}
+
+export function getMaxTotalPoints() {
+  return request({
+    url: '/campaign/maxTotalPoints',
+    method: 'get'
+  })
+}

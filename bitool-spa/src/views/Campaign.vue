@@ -248,28 +248,41 @@
           </div>
 
           <div class="columns">
-            <b-field label="Amount" class="column is-3">
-              <b-input
-                type="Number"
-                v-model="model.amount"
-                required>
-              </b-input>
+            <b-field label="Amount" class="column is-3">              
+              <b-field style="display:block;  width:100%;">
+                <b-input
+                  type="Number"
+                  v-model="model.amount"
+                  :min="0"
+                  required>
+                </b-input>
+                </b-field>              
+              <p class="control">
+                <b-button class="button is-info" @click="getMaxAmount" :loading="isLoadingGetMaxAmount">Max</b-button>
+              </p>              
             </b-field>
 
             <b-field label="Point Range From" class="column is-3">
               <b-input
                 type="Number"
                 v-model="model.pointRangeFrom"
+                :min="0"
                 required>
               </b-input>
             </b-field>
 
-            <b-field label="Point Range To" class="column is-3">
-              <b-input
-                type="Number"
-                v-model="model.pointRangeTo"
-                required>
-              </b-input>
+            <b-field label="Point Range To" class="column is-3"> 
+               <b-field style="display:block;  width:100%;">
+                <b-input
+                  type="Number"
+                  v-model="model.pointRangeTo"
+                  :min="0"
+                  required>
+                </b-input>
+                </b-field>              
+              <p class="control">
+                <b-button class="button is-info" @click="getMaxTotalPoints" :loading="isLoadingGetMaxTotalPoints">Max</b-button>
+              </p>  
             </b-field>
 
             <b-field label="Remarks" class="column is-3">
@@ -285,6 +298,7 @@
             <b-input
               type="Number"
               v-model="model.exportTimesFrom"
+              :min="0"
               required>
             </b-input>
           </b-field> 
@@ -293,6 +307,7 @@
            <b-input
               type="Number"
               v-model="model.exportTimesTo"
+              :min="0"
               required>
             </b-input>
           </b-field> 
@@ -340,7 +355,7 @@
 </template>
 <script>
 import moment from "moment";
-import { getDetail, getList, createOrUpdate, deleteData, assignCampaign  } from "@/api/campaign";
+import { getDetail, getList, createOrUpdate, deleteData, assignCampaign, getMaxAmount, getMaxTotalPoints  } from "@/api/campaign";
 export default {
   name:"campaign",
   created() {
@@ -409,12 +424,14 @@ export default {
         remarks:null,
         id:0
       },
-      isModalActive:false,
+      isModalActive:true,
       isDeleteModalActive:false,
       isLoadingAssignCampaign:false,
       isAssignCampaignModalActive:false,
       selectedId:null,
       startDate:null,
+      isLoadingGetMaxAmount:false,
+      isLoadingGetMaxTotalPoints:false
     };
   },
   watch: {},
@@ -509,32 +526,33 @@ export default {
         this.selectedId= id;
       }
     },
-    assignCampaign() {
-      this.isLoadingAssignCampaign = true;
-      this.isAssignCampaignModalActive=false;
-      if(this.startDate){
-        this.model.startDate = `${this.startDate.getFullYear()}-${('0' + (this.startDate.getMonth()+1)).slice(-2)}-${('0' + this.startDate.getDate()).slice(-2)}`;
-      }
-      assignCampaign(this.model)
+    getMaxAmount() {
+      this.isLoadingGetMaxAmount = true;
+      getMaxAmount()
         .then((response) => {
-          if (response.status == 200) {
-            this.$buefy.snackbar.open({
-            message: this.model.id?'Assign campaign successfully!':'Create and assign new campaign successfully!',
-            queue: false,
-            });
-
-            if(!this.model.id){
-              let data = response.data;
-              this.model.id=data.id
-            }            
-          }
+          if (response.status == 200 &&Number.isInteger(response.data)) 
+            this.model.amount= response.data;
         })
         .catch((error) => {
           console.log(error);
         })
         .finally(() => {
-          this.isLoadingAssignCampaign = false;
-        });
+          this.isLoadingGetMaxAmount = false;
+        });   
+    },
+    getMaxTotalPoints() {
+      this.isLoadingGetMaxTotalPoints = true;
+      getMaxTotalPoints()
+        .then((response) => {
+          if (response.status == 200 &&Number.isInteger(response.data)) 
+            this.model.pointRangeTo= response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          this.isLoadingGetMaxTotalPoints = false;
+        });   
     },
   }
 };

@@ -43,7 +43,7 @@ export default {
         return [items];
 
       if(this.$store.state.userPermissions.includes(
-        "Permissions.Bank.View"
+        "Bank.View"
       ))
         items.push({
           to: '/bank',
@@ -52,7 +52,7 @@ export default {
         });
 
       if(this.$store.state.userPermissions.includes(
-        "Permissions.Brand.View"
+        "Brand.View"
       ))
         items.push({
         to: '/brand',
@@ -61,7 +61,7 @@ export default {
         });
 
       if(this.$store.state.userPermissions.includes(
-        "Permissions.Department.View"
+        "Department.View"
       ))
         items.push({
         to: '/department',
@@ -70,7 +70,7 @@ export default {
         });
 
       if(this.$store.state.userPermissions.includes(
-        "Permissions.Rank.View"
+        "Rank.View"
       ))
         items.push({
           to: '/rank',
@@ -79,7 +79,7 @@ export default {
         });
 
       if(this.$store.state.userPermissions.includes(
-        "Permissions.Role.View"
+        "Role.View"
       ))
         items.push( {
         to: '/role',
@@ -88,7 +88,7 @@ export default {
         });
 
       if(this.$store.state.userPermissions.includes(
-        "Permissions.Employee.View"
+        "Employee.View"
       ))
         items.push(  {
         to: '/employee',

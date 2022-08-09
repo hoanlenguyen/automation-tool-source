@@ -427,13 +427,31 @@
             </b-select>
           </b-field>
 
+          <b-field label="Intranet User" class="column is-3">
+            <b-input
+              type="Text"
+              v-model="model.intranetUsername"
+              required>
+            </b-input>
+          </b-field>
+
+           <b-field label="Intranet Pass" class="column is-3">
+            <b-input
+              type="Text"
+              v-model="model.intranetPassword"
+              required>
+            </b-input>
+          </b-field>                  
+        </div>   
+
+        <div class="columns">
           <b-field label="Note" class="column is-6">
             <b-input
               type="Text"
               v-model="model.note">
             </b-input>
-          </b-field>          
-        </div>        
+          </b-field> 
+        </div>     
         </section>
         <footer class="modal-card-foot">
           <b-button label="Close" @click="cancelCreateOrUpdate" />
@@ -557,12 +575,16 @@ export default {
       model:{
         name:null,
         status:true,
-        id:0
+        id:0,
+        intranetUsername:'',
+        intranetPassword:''
       },
       defaultModel:{
         name:null,
         status:true,
-        id:0
+        id:0,
+        intranetUsername:'',
+        intranetPassword:''
       },
       isModalActive:false,
       isModalImportActive:false,
@@ -584,7 +606,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Employee.Create"
+          "Employee.Create"
         )
       );
     },
@@ -592,7 +614,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Employee.Update"
+          "Employee.Update"
         )
       );
     },
@@ -600,7 +622,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Employee.Delete"
+          "Employee.Delete"
         )
       );
     }
@@ -825,7 +847,14 @@ export default {
         .finally(() => {
         });
     },
-
+    generatePassword(length = 8) {
+      let  charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let  retVal = "";
+      for (var i = 0, n = charset.length; i < length; ++i) {
+          retVal += charset.charAt(Math.floor(Math.random() * n));
+      }
+      return retVal;
+    }
   }
 };
 </script>

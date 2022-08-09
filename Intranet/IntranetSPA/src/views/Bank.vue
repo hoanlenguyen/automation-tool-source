@@ -239,23 +239,23 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Bank.Create"
+          "Bank.Create"
         )
       );
     },
     canUpdate() {
       return (
         this.$store.state.userPermissions &&
-        this.$store.state.userPermissions.includes(
-          "Permissions.Bank.Update"
+        this.$store.state.userincludes(
+          "Bank.Update"
         )
       );
     },
     canDelete() {
       return (
         this.$store.state.userPermissions &&
-        this.$store.state.userPermissions.includes(
-          "Permissions.Bank.Delete"
+        this.$store.state.userincludes(
+          "Bank.Delete"
         )
       );
     }

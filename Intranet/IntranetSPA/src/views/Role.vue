@@ -300,7 +300,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Role.Create"
+          "Role.Create"
         )
       );
     },
@@ -308,7 +308,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Role.Update"
+          "Role.Update"
         )
       );
     },
@@ -316,7 +316,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Role.Delete"
+          "Role.Delete"
         )
       );
     }

@@ -45,6 +45,7 @@ namespace IntranetApi.Services
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
             return connection.Query<BaseDropdown>($"select Id, Name from {tableName} where IsDeleted = 0").ToList();
+            connection.Close();
         }
 
         private static void ProcessFilterValues(ref EmployeeFilterDto input)
@@ -107,18 +108,22 @@ namespace IntranetApi.Services
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<Employee>();
                 entity.CreatorUserId = userId;
-                var user = new User
+                if (entity.IntranetUsername.IsNotNullOrEmpty() && entity.IntranetPassword.IsNotNullOrEmpty())
                 {
-                    UserName = entity.BackendUser ?? entity.EmployeeCode,
-                    Name = entity.Name,
-                    Email = $"{entity.EmployeeCode}@intranet.com",
-                    IsSuperAdmin = false,
-                    IsFirstTimeLogin = true
-                };
-                var result = await userManager.CreateAsync(user, entity.BackendPass);
-                Console.WriteLine($"UserId: {user.Id}");
-                await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
-                entity.UserId = user.Id;
+                    var user = new User
+                    {
+                        UserName = entity.IntranetUsername,
+                        Name = entity.Name,
+                        Email = $"{entity.EmployeeCode}@intranet.com",
+                        IsSuperAdmin = false,
+                        IsFirstTimeLogin = true
+                    };
+                    var result = await userManager.CreateAsync(user, entity.IntranetPassword);
+                    Console.WriteLine($"UserId: {user.Id}");
+                    entity.UserId = user.Id;
+                    await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
+                }
+                
                 db.Add(entity);
                 db.SaveChanges();
                 return Results.Ok();
@@ -139,29 +144,61 @@ namespace IntranetApi.Services
                 if (entity == null)
                     return Results.NotFound();
 
-                var currentPassword = entity.BackendPass;
+                Console.WriteLine($"IntranetUsername { input.IntranetUsername}");
+                Console.WriteLine($"IntranetPassword { input.IntranetPassword}");
+
+                var currentPassword = entity.IntranetPassword;
 
                 input.Adapt(entity);
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
-                var user =await db.User.FirstOrDefaultAsync(p => p.Id == entity.UserId);
-                if(user != null && entity.BackendPass!= currentPassword)
+                var user = await db.User.FirstOrDefaultAsync(p => p.Id == entity.UserId);
+                if (user == null && entity.IntranetUsername.IsNotNullOrEmpty()) user = await db.User.FirstOrDefaultAsync(p => p.UserName == entity.IntranetUsername);
+                if(user != null)
                 {
-                    try
+                    if (!user.UserName.Equals(input.IntranetUsername, StringComparison.OrdinalIgnoreCase))
                     {
-                        await userManager.ChangePasswordAsync(user, currentPassword, entity.BackendPass);
+                        user.UserName = entity.IntranetUsername;
+                        user.NormalizedUserName = user.UserName.ToUpper();
+                        entity.UserId = user.Id;
                     }
-                    catch (Exception){}
-                }
-                var userRoles=await db.UserRole.Where(p=>p.UserId== entity.UserId).ToListAsync();
-                if (userRoles.Any())
-                    db.UserRole.RemoveRange(userRoles);
+                    
+                    if(entity.IntranetPassword != currentPassword 
+                    && entity.IntranetUsername.IsNotNullOrEmpty() 
+                    && entity.IntranetPassword.IsNotNullOrEmpty())
+                    {
+                        var code = await userManager.GeneratePasswordResetTokenAsync(user);
+                        var result = await userManager.ResetPasswordAsync(user, code, entity.IntranetPassword);
+                    }
 
-                await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
-                db.SaveChanges();
+                    if(!await db.UserRole.AnyAsync(p=>p.UserId== entity.UserId && p.RoleId == entity.RoleId))
+                    {
+                        var userRoles = await db.UserRole.Where(p => p.UserId == entity.UserId).ToListAsync();
+                        if (userRoles.Any())
+                            db.UserRole.RemoveRange(userRoles);
+
+                        await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
+                    }                    
+                }
+                else if(entity.IntranetUsername.IsNotNullOrEmpty() && entity.IntranetPassword.IsNotNullOrEmpty())
+                {
+                    user = new User
+                    {
+                        UserName = entity.IntranetUsername,
+                        Name = entity.Name,
+                        Email = $"{entity.EmployeeCode}@intranet.com",
+                        IsSuperAdmin = false,
+                        IsFirstTimeLogin = true
+                    };
+                    var result = await userManager.CreateAsync(user, entity.IntranetPassword);
+                    Console.WriteLine($"UserId: {user.Id}");
+                    await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
+                    entity.UserId = user.Id;
+                }                
+                await db.SaveChangesAsync();
                 return Results.Ok();
             })
-            .RequireAuthorization(EmployeePermissions.Update)
+            //.RequireAuthorization(EmployeePermissions.Update)
             ;
 
             app.MapDelete("employee/{id:int}", [Authorize]
@@ -269,6 +306,7 @@ namespace IntranetApi.Services
                 [FromServices] IHttpContextAccessor httpContextAccessor,
                 [FromServices] IConfiguration config,
                 [FromServices] UserManager<User> userManager,
+                [FromServices] ApplicationDbContext db,
                 HttpRequest request) =>
             {
                 var watch = Stopwatch.StartNew();
@@ -369,9 +407,9 @@ namespace IntranetApi.Services
                                 rowInput.BackendUser = (worksheet.Cells[row, 13]?.Text ?? string.Empty).Trim();//M
                                 rowInput.BackendPass = (worksheet.Cells[row, 14]?.Text ?? string.Empty).Trim();//N
                                 rowInput.Role = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
-                                rowInput.IntranetUsername = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//P
-                                rowInput.IntranetPassword = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//Q
-                                rowInput.Note = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//R
+                                rowInput.IntranetUsername = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//P
+                                rowInput.IntranetPassword = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
+                                rowInput.Note = (worksheet.Cells[row, 18]?.Text ?? string.Empty).Trim();//R
 
                                 //i = 0;
                                 //check error
@@ -532,6 +570,8 @@ namespace IntranetApi.Services
                                 }
                                 else
                                 {
+                                    Console.WriteLine($"roles {roles.Count}");
+                                    Console.WriteLine($"rowInput.Role {rowInput.Role}");
                                     rowInput.RoleId = roles.FirstOrDefault(p => p.Name.Equals(rowInput.Role, StringComparison.OrdinalIgnoreCase))?.Id;
                                     if (rowInput.RoleId == null)
                                     {
@@ -614,7 +654,7 @@ namespace IntranetApi.Services
                         if (index > -1)
                         {
                             var employee = rowInputList[index].Adapt<EmployeeImportError>();
-                            var checkIndex = rowInputList.FindIndex(p => p.EmployeeCode.Equals(employee.EmployeeCode, StringComparison.OrdinalIgnoreCase));
+                            var checkIndex = errorList.FindIndex(p => p.EmployeeCode.Equals(employee.EmployeeCode, StringComparison.OrdinalIgnoreCase));
                             if (checkIndex > -1)
                             {
                                 errorList[checkIndex].Cells += $"-M{index + 2}";
@@ -628,10 +668,32 @@ namespace IntranetApi.Services
                             }
                         }
                     }
+                    foreach (var value in duplicateResult.IntranetUsernames)
+                    {
+                        Console.WriteLine($"duplicateResult.IntranetUsernames {value}");
+                        index = rowInputList.FindIndex(p => p.IntranetUsername.Equals(value, StringComparison.OrdinalIgnoreCase));
+                        if (index > -1)
+                        {
+                            var employee = rowInputList[index].Adapt<EmployeeImportError>();
+                            var checkIndex = rowInputList.FindIndex(p => p.IntranetUsername.Equals(employee.IntranetUsername, StringComparison.OrdinalIgnoreCase));
+                            if (checkIndex > -1)
+                            {
+                                errorList[checkIndex].Cells += $"-M{index + 2}";
+                                errorList[checkIndex].ErrorDetails += "-IntranetUsername existed";
+                            }
+                            else
+                            {
+                                employee.Cells += $"-M{index + 2}";
+                                employee.ErrorDetails += "-IntranetUsername existed";
+                                errorList.Add(employee);
+                            }
+                        }
+                    }
                     employees = employees.Where(
                         p => !duplicateResult.EmployeeCodes.Contains(p.EmployeeCode)
                     && !duplicateResult.IdNumbers.Contains(p.IdNumber)
                     && !duplicateResult.BackendUsers.Contains(p.BackendUser)
+                    && !duplicateResult.IntranetUsernames.Contains(p.IntranetUsername)
                         ).ToList();                    
                     foreach (var item in employees)
                     {
@@ -639,14 +701,14 @@ namespace IntranetApi.Services
                         {
                             var user = new User
                             {
-                                UserName = item.BackendUser ?? item.EmployeeCode,
+                                UserName = item.IntranetUsername ?? item.EmployeeCode,
                                 Name = item.Name,
                                 Email = $"{item.EmployeeCode}@intranet.com",
                                 IsSuperAdmin = false,
                                 IsFirstTimeLogin = true
                             };
 
-                            var result = await userManager.CreateAsync(user, item.BackendPass);
+                            var result = await userManager.CreateAsync(user, item.IntranetPassword);
                             item.UserId= user.Id;
                         }
                         catch (Exception)
@@ -654,7 +716,8 @@ namespace IntranetApi.Services
                             throw;
                         }
                     }
-                    await BulkInsertEmployeesToDB(employees);
+                    await db.Employee.AddRangeAsync(employees.Adapt<IEnumerable<Employee>>());
+                    await db.SaveChangesAsync();
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
                 }
@@ -739,7 +802,15 @@ namespace IntranetApi.Services
                              "inner join Employee c " +
                              "on t.IdNumber = c.IdNumber ";
                 result.IdNumbers = connection.Query<string>(commandStr).ToList();
-                Console.WriteLine($"query join table TempEmployeeList - IdNumber, time: {watch.Elapsed.TotalSeconds}");
+                Console.WriteLine($"query join table TempEmployeeList - IdNumber, time: {watch.Elapsed.TotalSeconds}"); 
+
+                watch.Restart();
+                commandStr = "select t.IntranetUsername " +
+                             "from TempEmployeeList  t " +
+                             "inner join Employee c " +
+                             "on t.IntranetUsername = c.IntranetUsername ";
+                result.IntranetUsernames = connection.Query<string>(commandStr).ToList();
+                Console.WriteLine($"query join table TempEmployeeList - IntranetUsername, time: {watch.Elapsed.TotalSeconds}");
 
                 commandStr = "DROP TEMPORARY TABLE IF EXISTS TempEmployeeList";
                 using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))

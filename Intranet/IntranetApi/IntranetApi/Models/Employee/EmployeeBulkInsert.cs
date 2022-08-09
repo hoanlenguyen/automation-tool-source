@@ -15,7 +15,7 @@ namespace IntranetApi.Models
         public int RoleId { get; set; }
         public int DeptId { get; set; }
         public int BankId { get; set; }
-
+        public int RankId { get; set; }
         [MaxLength(20)]
         public string BankAccountNumber { get; set; }
 
@@ -41,17 +41,13 @@ namespace IntranetApi.Models
         public bool Status { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
         public int Salary { get; set; }
-
         [MaxLength(150)]
         public string? Note { get; set; }
-
-        [MaxLength(20)]
-        public string IntranetUsername { get; set; }
-
-        [MaxLength(20)]
-        public string IntranetPassword { get; set; }
-
         [MaxLength(100)]
         public string BrandIds { get; set; }
+        [MaxLength(20)]
+        public string IntranetUsername { get; set; }
+        [MaxLength(20)]
+        public string IntranetPassword { get; set; }
     }
 }

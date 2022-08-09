@@ -39,26 +39,7 @@ namespace IntranetApi.Helper
 
         public static bool IsNotNullOrEmpty(this string input) => !string.IsNullOrEmpty(input);
 
-        //public static List<MailboxAddress> ToMailAddresses(this string input, string delimeter = ",")
-        //{
-        //    if (input.IsNullOrEmpty())
-        //        return new List<MailboxAddress>();
-        //    return input.Split(delimeter, StringSplitOptions.RemoveEmptyEntries)
-        //        .Select(p => MailboxAddress.Parse(p))
-        //        .ToList();
-        //}
-
-        public static T ConvertFromDBVal<T>(object obj)
-        {
-            if (obj == null || obj == DBNull.Value)
-            {
-                return default(T); // returns the default value for the type
-            }
-            else
-            {
-                return (T)obj;
-            }
-        }
+        public static T ConvertFromDBVal<T>(object obj) => (obj == null || obj == DBNull.Value) ? default(T) : (T)obj;
 
         public static string GetFileContentType(this string extension)
         {

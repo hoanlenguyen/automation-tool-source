@@ -239,7 +239,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Brand.Create"
+          "Brand.Create"
         )
       );
     },
@@ -247,7 +247,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Brand.Update"
+          "Brand.Update"
         )
       );
     },
@@ -255,7 +255,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Brand.Delete"
+          "Brand.Delete"
         )
       );
     }

@@ -239,7 +239,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Rank.Create"
+          "Rank.Create"
         )
       );
     },
@@ -247,7 +247,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Rank.Update"
+          "Rank.Update"
         )
       );
     },
@@ -255,7 +255,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Permissions.Rank.Delete"
+          "Rank.Delete"
         )
       );
     }

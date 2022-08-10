@@ -424,7 +424,7 @@ export default {
         remarks:null,
         id:0
       },
-      isModalActive:true,
+      isModalActive:false,
       isDeleteModalActive:false,
       isLoadingAssignCampaign:false,
       isAssignCampaignModalActive:false,

@@ -223,7 +223,7 @@ namespace BITool.Services
             async Task<IResult> () =>
             {
                 using var connection = new MySqlConnection(sqlConnectionStr);
-                var value = connection.Query<int>($"select count(1) from LeadManagementReport;").FirstOrDefault();
+                var value = connection.QueryFirstOrDefault<int>($"select count(1) from LeadManagementReport;");
                 return Results.Ok(value);
             });
 
@@ -231,7 +231,7 @@ namespace BITool.Services
             async Task<IResult> () =>
             {
                 using var connection = new MySqlConnection(sqlConnectionStr);
-                var value = connection.Query<int>($"select MAX(TotalPoints) from LeadManagementReport;").FirstOrDefault();
+                var value = connection.QueryFirstOrDefault<int>($"select MAX(TotalPoints) from LeadManagementReport;");
                 return Results.Ok(value);
             });
         }

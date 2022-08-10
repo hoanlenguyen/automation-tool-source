@@ -148,12 +148,12 @@ namespace BITool.Services
                     using var connection = new MySqlConnection(sqlConnectionStr);
                     if (input.AssignedCampaignID.Value == 0)
                     {
-                        var recordCount = connection.Query<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport;").FirstOrDefault();
+                        var recordCount = connection.QueryFirstOrDefault<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport;");
                         if (recordCount < totalCount) totalCount -= recordCount;
                     }
                     else
                     {
-                        var recordCount = connection.Query<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID= {input.AssignedCampaignID.Value} ;").FirstOrDefault();
+                        var recordCount = connection.QueryFirstOrDefault<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID= {input.AssignedCampaignID.Value} ;");
                         if (recordCount < totalCount) totalCount = recordCount;
                     }  
                 }     
@@ -290,7 +290,7 @@ namespace BITool.Services
             async Task<IResult> (int campagignId) =>
             {
                 using var connection = new MySqlConnection(sqlConnectionStr);
-                var recordCount = connection.Query<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID = {campagignId};").FirstOrDefault();
+                var recordCount = await connection.QueryFirstOrDefaultAsync<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID = {campagignId};");
                 return Results.Ok(recordCount);
             });
         }

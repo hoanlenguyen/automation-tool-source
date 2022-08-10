@@ -25,7 +25,7 @@
   </section>
 </template>
 <script>
-import moment from "moment";
+//import moment from "moment";
 import { getTotalLeads, getTotalCountByRange } from "@/api/overallReport";
 export default {
   name: "OverallReport",

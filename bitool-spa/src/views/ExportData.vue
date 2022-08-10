@@ -119,8 +119,13 @@
             selectLabel="Add"
             deselectLabel="Remove"
           ></multiselect>
-          <span>{{customersOfTaggedCampagignCount}}</span>  
-        </b-field>        
+        </b-field>
+        <div class="ml-3" v-show="customersOfTaggedCampagignCount!== null">
+          <p class="subtitle is-6 pt-3">
+            {{customersOfTaggedCampagignCount|formattedNumber}}
+            customer mobile numbers
+          </p>
+        </div>        
       </b-field>
 
       <b-field grouped class="mb-3">
@@ -539,7 +544,8 @@ export default {
       isImageModalActive:false,
       selectAssignedCampaign:null,
       loadingRemoveAssignedCampaign:false,
-      customersOfTaggedCampagignCount:null
+      customersOfTaggedCampagignCount:null,
+      isLoadingCustomersOfTaggedCampagignCount:false
     };
   },
   computed: {
@@ -786,7 +792,7 @@ export default {
         });
     },
     countCustomersOfTaggedCampagign(id) {
-      //this.isLoadingGetMaxTotalPoints = true;
+      this.isLoadingCustomersOfTaggedCampagignCount = true;
       countCustomersOfTaggedCampagign(id)
         .then((response) => {
           if (response.status == 200 &&Number.isInteger(response.data)) 
@@ -796,7 +802,7 @@ export default {
           console.log(error);
         })
         .finally(() => {
-          //this.isLoadingGetMaxTotalPoints = false;
+          this.isLoadingCustomersOfTaggedCampagignCount = false;
         });   
     },
   },

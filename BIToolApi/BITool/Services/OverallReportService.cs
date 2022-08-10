@@ -16,7 +16,7 @@ namespace BITool.Services
             app.MapGet("overallReport/getTotalLeads", [Authorize] async Task<IResult> () =>
             {
                 using var connection = new MySqlConnection(sqlConnectionStr);
-                var totalCount = connection.Query<int>("select count(1) from leadmanagementreport ;").FirstOrDefault();
+                var totalCount = connection.QueryFirstOrDefault<int>("select count(1) from leadmanagementreport ;");
                 return Results.Ok(new { totalCount });
             });
 
@@ -42,6 +42,25 @@ namespace BITool.Services
 
                     return Results.Ok(new { totalCount });
                 }
+            });
+
+            app.MapGet("overallReport/getTotalCountByLimitedRange/{limitedRange:int}", [AllowAnonymous] async Task<IResult> (int limitedRange) =>
+            {
+                using var connection = new MySqlConnection(sqlConnectionStr);
+                var counts = await connection.QueryAsync<OverallReportPointsCount>(
+                    $"select TotalPoints, count(1) as 'Count' " +
+                    $"from leadmanagementreport " +
+                    $"group by TotalPoints " +
+                    $"having TotalPoints <= {limitedRange}");
+
+                var result = new List<OverallReportPointsCountView>();
+                for (int i = 0; i <= limitedRange; i++)
+                {
+                    result.Add(new OverallReportPointsCountView { TotalPoints = i.ToString(), Count = counts.FirstOrDefault(p => p.TotalPoints == i)?.Count ?? 0 });
+                }
+                var overLimit = await connection.QueryFirstOrDefaultAsync<int>($"select count(1) from leadmanagementreport where TotalPoints > {limitedRange}");
+                result.Add(new OverallReportPointsCountView { TotalPoints = $">{limitedRange}", Count= overLimit });
+                return Results.Ok(result);
             });
         }
     }

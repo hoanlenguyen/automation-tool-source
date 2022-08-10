@@ -113,8 +113,8 @@ namespace BITool.Services
                                     $"DateLastExported = '{nowStr}', TotalTimesExported = TotalTimesExported + 1, " +
                                     $"ExportVsPointsPercentage = if (TotalPoints = 0, 'No Occurance', CONCAT(CEILING(TotalPoints / TotalTimesExported) * 100, '%')), " +
                                     $"ExportVsPointsNumber = TotalPoints - TotalTimesExported " +
-                                $"where TotalPoints >= {campaign.PointRangeFrom} and TotalPoints <= {campaign.PointRangeTo} " +
-                                    $"and TotalTimesExported >= {campaign.ExportTimesFrom} and TotalTimesExported <= {campaign.ExportTimesTo} "+
+                                $"where (TotalPoints >= {campaign.PointRangeFrom} and TotalPoints <= {campaign.PointRangeTo} )" +
+                                    $"or (TotalTimesExported >= {campaign.ExportTimesFrom} and TotalTimesExported <= {campaign.ExportTimesTo} )"+
                                     $"order by ID desc " +
                                 $"limit {campaign.Amount};";
             using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))

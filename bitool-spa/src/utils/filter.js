@@ -12,7 +12,6 @@ Vue.filter('roundNumber', function(value, roundTo = 2) {
 });
 
 Vue.filter('formattedNumber', function(value) {
-  if (isNaN(value)) return '0';
-  if (!value) return '0';
+  if (isNaN(value)|| !value) return '0';
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 });

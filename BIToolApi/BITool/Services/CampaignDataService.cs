@@ -60,7 +60,7 @@ namespace BITool.Services
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<Campaign>();
                 entity.CreatorUserId = userId;
-                db.Add(entity);
+                db.Campaign.Add(entity);
                 db.SaveChanges();
                 input.Id = entity.Id;
                 Parallel.Invoke(

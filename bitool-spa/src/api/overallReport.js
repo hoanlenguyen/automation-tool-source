@@ -17,9 +17,9 @@ export function getTotalCountByRange(input) {
 
 
 export function getTotalCountByLimitedRange(value) {
+  console.log(value);
   return request({
     url: `/overallReport/getTotalCountByLimitedRange/${value}`,
-    method: 'get',             
-    params: input                
+    method: 'get'                
   })
 }

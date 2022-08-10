@@ -347,7 +347,7 @@
         </header>
         <footer class="modal-card-foot">
           <b-button label="Cancel" @click="isAssignCampaignModalActive=false" />
-          <b-button label="Confirm" type="is-info" @click="assignCampaign();"/>
+          <b-button label="Confirm" type="is-info" @click="assignCampaign"/>
         </footer>
         </div>
     </b-modal>
@@ -553,6 +553,21 @@ export default {
         .finally(() => {
           this.isLoadingGetMaxTotalPoints = false;
         });   
+    },
+    assignCampaign(){
+      assignCampaign(this.model)
+      .then((response) => {
+        if (response.status == 200) {
+          this.$buefy.snackbar.open({
+              message: `Assign campaign successfully!`,
+              queue: false,
+            });
+          }
+        })
+      .catch((error) => {})
+      .finally(() => {
+        this.isAssignCampaignModalActive=false;
+      });
     },
   }
 };

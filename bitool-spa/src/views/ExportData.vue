@@ -13,9 +13,7 @@
                 icon="calendar-today"
                 locale="en-CA"
                 v-model="dateFirstAddedFrom"
-                editable
-                required
-                aria-required="dateFirstAddedFrom"
+                editable                
               >
               </b-datepicker>
             </b-field>
@@ -87,6 +85,10 @@
             locale="en-CA"
             v-model="dateLastExportedFrom"
             editable
+            autofocus
+            required
+            aria-required="dateLastExportedFrom"
+            ref="dateLastExportedFrom"
           >
           </b-datepicker>
         </b-field>
@@ -99,6 +101,10 @@
             locale="en-CA"
             v-model="dateLastExportedTo"
             editable
+            autofocus
+            required
+            aria-required="dateLastExportedTo"
+            ref="dateLastExportedTo"
           >
           </b-datepicker>
         </b-field> 
@@ -118,8 +124,10 @@
             :options="customizedAdminCampaigns"
             selectLabel="Add"
             deselectLabel="Remove"
+            ref="multiselectSelectAssignedCampaign"
           ></multiselect>
         </b-field>
+         
         <div class="ml-3" v-show="customersOfTaggedCampagignCount!== null">
           <p class="subtitle is-6 pt-3">
             {{customersOfTaggedCampagignCount|formattedNumber}}
@@ -326,10 +334,11 @@
       <b-field grouped class="mb-3">
         <div class="mr-3">
           <p class="title is-6">Others</p>
-          <p class="subtitle is-6">Export top</p>
+          <p class="subtitle is-6">Total Number</p>
         </div>
         <b-field>
-          <b-input v-model="filter.exportTop" type="number"></b-input> <span class="ml-3 mt-3">numbers</span>
+          <b-input required v-model="filter.exportTop" autofocus type="number" ref="exportTop"></b-input> 
+          <span class="ml-3 mt-3">numbers</span>
         </b-field>        
       </b-field>      
       <h5 class="subtitle is-6 mb-1">
@@ -560,9 +569,9 @@ export default {
   watch:{
     selectAssignedCampaign(value){
       if(value && value.id)
-      this.countCustomersOfTaggedCampagign(value.id);
+        this.countCustomersOfTaggedCampagign(value.id);
       else
-      this.customersOfTaggedCampagignCount=null;
+        this.customersOfTaggedCampagignCount=null;
     }
   },
   methods: {
@@ -619,6 +628,15 @@ export default {
         });
     },
     processFilter(){
+      if(!this.dateLastExportedFrom|| !this.dateLastOccurredTo|| 
+         !this.selectAssignedCampaign ||!this.filter.exportTop){
+            this.$buefy.snackbar.open({
+            message: "no valid",
+            queue: false,
+            type: 'is-warning'
+          });
+         return;   
+      }
       const outputFormat = "YYYY-MM-DD";
       this.filter.dateFirstAddedFrom =this.dateFirstAddedFrom? moment(this.dateFirstAddedFrom).format(outputFormat):null;
       this.filter.dateFirstAddedTo =this.dateFirstAddedTo? moment(this.dateFirstAddedTo).format(outputFormat):null;
@@ -805,6 +823,14 @@ export default {
           this.isLoadingCustomersOfTaggedCampagignCount = false;
         });   
     },
+    testFocus(){
+      //this.$refs.multiselectSelectAssignedCampaign.$el.focus();
+      this.$refs.dateLastExportedFrom.$el.focus();
+      this.$refs.dateLastExportedTo.$el.focus();
+      this.$refs.exportTop.$el.focus();
+      this.$refs.dateLastExportedFrom.$el.style.backgroundColor = "#FDFF47"; 
+    },
+
   },
 };
 </script>

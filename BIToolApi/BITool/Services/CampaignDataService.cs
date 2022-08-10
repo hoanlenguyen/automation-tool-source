@@ -219,7 +219,7 @@ namespace BITool.Services
                 return Results.Ok(input);
             });
 
-            app.MapGet("Campaign/maxAmount", [AllowAnonymous]
+            app.MapGet("Campaign/maxAmount", [Authorize]
             async Task<IResult> () =>
             {
                 using var connection = new MySqlConnection(sqlConnectionStr);
@@ -227,7 +227,7 @@ namespace BITool.Services
                 return Results.Ok(value);
             });
 
-            app.MapGet("Campaign/maxTotalPoints", [AllowAnonymous]
+            app.MapGet("Campaign/maxTotalPoints", [Authorize]
             async Task<IResult> () =>
             {
                 using var connection = new MySqlConnection(sqlConnectionStr);

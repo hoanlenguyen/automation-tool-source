@@ -8,13 +8,14 @@
               <p class="title is-6">Customer</p>
               <p class="subtitle is-6">Date First Added from</p>
             </div>
-
             <b-field>
               <b-datepicker
                 icon="calendar-today"
                 locale="en-CA"
                 v-model="dateFirstAddedFrom"
                 editable
+                required
+                aria-required="dateFirstAddedFrom"
               >
               </b-datepicker>
             </b-field>
@@ -117,7 +118,8 @@
             :options="customizedAdminCampaigns"
             selectLabel="Add"
             deselectLabel="Remove"
-          ></multiselect>  
+          ></multiselect>
+          <span>{{customersOfTaggedCampagignCount}}</span>  
         </b-field>        
       </b-field>
 
@@ -406,10 +408,10 @@ import moment from "moment";
 import Multiselect from "vue-multiselect";
 import { saveAs } from 'file-saver';
 import { getAdminScores, getAdminCampaigns } from "@/api/importData";
-import { getCustomerCount, assignCampaignToCustomers, downloadCustomersBySP, removeAssignedCampaign } from "@/api/exportData";
+import { getCustomerCount, assignCampaignToCustomers, downloadCustomersBySP, removeAssignedCampaign, countCustomersOfTaggedCampagign } from "@/api/exportData";
 export default {
   name: "ExportData",
-  components: { Multiselect },
+  components: { Multiselect},
   created() {
     this.getAdminScoreList();
     this.getAdminCampaignList();
@@ -536,7 +538,8 @@ export default {
       isConfirmingCampaign: false,
       isImageModalActive:false,
       selectAssignedCampaign:null,
-      loadingRemoveAssignedCampaign:false
+      loadingRemoveAssignedCampaign:false,
+      customersOfTaggedCampagignCount:null
     };
   },
   computed: {
@@ -546,6 +549,14 @@ export default {
     formattedTotalCount(){
       if(!this.totalCount) return '0';
       return this.totalCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+  },
+  watch:{
+    selectAssignedCampaign(value){
+      if(value && value.id)
+      this.countCustomersOfTaggedCampagign(value.id);
+      else
+      this.customersOfTaggedCampagignCount=null;
     }
   },
   methods: {
@@ -752,7 +763,42 @@ export default {
           this.selectAssignedCampaign = null;
           this.loadingRemoveAssignedCampaign=false;
         });
-    }
+    },
+    removeAssignedCampaign(){
+      if(!this.selectAssignedCampaign.campaignID) 
+        return;
+      this.loadingRemoveAssignedCampaign=true;
+      removeAssignedCampaign(this.selectAssignedCampaign.campaignID)
+        .then((response) => {
+          if (response.status == 200) {
+            this.$buefy.snackbar.open({
+                message: `Remove assigned campaign successfully!`,
+                queue: false,
+              });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          this.selectAssignedCampaign = null;
+          this.loadingRemoveAssignedCampaign=false;
+        });
+    },
+    countCustomersOfTaggedCampagign(id) {
+      //this.isLoadingGetMaxTotalPoints = true;
+      countCustomersOfTaggedCampagign(id)
+        .then((response) => {
+          if (response.status == 200 &&Number.isInteger(response.data)) 
+            this.customersOfTaggedCampagignCount= response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          //this.isLoadingGetMaxTotalPoints = false;
+        });   
+    },
   },
 };
 </script>

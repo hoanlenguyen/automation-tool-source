@@ -37,3 +37,9 @@ export function removeAssignedCampaign(id) {
     url: `/data/removeAssignedCampaign/${id}`,
     method: 'delete'})
 }
+
+export function countCustomersOfTaggedCampagign(id) {
+  return request({
+    url: `/data/countCustomersOfTaggedCampagign/${id}`,
+    method: 'get'})
+}

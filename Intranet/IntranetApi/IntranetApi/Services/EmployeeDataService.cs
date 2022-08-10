@@ -124,7 +124,7 @@ namespace IntranetApi.Services
                     await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
                 }
                 
-                db.Add(entity);
+                db.Employee.Add(entity);
                 db.SaveChanges();
                 return Results.Ok();
             })

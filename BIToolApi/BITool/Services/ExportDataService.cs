@@ -284,6 +284,15 @@ namespace BITool.Services
                 connection.Close();
                 return Results.Ok();
             });
+
+
+            app.MapGet("data/countCustomersOfTaggedCampagign/{campagignId:int}", [Authorize]
+            async Task<IResult> (int campagignId) =>
+            {
+                using var connection = new MySqlConnection(sqlConnectionStr);
+                var recordCount = connection.Query<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID = {campagignId};").FirstOrDefault();
+                return Results.Ok(recordCount);
+            });
         }
     }
 }

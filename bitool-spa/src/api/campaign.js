@@ -56,3 +56,10 @@ export function getMaxTotalPoints() {
     method: 'get'
   })
 }
+
+export function countCustomersOfTaggedCampagign(campagignId) {
+  return request({
+    url: `'/Campaign/countCustomersOfTaggedCampagign/${campagignId}'`,
+    method: 'get'
+  })
+}

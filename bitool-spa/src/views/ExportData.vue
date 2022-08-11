@@ -77,7 +77,12 @@
 
       <b-field grouped class="mb-3">
         <div class="mr-3">
-          <p class="subtitle is-6 pt-3">Date Last Export from</p>
+          <p :class="isValidFilter || hasDateLastExport?
+            'subtitle is-6 pt-3'
+            :'subtitle is-6 pt-3 has-text-danger'">Date Last Export
+            <span :class="hasDateLastExport?'has-text-white': 'has-text-danger'">* </span> 
+            <span class="has-text-black">from</span>
+            </p>
         </div>
         <b-field>
           <b-datepicker
@@ -85,7 +90,6 @@
             locale="en-CA"
             v-model="dateLastExportedFrom"
             editable
-            autofocus
             required
             aria-required="dateLastExportedFrom"
             ref="dateLastExportedFrom"
@@ -101,7 +105,6 @@
             locale="en-CA"
             v-model="dateLastExportedTo"
             editable
-            autofocus
             required
             aria-required="dateLastExportedTo"
             ref="dateLastExportedTo"
@@ -112,7 +115,12 @@
 
       <b-field class="mb-3">
         <div class="mr-3">
-          <p class="subtitle is-6 pt-3">Tagged Campaign</p>
+          <p :class="isValidFilter || hasTaggedCampagin?
+            'subtitle is-6 pt-3'
+            : 'subtitle is-6 pt-3 has-text-danger'">
+            Tagged Campaign
+            <span :class="hasTaggedCampagin?'has-text-white': 'has-text-danger'">* </span> 
+          </p>
         </div>
         <b-field>
           <multiselect
@@ -334,10 +342,14 @@
       <b-field grouped class="mb-3">
         <div class="mr-3">
           <p class="title is-6">Others</p>
-          <p class="subtitle is-6">Total Number</p>
+          <p :class="isValidFilter || hasTotalNumber?
+            'subtitle is-6'
+            :'subtitle is-6 has-text-danger'">Total Number
+            <span :class="hasTotalNumber?'has-text-white': 'has-text-danger'">* </span> 
+            </p>
         </div>
         <b-field>
-          <b-input required v-model="filter.exportTop" autofocus type="number" ref="exportTop"></b-input> 
+          <b-input required v-model="filter.exportTop" type="number" ref="exportTop"></b-input> 
           <span class="ml-3 mt-3">numbers</span>
         </b-field>        
       </b-field>      
@@ -554,7 +566,8 @@ export default {
       selectAssignedCampaign:null,
       loadingRemoveAssignedCampaign:false,
       customersOfTaggedCampagignCount:null,
-      isLoadingCustomersOfTaggedCampagignCount:false
+      isLoadingCustomersOfTaggedCampagignCount:false,
+      isValidFilter:true
     };
   },
   computed: {
@@ -564,6 +577,15 @@ export default {
     formattedTotalCount(){
       if(!this.totalCount) return '0';
       return this.totalCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    },
+    hasTaggedCampagin(){
+      return this.selectAssignedCampaign?true:false;
+    },
+    hasDateLastExport(){
+      return (this.dateLastExportedFrom && this.dateLastExportedTo)?true:false;
+    },
+    hasTotalNumber(){
+      return this.filter.exportTop || this.filter.exportTop===0;
     }
   },
   watch:{
@@ -628,14 +650,32 @@ export default {
         });
     },
     processFilter(){
-      if(!this.dateLastExportedFrom|| !this.dateLastOccurredTo|| 
-         !this.selectAssignedCampaign ||!this.filter.exportTop){
-            this.$buefy.snackbar.open({
-            message: "no valid",
-            queue: false,
-            type: 'is-warning'
-          });
-         return;   
+      this.isValidFilter=false;
+      if(!this.dateLastExportedFrom || !this.dateLastExportedTo){
+        console.log(this.dateLastExportedFrom);
+        console.log(this.dateLastExportedTo);
+        this.$buefy.snackbar.open({
+        message: "Missing Date last export!",
+        queue: false,
+        type: 'is-danger'
+        });
+        return false;   
+      }
+      if(!this.selectAssignedCampaign ){
+        this.$buefy.snackbar.open({
+        message: "Missing Tagged Campaign!",
+        queue: false,
+        type: 'is-danger'
+        });
+        return false;   
+      }
+      if(!this.filter.exportTop){
+        this.$buefy.snackbar.open({
+        message: "Missing Total Number!",
+        queue: false,
+        type: 'is-danger'
+        });
+        return false;   
       }
       const outputFormat = "YYYY-MM-DD";
       this.filter.dateFirstAddedFrom =this.dateFirstAddedFrom? moment(this.dateFirstAddedFrom).format(outputFormat):null;
@@ -672,10 +712,12 @@ export default {
         this.filter.exportTop=null;
 
       this.filter.assignedCampaignID = this.selectAssignedCampaign? this.selectAssignedCampaign.id:null;
+      return true;
     },
     getCustomerCount() {
+      var result = this.processFilter();
+      if(!result) return;
       this.isLoading = true;
-      this.processFilter();      
       getCustomerCount(this.filter)
         .then((response) => {
           if (response.status == 200 && response.data) {
@@ -693,15 +735,16 @@ export default {
         });
     },
     downloadCustomerList(isRemoveTaggedCampaign=false) {
+      var result = this.processFilter();
+      if(!result) return;
       if(isRemoveTaggedCampaign){
         this.isLoadingDownloadAndRemove = true;
-        this.filter.isRemoveTaggedCampaign= true;
+        this.filter.isRemoveTaggedCampaign = true;
       }  
       else{
         this.isLoadingDownload=true;
         this.filter.isRemoveTaggedCampaign= false;
-      }
-      this.processFilter();
+      }      
       downloadCustomersBySP(this.filter)
         .then((response) => {
           if (response.status == 200 && response.data) {
@@ -823,14 +866,13 @@ export default {
           this.isLoadingCustomersOfTaggedCampagignCount = false;
         });   
     },
-    testFocus(){
-      //this.$refs.multiselectSelectAssignedCampaign.$el.focus();
-      this.$refs.dateLastExportedFrom.$el.focus();
-      this.$refs.dateLastExportedTo.$el.focus();
-      this.$refs.exportTop.$el.focus();
-      this.$refs.dateLastExportedFrom.$el.style.backgroundColor = "#FDFF47"; 
-    },
-
+    // testFocus(){
+    //   //this.$refs.multiselectSelectAssignedCampaign.$el.focus();
+    //   this.$refs.dateLastExportedFrom.$el.focus();
+    //   this.$refs.dateLastExportedTo.$el.focus();
+    //   this.$refs.exportTop.$el.focus();
+    //   this.$refs.dateLastExportedFrom.$el.style.backgroundColor = "#FDFF47"; 
+    // },
   },
 };
 </script>

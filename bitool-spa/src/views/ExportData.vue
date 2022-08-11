@@ -3,46 +3,22 @@
     <section class="section is-main-section">
       <div class="columns">
         <div class="column is-11  m-0 pb-0">
-          <b-field grouped>
-            <div class="mr-3">
-              <p class="title is-6">Customer</p>
-              <p class="subtitle is-6">Date First Added from</p>
-            </div>
-            <b-field>
-              <b-datepicker
-                icon="calendar-today"
-                locale="en-CA"
-                v-model="dateFirstAddedFrom"
-                editable                
-              >
-              </b-datepicker>
-            </b-field>
-            <div class="mr-3">
-              <p class="title is-6 has-text-white-bis">.</p>
-              <p class="subtitle is-6">to</p>
-            </div>
-            <b-field>
-              <b-datepicker
-                icon="calendar-today"
-                locale="en-CA"
-                v-model="dateFirstAddedTo"
-                editable
-              >
-              </b-datepicker>
-            </b-field>
-            <div>
-              <p>
-                <b-radio v-model="filter.sortingValue" size="is-small" native-value="DateFirstAdded asc">
-                  ASC 
-                </b-radio>
-              </p>
-              <p>
-                <b-radio v-model="filter.sortingValue" size="is-small" native-value="DateFirstAdded desc">
-                  DESC
-                </b-radio>
-              </p>
-            </div>        
+          <b-field grouped class="mb-3">
+          <div class="mr-3">
+            <p class="title is-6">Campaigns</p>
+            <p class="subtitle is-6">Total Times Exported from</p>
+          </div>
+          <b-field>
+            <b-input v-model="filter.totalTimesExportedFrom" type="number"></b-input>
           </b-field>
+          <div class="mr-3">
+            <p class="title is-6 has-text-white-bis">.</p>
+            <p class="subtitle is-6">to</p>
+          </div>
+          <b-field>
+            <b-input v-model="filter.totalTimesExportedTo" type="number"></b-input>
+          </b-field>       
+        </b-field>
         </div>
         <div class="column  m-0 pb-0">
           <b-button           
@@ -57,23 +33,6 @@
           </b-button>
         </div>
       </div>
-
-      <b-field grouped class="mb-3">
-        <div class="mr-3">
-          <p class="title is-6">Campaigns</p>
-          <p class="subtitle is-6">Total Times Exported from</p>
-        </div>
-        <b-field>
-          <b-input v-model="filter.totalTimesExportedFrom" type="number"></b-input>
-        </b-field>
-        <div class="mr-3">
-          <p class="title is-6 has-text-white-bis">.</p>
-          <p class="subtitle is-6">to</p>
-        </div>
-        <b-field>
-          <b-input v-model="filter.totalTimesExportedTo" type="number"></b-input>
-        </b-field>       
-      </b-field>
 
       <b-field grouped class="mb-3">
         <div class="mr-3">
@@ -170,12 +129,75 @@
         </b-field>
       </b-field>
 
+
       <b-field grouped class="mb-3">
         <div class="mr-3">
-          <p class="title is-6">Occurrence (Indicators)</p>
-          <p class="subtitle is-6">Date Last Occurred from</p>
+          <p class="title is-6">Others</p>
+          <p :class="isValidFilter || hasTotalNumber?
+            'subtitle is-6'
+            :'subtitle is-6 has-text-danger'">Total Number to export
+            <span :class="hasTotalNumber?'has-text-white': 'has-text-danger'">* </span> 
+            </p>
         </div>
         <b-field>
+          <b-input v-model="filter.exportTop" type="number"></b-input> 
+        </b-field>        
+      </b-field>
+
+      <h5 class="subtitle is-6 mb-1">
+        <span  v-show="isShowResult">Found {{ formattedTotalCount }} customer mobile numbers</span>
+        <span v-show="!isShowResult" class="has-text-white-bis">.</span>
+      </h5>
+
+      <b-field grouped>
+        <b-button :icon-left="isShowDateFirstAddedFrom? 'chevron-up':'chevron-down'" @click="isShowDateFirstAddedFrom=!isShowDateFirstAddedFrom"/> 
+        <div class="mx-3">
+          <a @click="isShowDateFirstAddedFrom=!isShowDateFirstAddedFrom"><p class="title is-6"> Customer</p></a> 
+          <p class="subtitle is-6" v-show="isShowDateFirstAddedFrom">Date First Added from</p>
+        </div>
+        <b-field v-show="isShowDateFirstAddedFrom">
+          <b-datepicker
+            icon="calendar-today"
+            locale="en-CA"
+            v-model="dateFirstAddedFrom"
+            editable                
+          >
+          </b-datepicker>
+        </b-field>
+        <div class="mr-3" v-show="isShowDateFirstAddedFrom">
+          <p class="title is-6 has-text-white-bis">.</p>
+          <p class="subtitle is-6">to</p>
+        </div>
+        <b-field v-show="isShowDateFirstAddedFrom">
+          <b-datepicker
+            icon="calendar-today"
+            locale="en-CA"
+            v-model="dateFirstAddedTo"
+            editable
+          >
+          </b-datepicker>
+        </b-field>
+        <div v-show="isShowDateFirstAddedFrom">
+          <p>
+            <b-radio v-model="filter.sortingValue" size="is-small" native-value="DateFirstAdded asc">
+              ASC 
+            </b-radio>
+          </p>
+          <p>
+            <b-radio v-model="filter.sortingValue" size="is-small" native-value="DateFirstAdded desc">
+              DESC
+            </b-radio>
+          </p>
+        </div>        
+      </b-field>
+
+      <b-field grouped class="mb-3">
+        <b-button :icon-left="isShowOccurrence? 'chevron-up':'chevron-down'" @click="isShowOccurrence=!isShowOccurrence"/> 
+        <div class="mx-3">
+          <a @click="isShowOccurrence=!isShowOccurrence"><p class="title is-6">Occurrence (Indicators)</p></a> 
+          <p class="subtitle is-6" v-show="isShowOccurrence">Date Last Occurred from</p>
+        </div>
+        <b-field v-show="isShowOccurrence">
           <b-datepicker
             icon="calendar-today"
             locale="en-CA"
@@ -184,11 +206,11 @@
           >
           </b-datepicker>
         </b-field>
-        <div class="mr-3">
+        <div class="mr-3" v-show="isShowOccurrence">
           <p class="title is-6 has-text-white-bis">.</p>
           <p class="subtitle is-6">to</p>
         </div>
-        <b-field>
+        <b-field v-show="isShowOccurrence">
           <b-datepicker
             icon="calendar-today"
             locale="en-CA"
@@ -199,10 +221,11 @@
         </b-field>         
       </b-field>
 
-      <b-field grouped class="mb-3">
-        <div class="mr-3">
-          <p class="subtitle is-6 mt-3">Occurred Categories</p>
-        </div>
+      <div style="margin-left: 52px;"  v-show="isShowOccurrence">
+        <b-field grouped class="mb-3">
+          <div class="mr-3">
+            <p class="subtitle is-6 mt-3">Occurred Categories</p>
+          </div>
         <b-field>
           <multiselect
             v-model="selectOccurredCategories"
@@ -217,30 +240,33 @@
             deselectLabel="Remove"
           >
           </multiselect>
+          </b-field>
         </b-field>
-      </b-field>
 
-      <b-field grouped class="mb-3">
-        <div class="mr-3">
-          <p class="subtitle is-6 mt-3">Total Occurrence Points from</p>
-        </div>
-        <b-field>
-          <b-input v-model="filter.totalOccurancePointsFrom" type="number"></b-input>
+        <b-field grouped class="mb-3">
+          <div class="mr-3">
+            <p class="subtitle is-6 mt-3">Total Occurrence Points from</p>
+          </div>
+          <b-field>
+            <b-input v-model="filter.totalOccurancePointsFrom" type="number"></b-input>
+          </b-field>
+          <div class="mr-3">
+            <p class="subtitle is-6 mt-3">to</p>
+          </div>
+          <b-field>
+            <b-input v-model="filter.totalOccurancePointsTo" type="number"></b-input>
+          </b-field>            
         </b-field>
-        <div class="mr-3">
-          <p class="subtitle is-6 mt-3">to</p>
-        </div>
-        <b-field>
-          <b-input v-model="filter.totalOccurancePointsTo" type="number"></b-input>
-        </b-field>            
-      </b-field>
+      </div>
+     
       
       <b-field grouped class="mb-3">
-        <div class="mr-3">
-          <p class="title is-6">Results</p>
-          <p class="subtitle is-6">Results Categories</p>
+        <b-button :icon-left="isShowResults? 'chevron-up':'chevron-down'" @click="isShowResults=!isShowResults"/> 
+        <div class="mx-3">
+          <a @click="isShowResults=!isShowResults"><p class="title is-6">Results</p></a> 
+          <p class="subtitle is-6" v-show="isShowResults">Results Categories</p>
         </div>
-        <b-field>
+        <b-field v-show="isShowResults">
           <multiselect
             v-model="selectResultsCategories"
             tag-placeholder=""
@@ -257,7 +283,7 @@
         </b-field>
       </b-field>
 
-      <b-field grouped class="mb-3">
+      <b-field grouped class="mb-3" v-show="isShowResults" style="margin-left: 52px;">
         <div class="mr-3">
           <p class="subtitle is-6 mt-3">Total Results Points from</p>
         </div>
@@ -273,90 +299,72 @@
       </b-field>
 
       <b-field grouped class="mb-3">
-        <div class="mr-3">
-          <p class="title is-6">Analysis</p>
-          <p class="subtitle is-6">Total Points from</p>
+        <b-button :icon-left="isShowAnalysis? 'chevron-up':'chevron-down'" @click="isShowAnalysis=!isShowAnalysis"/> 
+        <div class="mx-3">
+          <a @click="isShowAnalysis=!isShowAnalysis"><p class="title is-6">Analysis</p></a> 
+          <p class="subtitle is-6" v-show="isShowAnalysis">Total Points from</p>
         </div>
-        <b-field>
+        <b-field v-show="isShowAnalysis">
           <b-input v-model="filter.totalPointsFrom" type="number"></b-input>
         </b-field>
-         <div class="mr-3">
+         <div class="mr-3" v-show="isShowAnalysis">
           <p class="subtitle is-6 mt-3">to</p>
         </div>
-        <b-field>
+        <b-field v-show="isShowAnalysis">
           <b-input v-model="filter.totalPointsTo" type="number"></b-input>
         </b-field>
       </b-field>
 
-      <b-field grouped class="mb-3">
-        <div class="mr-3">
-          <p class="subtitle is-6 mt-3">Export vs Points (%) from</p>
-        </div>
-        <b-field>
-          <b-input v-model="filter.exportVsPointsPercentageFrom" type="number"></b-input>
+      <div style="margin-left: 52px;" v-show="isShowAnalysis">
+        <b-field grouped class="mb-3">
+          <div class="mr-3">
+            <p class="subtitle is-6 mt-3">Export vs Points (%) from</p>
+          </div>
+          <b-field>
+            <b-input v-model="filter.exportVsPointsPercentageFrom" type="number"></b-input>
+          </b-field>
+          <div class="mr-3">
+            <p class="subtitle is-6 mt-3">to</p>
+          </div>
+          <b-field>
+            <b-input v-model="filter.exportVsPointsPercentageTo" type="number"></b-input>
+          </b-field>        
         </b-field>
-         <div class="mr-3">
-          <p class="subtitle is-6 mt-3">to</p>
-        </div>
-        <b-field>
-          <b-input v-model="filter.exportVsPointsPercentageTo" type="number"></b-input>
-        </b-field>        
-      </b-field>
 
-      <b-field grouped class="mb-3">
-        <div class="mr-3">
-          <p class="subtitle is-6 mt-3">Export vs Points Exceptions</p>
-        </div>
-        <b-field>
-          <multiselect
-            v-model="selectExportVsPointsExceptions"
-            tag-placeholder=""
-            placeholder="Select exceptions"             
-            :options="exportVsPointsExceptions"
-            :multiple="true"
-            :taggable="true"
-            selectLabel="Add"
-            deselectLabel="Remove"
-          >
-          </multiselect>
+        <b-field grouped class="mb-3">
+          <div class="mr-3">
+            <p class="subtitle is-6 mt-3">Export vs Points Exceptions</p>
+          </div>
+          <b-field>
+            <multiselect
+              v-model="selectExportVsPointsExceptions"
+              tag-placeholder=""
+              placeholder="Select exceptions"             
+              :options="exportVsPointsExceptions"
+              :multiple="true"
+              :taggable="true"
+              selectLabel="Add"
+              deselectLabel="Remove"
+            >
+            </multiselect>
+          </b-field>        
         </b-field>
-        
-      </b-field>
 
-      <b-field grouped class="mb-3">
-        <div class="mr-3">
-          <p class="subtitle is-6 mt-3">Export vs Points (in Points) from</p>
-        </div>
-        <b-field>
-          <b-input v-model="filter.exportVsPointsNumberFrom" type="number"></b-input>
+        <b-field grouped class="mb-3">
+          <div class="mr-3">
+            <p class="subtitle is-6 mt-3">Export vs Points (in Points) from</p>
+          </div>
+          <b-field>
+            <b-input v-model="filter.exportVsPointsNumberFrom" type="number"></b-input>
+          </b-field>
+          <div class="mr-3">
+            <p class="subtitle is-6 mt-3">to</p>
+          </div>
+          <b-field>
+            <b-input v-model="filter.exportVsPointsNumberTo" type="number"></b-input>
+          </b-field>  
         </b-field>
-         <div class="mr-3">
-          <p class="subtitle is-6 mt-3">to</p>
-        </div>
-        <b-field>
-          <b-input v-model="filter.exportVsPointsNumberTo" type="number"></b-input>
-        </b-field>  
-      </b-field>
-      
-
-      <b-field grouped class="mb-3">
-        <div class="mr-3">
-          <p class="title is-6">Others</p>
-          <p :class="isValidFilter || hasTotalNumber?
-            'subtitle is-6'
-            :'subtitle is-6 has-text-danger'">Total Number
-            <span :class="hasTotalNumber?'has-text-white': 'has-text-danger'">* </span> 
-            </p>
-        </div>
-        <b-field>
-          <b-input required v-model="filter.exportTop" type="number" ref="exportTop"></b-input> 
-          <span class="ml-3 mt-3">numbers</span>
-        </b-field>        
-      </b-field>      
-      <h5 class="subtitle is-6 mb-1">
-        <span  v-show="isShowResult">Found {{ formattedTotalCount }} customer mobile numbers</span>
-        <span v-show="!isShowResult" class="has-text-white-bis">.</span>
-      </h5>
+      </div>
 
       <b-field grouped>
         <p class="control">
@@ -567,7 +575,11 @@ export default {
       loadingRemoveAssignedCampaign:false,
       customersOfTaggedCampagignCount:null,
       isLoadingCustomersOfTaggedCampagignCount:false,
-      isValidFilter:true
+      isValidFilter:true,
+      isShowDateFirstAddedFrom:false,
+      isShowOccurrence:false,
+      isShowResults:false,
+      isShowAnalysis:false,
     };
   },
   computed: {

@@ -138,6 +138,9 @@ namespace BITool.Services
             {
                 throw new Exception("testError 123");
             });
+
+            app.MapGet("test/getTimeZoneTime", [AllowAnonymous] async () =>
+            new { now = DateTime.Now, nowStr = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") });
         }
     }
 }

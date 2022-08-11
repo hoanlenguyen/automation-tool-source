@@ -35,8 +35,8 @@ namespace IntranetApi.DbContext
 
             modelBuilder.Entity<Employee>().ToTable("Employee");
             modelBuilder.Entity<Employee>().HasIndex(p=>p.EmployeeCode).IsUnique();
-            modelBuilder.Entity<Employee>().HasIndex(p=>p.IdNumber).IsUnique();
-            modelBuilder.Entity<Employee>().HasIndex(p=>p.BackendUser).IsUnique();
+            //modelBuilder.Entity<Employee>().HasIndex(p=>p.IdNumber).IsUnique();
+            //modelBuilder.Entity<Employee>().HasIndex(p=>p.BackendUser).IsUnique();
              
             //modelBuilder.Entity<Employee>()
             //           .HasOne(s => s.User)

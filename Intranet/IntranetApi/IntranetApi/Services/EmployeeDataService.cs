@@ -108,6 +108,7 @@ namespace IntranetApi.Services
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<Employee>();
                 entity.CreatorUserId = userId;
+                entity.IntranetUsername = entity.EmployeeCode;
                 if (entity.IntranetUsername.IsNotNullOrEmpty() && entity.IntranetPassword.IsNotNullOrEmpty())
                 {
                     var user = new User
@@ -152,6 +153,7 @@ namespace IntranetApi.Services
                 input.Adapt(entity);
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
+                entity.IntranetUsername = entity.EmployeeCode;
                 var user = await db.User.FirstOrDefaultAsync(p => p.Id == entity.UserId);
                 if (user == null && entity.IntranetUsername.IsNotNullOrEmpty()) user = await db.User.FirstOrDefaultAsync(p => p.UserName == entity.IntranetUsername);
                 if(user != null)
@@ -788,29 +790,29 @@ namespace IntranetApi.Services
                 watch.Stop();
                 Console.WriteLine($"query join table TempEmployeeList - EmployeeCode, time: {watch.Elapsed.TotalSeconds}");
 
-                watch.Restart();
-                commandStr = "select t.BackendUser " +
-                             "from TempEmployeeList  t " +
-                             "inner join Employee c " +
-                             "on t.BackendUser = c.BackendUser ";
-                result.BackendUsers = connection.Query<string>(commandStr).ToList();
-                Console.WriteLine($"query join table TempEmployeeList - BackendUser, time: {watch.Elapsed.TotalSeconds}");
+                //watch.Restart();
+                //commandStr = "select t.BackendUser " +
+                //             "from TempEmployeeList  t " +
+                //             "inner join Employee c " +
+                //             "on t.BackendUser = c.BackendUser ";
+                //result.BackendUsers = connection.Query<string>(commandStr).ToList();
+                //Console.WriteLine($"query join table TempEmployeeList - BackendUser, time: {watch.Elapsed.TotalSeconds}");
 
-                watch.Restart();
-                commandStr = "select t.IdNumber " +
-                             "from TempEmployeeList  t " +
-                             "inner join Employee c " +
-                             "on t.IdNumber = c.IdNumber ";
-                result.IdNumbers = connection.Query<string>(commandStr).ToList();
-                Console.WriteLine($"query join table TempEmployeeList - IdNumber, time: {watch.Elapsed.TotalSeconds}"); 
+                //watch.Restart();
+                //commandStr = "select t.IdNumber " +
+                //             "from TempEmployeeList  t " +
+                //             "inner join Employee c " +
+                //             "on t.IdNumber = c.IdNumber ";
+                //result.IdNumbers = connection.Query<string>(commandStr).ToList();
+                //Console.WriteLine($"query join table TempEmployeeList - IdNumber, time: {watch.Elapsed.TotalSeconds}"); 
 
-                watch.Restart();
-                commandStr = "select t.IntranetUsername " +
-                             "from TempEmployeeList  t " +
-                             "inner join Employee c " +
-                             "on t.IntranetUsername = c.IntranetUsername ";
-                result.IntranetUsernames = connection.Query<string>(commandStr).ToList();
-                Console.WriteLine($"query join table TempEmployeeList - IntranetUsername, time: {watch.Elapsed.TotalSeconds}");
+                //watch.Restart();
+                //commandStr = "select t.IntranetUsername " +
+                //             "from TempEmployeeList  t " +
+                //             "inner join Employee c " +
+                //             "on t.IntranetUsername = c.IntranetUsername ";
+                //result.IntranetUsernames = connection.Query<string>(commandStr).ToList();
+                //Console.WriteLine($"query join table TempEmployeeList - IntranetUsername, time: {watch.Elapsed.TotalSeconds}");
 
                 commandStr = "DROP TEMPORARY TABLE IF EXISTS TempEmployeeList";
                 using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))

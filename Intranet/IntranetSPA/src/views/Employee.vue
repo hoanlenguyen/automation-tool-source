@@ -430,7 +430,7 @@
           <b-field label="Intranet User" class="column is-3">
             <b-input
               type="Text"
-              v-model="model.intranetUsername"
+              v-model="model.employeeCode"
               required>
             </b-input>
           </b-field>

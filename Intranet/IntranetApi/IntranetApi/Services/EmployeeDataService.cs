@@ -101,7 +101,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
-            [FromServices] UserManager < User > userManager,
+            [FromServices] UserManager <User> userManager,
             [FromBody] EmployeeCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -406,12 +406,13 @@ namespace IntranetApi.Services
                                 rowInput.SalaryStr = (worksheet.Cells[row, 10]?.Text ?? string.Empty).Trim();//J
                                 rowInput.BirthDateStr = (worksheet.Cells[row, 11]?.Text ?? string.Empty).Trim();//K
                                 rowInput.IdNumber = (worksheet.Cells[row, 12]?.Text ?? string.Empty).Trim();//L
-                                rowInput.BackendUser = (worksheet.Cells[row, 13]?.Text ?? string.Empty).Trim();//M
-                                rowInput.BackendPass = (worksheet.Cells[row, 14]?.Text ?? string.Empty).Trim();//N
-                                rowInput.Role = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
-                                rowInput.IntranetUsername = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//P
-                                rowInput.IntranetPassword = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
-                                rowInput.Note = (worksheet.Cells[row, 18]?.Text ?? string.Empty).Trim();//R
+                                rowInput.Country = (worksheet.Cells[row, 13]?.Text ?? string.Empty).Trim();//M
+                                rowInput.BackendUser = (worksheet.Cells[row, 14]?.Text ?? string.Empty).Trim();//N
+                                rowInput.BackendPass = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
+                                rowInput.Role = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//P
+                                rowInput.IntranetUsername = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
+                                rowInput.IntranetPassword = (worksheet.Cells[row, 18]?.Text ?? string.Empty).Trim();//R
+                                rowInput.Note = (worksheet.Cells[row, 19]?.Text ?? string.Empty).Trim();//S
 
                                 //i = 0;
                                 //check error
@@ -553,21 +554,21 @@ namespace IntranetApi.Services
                                     errorDetails.Add("Missing ID Number");
                                 }
 
-                                if (string.IsNullOrEmpty(rowInput.BackendUser))//M
-                                {
-                                    cells.Add($"M{row}");
-                                    errorDetails.Add("Missing BackendUser");
-                                }
+                                //if (string.IsNullOrEmpty(rowInput.BackendUser))//M
+                                //{
+                                //    cells.Add($"M{row}");
+                                //    errorDetails.Add("Missing BackendUser");
+                                //}
 
-                                if (string.IsNullOrEmpty(rowInput.BackendPass))//N
-                                {
-                                    cells.Add($"N{row}");
-                                    errorDetails.Add("Missing BackendPass");
-                                }
+                                //if (string.IsNullOrEmpty(rowInput.BackendPass))//N
+                                //{
+                                //    cells.Add($"N{row}");
+                                //    errorDetails.Add("Missing BackendPass");
+                                //}
 
-                                if (string.IsNullOrEmpty(rowInput.Role)) //O
+                                if (string.IsNullOrEmpty(rowInput.Role)) //P
                                 {
-                                    cells.Add($"O{row}");
+                                    cells.Add($"P{row}");
                                     errorDetails.Add("Missing Role");
                                 }
                                 else
@@ -582,15 +583,15 @@ namespace IntranetApi.Services
                                     }
                                 }
 
-                                if (string.IsNullOrEmpty(rowInput.IntranetUsername))//P
+                                if (string.IsNullOrEmpty(rowInput.IntranetUsername))//Q
                                 {
-                                    cells.Add($"P{row}");
+                                    cells.Add($"Q{row}");
                                     errorDetails.Add("Missing Intranet Username");
                                 }
 
-                                if (string.IsNullOrEmpty(rowInput.IntranetPassword))//Q
+                                if (string.IsNullOrEmpty(rowInput.IntranetPassword))//R
                                 {
-                                    cells.Add($"Q{row}");
+                                    cells.Add($"R{row}");
                                     errorDetails.Add("Missing Intranet Password");
                                 }
 

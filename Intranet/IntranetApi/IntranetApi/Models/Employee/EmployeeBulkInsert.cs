@@ -49,5 +49,7 @@ namespace IntranetApi.Models
         public string IntranetUsername { get; set; }
         [MaxLength(20)]
         public string IntranetPassword { get; set; }
+        [MaxLength(80)]
+        public string? Country { get; set; }
     }
 }

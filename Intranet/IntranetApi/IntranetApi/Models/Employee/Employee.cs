@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IntranetApi.Models
 {
@@ -17,7 +16,7 @@ namespace IntranetApi.Models
         public int BankId { get; set; }
 
         [MaxLength(20)]
-        public string BankAccountNumber { get; set; }
+        public string? BankAccountNumber { get; set; }
 
         [MaxLength(100)]
         public string BrandIds { get; set; }
@@ -30,10 +29,10 @@ namespace IntranetApi.Models
         public string IdNumber { get; set; }
 
         [MaxLength(20)]
-        public string BackendUser { get; set; }
+        public string? BackendUser { get; set; }
 
         [MaxLength(20)]
-        public string BackendPass { get; set; }
+        public string? BackendPass { get; set; }
 
         public int? UserId { get; set; }
 
@@ -47,5 +46,8 @@ namespace IntranetApi.Models
 
         [MaxLength(20)]
         public string IntranetPassword { get; set; }
+
+        [MaxLength(80)]
+        public string? Country { get; set; }
     }
 }

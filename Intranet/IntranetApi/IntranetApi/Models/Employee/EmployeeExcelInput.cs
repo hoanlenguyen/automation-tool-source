@@ -34,5 +34,6 @@ namespace IntranetApi.Models
         public string IntranetUsername { get; set; }
 
         public string IntranetPassword { get; set; }
+        public string? Country { get; set; }
     }
 }

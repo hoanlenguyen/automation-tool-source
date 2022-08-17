@@ -22,6 +22,8 @@ namespace IntranetApi.DbContext
         public DbSet<Department> Department { get; set; }
         public DbSet<Employee> Employee { get; set; }
         public DbSet<Rank> Rank { get; set; }
+        public DbSet<StaffRecord> StaffRecord { get; set; }
+        public DbSet<StaffRecordDocument> StaffRecordDocument { get; set; }
         public DbSet<EmployeeImportHistory> EmployeeImportHistory { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -61,6 +63,13 @@ namespace IntranetApi.DbContext
                        .HasForeignKey(p=>p.StaffRecordId)
                        //.IsRequired(false)
                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StaffRecord>()
+                      .HasOne(p => p.Employee)
+                      .WithMany(p => p.StaffRecords)
+                      .HasForeignKey(p => p.EmployeeId)
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

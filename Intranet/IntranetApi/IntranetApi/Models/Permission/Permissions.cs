@@ -79,4 +79,12 @@ namespace IntranetApi.Models
         public const string Update = "Role.Update";
         public const string Delete = "Role.Delete";
     }
+
+    public static class StaffRecordPermissions
+    {
+        public const string View = "StaffRecord.View";
+        public const string Create = "StaffRecord.Create";
+        public const string Update = "StaffRecord.Update";
+        public const string Delete = "StaffRecord.Delete";
+    }
 }

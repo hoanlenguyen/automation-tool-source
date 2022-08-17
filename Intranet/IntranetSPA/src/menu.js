@@ -29,6 +29,11 @@ export default [
       to: '/employee',
       label: 'Employees',
       icon: 'account-multiple'
-    }    
+    },
+    {
+      to: '/staffRecord',
+      label: 'Staff Record',
+      icon: 'account-multiple'
+    }      
   ]  
 ]

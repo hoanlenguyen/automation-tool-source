@@ -49,5 +49,7 @@ namespace IntranetApi.Models
 
         [MaxLength(80)]
         public string? Country { get; set; }
+
+        public virtual ICollection<StaffRecord> StaffRecords { get; set; }
     }
 }

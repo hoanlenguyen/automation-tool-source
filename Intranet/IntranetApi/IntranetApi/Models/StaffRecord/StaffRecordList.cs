@@ -1,26 +1,18 @@
 ﻿using IntranetApi.Enum;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IntranetApi.Models
 {
-    public class StaffRecord : BaseAuditEntity
+    public class StaffRecordList
     {
         public int EmployeeId { get; set; }
         public int DepartmentId { get; set; }
+        public string Department { get; set; }
+        public int RankId { get; set; }
+        public string Rank { get; set; }
         public StaffRecordType RecordType { get; set; }
-
-        [MaxLength(500)]
         public string Reason { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-
-        [MaxLength(200)]
         public string? Remarks { get; set; }
-
-        public virtual ICollection<StaffRecordDocument> StaffRecordDocuments { get; set; }
-        
-        [ForeignKey(nameof(EmployeeId))]
-        public virtual Employee Employee { get; set; }
     }
 }

@@ -105,7 +105,8 @@ builder.Services.AddAuthorization(
         nameof(Rank),
         nameof(Department),
         nameof(Role),
-        nameof(Employee)
+        nameof(Employee),
+        nameof(StaffRecord)
         )
     );
 
@@ -149,6 +150,7 @@ builder.Services.AddMemoryCache();
 //builder.Services.AddSingleton<IExportDataToQueueService, ExportDataToQueueService>();
 //builder.Services.AddSingleton<IHubClient, HubClient>();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
 
 //add Queue job in background
 //builder.Services.AddHostedService<QueuedHostedService>();
@@ -204,6 +206,6 @@ app.AddBrandDataService(mySQLConnection.ConnectionString);
 app.AddDepartmentDataService(mySQLConnection.ConnectionString);
 app.AddRankDataService(mySQLConnection.ConnectionString);
 app.AddEmployeeDataService(mySQLConnection.ConnectionString);
-
+app.AddStaffRecordDataService(mySQLConnection.ConnectionString);
 
 app.Run();

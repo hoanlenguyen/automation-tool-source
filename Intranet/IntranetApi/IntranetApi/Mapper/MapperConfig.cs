@@ -36,6 +36,20 @@ namespace IntranetApi.Mapper
                            .Map(dest => dest.Email, src => $"{src.EmployeeCode}@intranet.com")
                            .Map(dest => dest.UserName, src => src.BackendUser)
                            ;
+
+            TypeAdapterConfig<StaffRecord, StaffRecordCreateOrEdit>.NewConfig()
+                           .Map(dest => dest.StaffRecordDocuments, src => src.StaffRecordDocuments.Select(p=>p.FileUrl).ToList())
+                           ;
+
+            TypeAdapterConfig<StaffRecordCreateOrEdit, StaffRecord>.NewConfig()
+                           //.Ignore(p=>p.StaffRecordDocuments)
+                           .Map(dest => dest.StaffRecordDocuments, src => src.StaffRecordDocuments.Select(p => new StaffRecordDocument { FileUrl = p }).ToList())
+                           ;
+
+            TypeAdapterConfig<StaffRecord, StaffRecordList>.NewConfig()
+                           //.Ignore(p=>p.StaffRecordDocuments)
+                           //.Map(dest => dest.StaffRecordDocuments, src => src.StaffRecordDocuments.Select(p => new StaffRecordDocument { FileUrl = p }).ToList())
+                           ;
         }
     }
 }

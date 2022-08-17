@@ -45,7 +45,6 @@ namespace IntranetApi.Services
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
             return connection.Query<BaseDropdown>($"select Id, Name from {tableName} where IsDeleted = 0").ToList();
-            connection.Close();
         }
 
         private static void ProcessFilterValues(ref EmployeeFilterDto input)

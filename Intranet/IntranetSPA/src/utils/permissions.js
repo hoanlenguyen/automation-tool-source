@@ -130,5 +130,27 @@ export default [
                 label: 'Role.Delete',
             }
         ]
+    },
+    {
+        id: 'StaffRecord',
+        label: 'Staff Record',
+        children: [
+            {
+                id: 'StaffRecord.View',
+                label: 'StaffRecord.View',
+            },
+            {
+                id: 'StaffRecord.Create',
+                label: 'StaffRecord.Create',
+            },
+            {
+                id: 'StaffRecord.Update',
+                label: 'StaffRecord.Update',
+            },
+            {
+                id: 'StaffRecord.Delete',
+                label: 'StaffRecord.Delete',
+            }
+        ]
     }
 ]

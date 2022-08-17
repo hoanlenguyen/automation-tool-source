@@ -96,6 +96,15 @@ export default {
         icon: 'account-multiple'
         });
 
+      if(this.$store.state.userPermissions.includes(
+        "StaffRecord.View"
+      ))
+        items.push(  {
+        to: '/staffRecord',
+        label: 'Staff Record',
+        icon: 'account-multiple'
+        });
+
        return [items];
     },
  }

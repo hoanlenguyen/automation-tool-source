@@ -2,10 +2,10 @@
 
 namespace IntranetApi.Models
 {
-    public class StaffRecordDocument: BaseEntity
+    public class StaffRecordDocument : BaseEntity
     {
         public int StaffRecordId { get; set; }
-        public int FileId { get; set; }
+        public string FileUrl { get; set; } = string.Empty;
 
         [ForeignKey(nameof(StaffRecordId))]
         public virtual StaffRecord StaffRecord { get; set; }

@@ -109,7 +109,7 @@ namespace BITool.Services
             if (campaign.ExportTimesTo == 0) 
                 campaign.ExportTimesTo = int.MaxValue;//
             var commandStr =   $"update leadmanagementreport " +
-                                $"set ThirdLastUsedCampaignId = SecondLastUsedCampaignId, SecondLastUsedCampaignId = LastUsedCampaignId, LastUsedCampaignId = {campaign.Id}, " +
+                               $"set ThirdLastUsedCampaignId = SecondLastUsedCampaignId, SecondLastUsedCampaignId = LastUsedCampaignId, LastUsedCampaignId = {campaign.Id}, " +
                                     $"DateLastExported = '{nowStr}', TotalTimesExported = TotalTimesExported + 1, " +
                                     $"ExportVsPointsPercentage = if (TotalPoints = 0, 'No Occurance', CONCAT(CEILING(TotalPoints / TotalTimesExported) * 100, '%')), " +
                                     $"ExportVsPointsNumber = TotalPoints - TotalTimesExported " +

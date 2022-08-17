@@ -73,6 +73,14 @@ const routes = [
   },
   {
     meta: {
+      title: 'Staff Record'
+    },
+    path: '/staffRecord',
+    name: 'Staff Record',    
+    component: () => import('@/views/StaffRecord.vue')
+  },
+  {
+    meta: {
       title: 'Profile'
     },
     path: '/profile',

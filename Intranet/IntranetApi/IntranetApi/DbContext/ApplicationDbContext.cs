@@ -53,6 +53,14 @@ namespace IntranetApi.DbContext
             modelBuilder.Entity<BrandEmployee>().ToTable("BrandEmployee");
 
             modelBuilder.Entity<EmployeeImportHistory>().ToTable("EmployeeImportHistory");
+
+
+            modelBuilder.Entity<StaffRecordDocument>()
+                       .HasOne(p=>p.StaffRecord)
+                       .WithMany(p=>p.StaffRecordDocuments)
+                       .HasForeignKey(p=>p.StaffRecordId)
+                       //.IsRequired(false)
+                       .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

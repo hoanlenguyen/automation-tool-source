@@ -29,9 +29,8 @@
         field="Name"
         label="Name"
         sortable        
-        width="200px"
-        sticky
-        centered
+        width="200"
+        header-class="is-size-7"        
         v-slot="props"
       >       
       {{props.row.name}}
@@ -40,8 +39,9 @@
       <b-table-column
         field="employeeCode"
         label="Employee code"
+        header-class="is-size-7"
         sortable        
-        width="150px"
+        width="100"
         v-slot="props"
       >       
       {{props.row.employeeCode}}
@@ -50,7 +50,8 @@
       <b-table-column
         field="rankId"
         label="Rank"
-        width="150px"       
+        width="150"
+        header-class="is-size-7"       
         v-slot="props"
       >       
       {{props.row.rank}}
@@ -59,7 +60,8 @@
       <b-table-column
         field="dept"
         label="Department"
-        width="150px"       
+        width="150"
+        header-class="is-size-7"         
         v-slot="props"
       >       
       {{props.row.dept}}
@@ -68,7 +70,8 @@
        <b-table-column
         field="dept"
         label="Brand"
-        width="200px"       
+        width="200px"
+        header-class="is-size-7"         
         v-slot="props"
       >       
       {{props.row.brand}}
@@ -78,7 +81,8 @@
       <b-table-column
         field="bankName"
         label="BankName"
-        width="200px"       
+        width="200px"
+        header-class="is-size-7"         
         v-slot="props"
       >       
       {{props.row.bankName}}
@@ -87,7 +91,8 @@
       <b-table-column
         field="bankAccountNumber"
         label="Bank Account Number"
-        width="150px"       
+        width="150"
+        header-class="is-size-7"         
         v-slot="props">       
         {{props.row.bankAccountNumber}}
       </b-table-column>
@@ -95,15 +100,26 @@
       <b-table-column
         field="idNumber"
         label="Id Number"
-        width="150px"       
+        width="150"
+        header-class="is-size-7"         
         v-slot="props">       
         {{props.row.idNumber}}
       </b-table-column>
 
       <b-table-column
+        field="Country"
+        label="Country"
+        width="150"
+        header-class="is-size-7"         
+        v-slot="props">       
+        {{props.row.country}}
+      </b-table-column>
+
+      <b-table-column
         field="salary"
         label="Salary"
-        width="150px"       
+        width="150" 
+        header-class="is-size-7"        
         v-slot="props">       
         {{props.row.salary|formattedNumber}}
       </b-table-column>
@@ -111,9 +127,10 @@
       <b-table-column
         field="Status"
         label="Status"
+        width="100"
+        header-class="is-size-7"
         sortable
-        v-slot="props"
-        width="120px">        
+        v-slot="props">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
       </b-table-column>
 
@@ -122,8 +139,9 @@
         label="Start Date"
         sortable
         v-slot="props"
-        width="120px">
-       {{ props.row.startDate | dateTime('DD-MMM-YYYY') }} 
+        width="150"
+        header-class="is-size-7">
+        <span class="is-size-7">{{ props.row.startDate | dateTime('DD-MM-YYYY') }} </span>       
       </b-table-column>
 
       <b-table-column
@@ -131,8 +149,9 @@
         label="Birth Date"
         sortable
         v-slot="props"
-        width="120px">
-       {{ props.row.birthDate | dateTime('DD-MM-YYYY') }} 
+        width="150"
+        header-class="is-size-7">
+        <span class="is-size-7">{{ props.row.birthDate | dateTime('DD-MM-YYYY') }} </span>
       </b-table-column>
 
       <b-table-column
@@ -140,31 +159,34 @@
         label="Creation Time"
         sortable
         v-slot="props"
-        width="120px">
-       {{ props.row.creationTime | dateTime }} 
+        width="150"
+        header-class="is-size-7">
+        <span class="is-size-7">{{ props.row.creationTime | dateTime }}</span>        
       </b-table-column>
 
       <b-table-column
         field="LastModificationTime"
         label="Last Update Time"
         v-slot="props"
-        width="120px">
-       {{ props.row.lastModificationTime | dateTime }} 
+        width="100"
+        header-class="is-size-7">
+        <span class="is-size-7"> {{ props.row.lastModificationTime | dateTime }} </span>
       </b-table-column>
 
       <b-table-column
         field="lastModifierUser"
         label="Last Update By"
         v-slot="props"
-        width="200px">
-       {{ props.row.lastModifierUser }} 
+        width="200px"
+        header-class="is-size-7">
+        <span class="is-size-7"> {{ props.row.lastModifierUser }} </span>
       </b-table-column>
-
       <b-table-column
         field="Edit"
         label="Edit"        
         v-slot="props"
-        width="150px">        
+        width="150"
+        header-class="is-size-7">        
         <b-button 
           v-if="canUpdate"
           title="edit"          
@@ -288,14 +310,14 @@
               </b-input>
             </b-field>
 
-            <b-field label="Birth Date" class="column is-3">
-              <b-datepicker
-              icon="calendar-today"
-              locale="en-SG"
-              v-model="birthDate"
-              editable>
-              </b-datepicker>
-            </b-field>           
+          <b-field label="Birth Date" class="column is-3">
+            <b-datepicker
+            icon="calendar-today"
+            locale="en-SG"
+            v-model="birthDate"
+            editable>
+            </b-datepicker>
+          </b-field>
           </div> 
 
         <div class="columns">
@@ -445,6 +467,12 @@
         </div>   
 
         <div class="columns">
+          <b-field label="Country" class="column is-3">
+            <b-input
+              type="Text"
+              v-model="model.country">
+            </b-input>
+          </b-field>
           <b-field label="Note" class="column is-6">
             <b-input
               type="Text"
@@ -786,7 +814,7 @@ export default {
       getRoleDropdown()
         .then((response) => {
           if (response.status == 200) {
-            this.roles = response.data;
+            this.roles = [...response.data];
           } 
         })
         .catch((error) => {
@@ -799,7 +827,7 @@ export default {
       getDepartmentDropdown()
         .then((response) => {
           if (response.status == 200) {
-            this.departments = response.data;
+            this.departments = [...response.data];
           } 
         })
         .catch((error) => {
@@ -812,7 +840,7 @@ export default {
       getBankDropdown()
         .then((response) => {
           if (response.status == 200) {
-            this.banks = response.data;
+            this.banks = [...response.data];
           } 
         })
         .catch((error) => {
@@ -825,7 +853,7 @@ export default {
       getBrandDropdown()
         .then((response) => {
           if (response.status == 200) {
-            this.brands = response.data;
+            this.brands = [...response.data];
           } 
         })
         .catch((error) => {
@@ -838,7 +866,7 @@ export default {
       getRankDropdown()
         .then((response) => {
           if (response.status == 200) {
-            this.ranks = response.data;
+            this.ranks = [...response.data];
           } 
         })
         .catch((error) => {

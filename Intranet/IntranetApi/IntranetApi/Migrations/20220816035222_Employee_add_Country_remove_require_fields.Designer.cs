@@ -3,6 +3,7 @@ using System;
 using IntranetApi.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IntranetApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220816035222_Employee_add_Country_remove_require_fields")]
+    partial class Employee_add_Country_remove_require_fields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -378,78 +380,6 @@ namespace IntranetApi.Migrations
                     b.ToTable("RoleClaim", (string)null);
                 });
 
-            modelBuilder.Entity("IntranetApi.Models.StaffRecord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("CreatorUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DepartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifierUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<int>("RecordType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("tinyint(1)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("StaffRecord");
-                });
-
-            modelBuilder.Entity("IntranetApi.Models.StaffRecordDocument", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("FileId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StaffRecordId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StaffRecordId");
-
-                    b.ToTable("StaffRecordDocument");
-                });
-
             modelBuilder.Entity("IntranetApi.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -615,17 +545,6 @@ namespace IntranetApi.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("IntranetApi.Models.StaffRecordDocument", b =>
-                {
-                    b.HasOne("IntranetApi.Models.StaffRecord", "StaffRecord")
-                        .WithMany("StaffRecordDocuments")
-                        .HasForeignKey("StaffRecordId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("StaffRecord");
-                });
-
             modelBuilder.Entity("IntranetApi.Models.UserRole", b =>
                 {
                     b.HasOne("IntranetApi.Models.Role", null)
@@ -666,11 +585,6 @@ namespace IntranetApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("IntranetApi.Models.StaffRecord", b =>
-                {
-                    b.Navigation("StaffRecordDocuments");
                 });
 #pragma warning restore 612, 618
         }

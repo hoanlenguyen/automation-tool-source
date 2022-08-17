@@ -29,8 +29,11 @@
         public string? Note { get; set; }
 
         public string BrandIds { get; set; }
+
         public string IntranetUsername { get; set; }
 
         public string IntranetPassword { get; set; }
+
+        public string? Country { get; set; }
     }
 }

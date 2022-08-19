@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IntranetApi.Models
 {
@@ -18,9 +19,6 @@ namespace IntranetApi.Models
         [MaxLength(20)]
         public string? BankAccountNumber { get; set; }
 
-        [MaxLength(100)]
-        public string BrandIds { get; set; }
-
         public DateTime? StartDate { get; set; }
 
         public DateTime BirthDate { get; set; }
@@ -34,7 +32,7 @@ namespace IntranetApi.Models
         [MaxLength(20)]
         public string? BackendPass { get; set; }
 
-        public int? UserId { get; set; }
+        public int UserId { get; set; }
 
         public int Salary { get; set; }
 
@@ -50,6 +48,10 @@ namespace IntranetApi.Models
         [MaxLength(80)]
         public string? Country { get; set; }
 
-        public virtual ICollection<StaffRecord> StaffRecords { get; set; }
+        public virtual ICollection<StaffRecord> StaffRecords { get; set; } = new HashSet<StaffRecord>();
+        public virtual ICollection<BrandEmployee> BrandEmployees { get; set; }=new HashSet<BrandEmployee>();
+
+        [ForeignKey(nameof(UserId))]
+        public virtual User User { get; set; }
     }
 }

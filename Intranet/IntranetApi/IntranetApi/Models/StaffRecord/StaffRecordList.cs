@@ -5,6 +5,8 @@ namespace IntranetApi.Models
     public class StaffRecordList
     {
         public int EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
+        public string EmployeeCode{ get; set; }
         public int DepartmentId { get; set; }
         public string Department { get; set; }
         public int RankId { get; set; }

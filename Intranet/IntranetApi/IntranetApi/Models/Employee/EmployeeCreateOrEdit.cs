@@ -22,18 +22,17 @@
 
         public string BackendPass { get; set; }
 
-        public int? UserId { get; set; }
+        public int UserId { get; set; }
          
         public int Salary { get; set; }
 
         public string? Note { get; set; }
-
-        public string BrandIds { get; set; }
 
         public string IntranetUsername { get; set; }
 
         public string IntranetPassword { get; set; }
 
         public string? Country { get; set; }
+        public List<int> BrandIds { get; set; } = new List<int>();
     }
 }

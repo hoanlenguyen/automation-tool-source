@@ -137,26 +137,26 @@
     <b-modal v-model="isModalActive" trap-focus has-modal-card :can-cancel="false" width="1200" scroll="keep">
       <form action="">
         <div class="modal-card">
-            <header class="modal-card-head">
-                <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
-            </header>
-            <section class="modal-card-body">
-              <b-field>
-                <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
-              </b-field>
-              <b-field label="Name">
-                  <b-input
-                    type="Text"
-                    v-model="model.name"
-                    placeholder="Name...."
-                    required>
-                  </b-input>
-              </b-field>                 
-            </section>
-            <footer class="modal-card-foot">
-                <b-button label="Cancel" @click="cancelCreateOrUpdate" />
-                <b-button :label="model.id==0?'Create':'Update'"type="is-primary" @click="createOrUpdateModel"/>
-            </footer>
+          <header class="modal-card-head">
+            <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
+          </header>
+          <section class="modal-card-body">
+            <b-field>
+              <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
+            </b-field>
+            <b-field label="Name">
+                <b-input
+                  type="Text"
+                  v-model="model.name"
+                  placeholder="Name...."
+                  required>
+                </b-input>
+            </b-field>                 
+          </section>
+          <footer class="modal-card-foot">
+              <b-button label="Cancel" @click="cancelCreateOrUpdate" />
+              <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
+          </footer>
         </div>
       </form>
     </b-modal>

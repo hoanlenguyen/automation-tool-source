@@ -37,39 +37,39 @@ namespace IntranetApi.DbContext
 
             modelBuilder.Entity<Employee>().ToTable("Employee");
             modelBuilder.Entity<Employee>().HasIndex(p=>p.EmployeeCode).IsUnique();
-            //modelBuilder.Entity<Employee>().HasIndex(p=>p.IdNumber).IsUnique();
-            //modelBuilder.Entity<Employee>().HasIndex(p=>p.BackendUser).IsUnique();
              
-            //modelBuilder.Entity<Employee>()
-            //           .HasOne(s => s.User)
-            //           .WithOne()
-            //           .HasForeignKey($"{nameof(IntranetApi.Models.Employee)}_{nameof(User)}")
-            //           .IsRequired(false)
-            //           .OnDelete(DeleteBehavior.NoAction);
-
             modelBuilder.Entity<Bank>().ToTable("Bank");
             modelBuilder.Entity<Department>().ToTable("Department");
             modelBuilder.Entity<Rank>().ToTable("Rank");
-
             modelBuilder.Entity<Brand>().ToTable("Brand");
+            modelBuilder.Entity<BrandEmployee>().HasKey(p=> new {p.BrandId, p.EmployeeId });
             modelBuilder.Entity<BrandEmployee>().ToTable("BrandEmployee");
-
             modelBuilder.Entity<EmployeeImportHistory>().ToTable("EmployeeImportHistory");
 
 
             modelBuilder.Entity<StaffRecordDocument>()
-                       .HasOne(p=>p.StaffRecord)
-                       .WithMany(p=>p.StaffRecordDocuments)
-                       .HasForeignKey(p=>p.StaffRecordId)
-                       //.IsRequired(false)
-                       .OnDelete(DeleteBehavior.Cascade);
+                    .HasOne(p=>p.StaffRecord)
+                    .WithMany(p=>p.StaffRecordDocuments)
+                    .HasForeignKey(p=>p.StaffRecordId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<StaffRecord>()
-                      .HasOne(p => p.Employee)
-                      .WithMany(p => p.StaffRecords)
-                      .HasForeignKey(p => p.EmployeeId)
-                      .IsRequired(false)
-                      .OnDelete(DeleteBehavior.NoAction);
+                    .HasOne(p => p.Employee)
+                    .WithMany(p => p.StaffRecords)
+                    .HasForeignKey(p => p.EmployeeId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BrandEmployee>()
+                    .HasOne(bc => bc.Brand)
+                    .WithMany(b => b.BrandEmployees)
+                    .HasForeignKey(bc => bc.BrandId);
+
+            modelBuilder.Entity<User>()
+                    .HasOne(bc => bc.Employee)
+                    .WithOne(c => c.User)
+                    .HasForeignKey<Employee>(bc => bc.UserId)
+                    .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

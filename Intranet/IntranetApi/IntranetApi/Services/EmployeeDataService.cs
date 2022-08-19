@@ -739,6 +739,34 @@ namespace IntranetApi.Services
                 return Results.Ok(items);
             });
 
+
+            app.MapGet("employee/GetByBrand", [Authorize]
+            async Task<IResult> (
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] ApplicationDbContext db,
+            int id) =>
+            {
+                var result = new List<EmployeeDropdown>();
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
+                var employeeManager = db.Employee
+                .Include(p=>p.BrandEmployees.DefaultIfEmpty())
+                .FirstOrDefault(p => p.UserId == userId)
+                ;
+                if (employeeManager == null)
+                    return Results.Ok(result);
+                var brandIds = employeeManager.BrandEmployees.Select(p => p.BrandId).ToList();
+                //var brandIds = employeeManager.BrandIds;
+
+                //entity.IsDeleted = true;
+                //entity.LastModifierUserId = userId;
+                //entity.LastModificationTime = DateTime.Now;
+                db.SaveChanges();
+                return Results.Ok();
+            })
+            .RequireAuthorization(EmployeePermissions.View)
+            ;
+
             async Task BulkInsertEmployeesToDB(IEnumerable<EmployeeBulkInsert> items)
             {
                 if (items.Count() == 0)
@@ -823,6 +851,8 @@ namespace IntranetApi.Services
 
                 return result;
             }
+
+
         }
     }
 }

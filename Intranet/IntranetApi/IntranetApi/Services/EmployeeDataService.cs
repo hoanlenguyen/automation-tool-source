@@ -140,13 +140,14 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Employee.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Employee.Include(p=>p.BrandEmployees).FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
                 Console.WriteLine($"IntranetUsername { input.IntranetUsername}");
                 Console.WriteLine($"IntranetPassword { input.IntranetPassword}");
 
+                entity.BrandEmployees.Clear();
                 var currentPassword = entity.IntranetPassword;
 
                 input.Adapt(entity);

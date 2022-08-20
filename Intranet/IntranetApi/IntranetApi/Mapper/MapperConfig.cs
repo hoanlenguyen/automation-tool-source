@@ -19,7 +19,6 @@ namespace IntranetApi.Mapper
                             ;
 
             TypeAdapterConfig<EmployeeExcelInput, EmployeeBulkInsert>.NewConfig()
-                            .Map(dest => dest.BrandIds, src => string.Join(',', src.BrandIdList))
                             .Map(dest => dest.Status, src => src.StatusStr.Equals(StatusValue.Active, StringComparison.OrdinalIgnoreCase))
                             .Map(dest => dest.IsDeleted, src => false)
                             ;
@@ -30,6 +29,10 @@ namespace IntranetApi.Mapper
                             .Map(dest => dest.Salary, src => src.SalaryStr)
                             .Map(dest => dest.BirthDate, src => src.BirthDateStr)
                             .Map(dest => dest.StartDate, src => src.StartDateStr)
+                            ;
+
+            TypeAdapterConfig<Employee, EmployeeExcelInput>.NewConfig()
+                            .Map(dest => dest.Brand, src => string.Join(',', src.BrandEmployees.Select(q=>q.Brand.Name)))
                             ;
 
             TypeAdapterConfig<EmployeeExcelInput, User>.NewConfig()

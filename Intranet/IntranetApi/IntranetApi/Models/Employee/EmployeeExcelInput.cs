@@ -13,8 +13,7 @@ namespace IntranetApi.Models
         public string Rank { get; set; }
         public int? DeptId { get; set; }
         public string Brand { get; set; }
-        public string BrandIds { get; set; }
-        public List<int>BrandIdList { get; set; }
+        public List<int>BrandIds { get; set; }
         public string BankName { get; set; }
         public int? BankId { get; set; }
         public string BankAccountNumber { get; set; }

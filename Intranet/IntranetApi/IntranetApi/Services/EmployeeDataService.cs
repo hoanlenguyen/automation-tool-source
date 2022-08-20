@@ -273,7 +273,10 @@ namespace IntranetApi.Services
                     adminUsers = GetDataList(sqlConnectionStr, nameof(User));
                     memoryCache.Set(CacheKeys.GetAdminUserDropdown, adminUsers, cacheOptions);
                 }
-                var query = db.Employee.AsNoTracking()
+                var query = db.Employee
+                           .Include(p=>p.BrandEmployees)
+                           .ThenInclude(p=>p.Brand)
+                           .AsNoTracking()
                            .Where(p => !p.IsDeleted)
                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                            ;
@@ -291,11 +294,11 @@ namespace IntranetApi.Services
                     item.Dept = departments.FirstOrDefault(p => p.Id == item.DeptId)?.Name;
                     item.BankName = banks.FirstOrDefault(p => p.Id == item.BankId)?.Name;
                     item.LastModifierUser = adminUsers.FirstOrDefault(p => p.Id == (item.LastModifierUserId ?? item.CreatorUserId).GetValueOrDefault())?.Name;
-                    if (!string.IsNullOrEmpty(item.BrandIds) && !item.BrandIds.Equals(BrandValue.AllBrands, StringComparison.OrdinalIgnoreCase))
-                    {
-                        item.BrandIdList = item.BrandIds.Split(',').Select(p => int.Parse(p)).ToList();
-                        item.Brand = string.Join(", ", brands.Where(p => item.BrandIdList.Contains(p.Id)).Select(p => p.Name));
-                    }
+                    //if (!string.IsNullOrEmpty(item.BrandIds) && !item.BrandIds.Equals(BrandValue.AllBrands, StringComparison.OrdinalIgnoreCase))
+                    //{
+                    //    item.BrandIds = item.BrandIds.Split(',').Select(p => int.Parse(p)).ToList();
+                    //    item.Brand = string.Join(", ", brands.Where(p => item.BrandIds.Contains(p.Id)).Select(p => p.Name));
+                    //}
                 }
                 return Results.Ok(new PagedResultDto<EmployeeExcelInput>(totalCount, items));
             })
@@ -469,9 +472,9 @@ namespace IntranetApi.Services
                                 else
                                 {
                                     brandNames = rowInput.Brand.Split(',').Select(p => (p?.ToLower() ?? string.Empty).Trim()).ToList();
-                                    rowInput.BrandIdList = brands.Where(p => brandNames.Contains(p.Name.ToLower())).Select(p => p.Id).ToList();
+                                    rowInput.BrandIds = brands.Where(p => brandNames.Contains(p.Name.ToLower())).Select(p => p.Id).ToList();
 
-                                    if (rowInput.BrandIdList.Count == 0)
+                                    if (rowInput.BrandIds.Count == 0)
                                     {
                                         cells.Add($"F{row}");
                                         errorDetails.Add("Invalid Brand");

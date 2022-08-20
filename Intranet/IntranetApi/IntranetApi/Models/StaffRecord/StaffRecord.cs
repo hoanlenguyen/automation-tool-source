@@ -21,6 +21,6 @@ namespace IntranetApi.Models
         public virtual ICollection<StaffRecordDocument> StaffRecordDocuments { get; set; }
         
         [ForeignKey(nameof(EmployeeId))]
-        public virtual Employee Employee { get; set; }
+        public virtual User Employee { get; set; }
     }
 }

@@ -12,41 +12,25 @@ namespace IntranetApi.DbContext
         {
         }
 
-        public DbSet<User> User { get; set; }
-        public DbSet<Role> Role { get; set; }
-        public DbSet<UserRole> UserRole { get; set; }
-        public DbSet<RoleClaim> RoleClaim { get; set; }
-        public DbSet<Bank> Bank { get; set; }
-        public DbSet<Brand> Brand { get; set; }
-        public DbSet<BrandEmployee> BrandEmployee { get; set; }
-        public DbSet<Department> Department { get; set; }
-        public DbSet<Employee> Employee { get; set; }
+        public override DbSet<User> Users { get; set; }
+        public override DbSet<Role> Roles { get; set; }
+        public override DbSet<UserRole> UserRoles { get; set; }
+        public override DbSet<RoleClaim> RoleClaims { get; set; }
+        public DbSet<Bank> Banks { get; set; }
+        public DbSet<Brand> Brands { get; set; }
+        public DbSet<BrandEmployee> BrandEmployees { get; set; }
+        public DbSet<Department> Departments { get; set; }
+        //public DbSet<Employee> Employee { get; set; }
         public DbSet<Rank> Rank { get; set; }
         public DbSet<StaffRecord> StaffRecord { get; set; }
         public DbSet<StaffRecordDocument> StaffRecordDocument { get; set; }
-        public DbSet<EmployeeImportHistory> EmployeeImportHistory { get; set; }
+        public DbSet<EmployeeImportHistory> EmployeeImportHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<User>().ToTable("User");
-            modelBuilder.Entity<Role>().ToTable("Role");
-            modelBuilder.Entity<UserRole>().ToTable("UserRole");
-            modelBuilder.Entity<RoleClaim>().ToTable("RoleClaim");
-
-            modelBuilder.Entity<Employee>().ToTable("Employee");
-            modelBuilder.Entity<Employee>().HasIndex(p=>p.EmployeeCode).IsUnique();
-             
-            modelBuilder.Entity<Bank>().ToTable("Bank");
-            modelBuilder.Entity<Department>().ToTable("Department");
-            modelBuilder.Entity<Rank>().ToTable("Rank");
-            modelBuilder.Entity<Brand>().ToTable("Brand");
-            modelBuilder.Entity<BrandEmployee>().HasKey(p=> new {p.BrandId, p.EmployeeId });
-            modelBuilder.Entity<BrandEmployee>().ToTable("BrandEmployee");
-            modelBuilder.Entity<EmployeeImportHistory>().ToTable("EmployeeImportHistory");
-
-
+            modelBuilder.Entity<User>().HasIndex(p => p.EmployeeCode).IsUnique();
+            modelBuilder.Entity<BrandEmployee>().HasKey(p => new { p.BrandId, p.EmployeeId });
             modelBuilder.Entity<StaffRecordDocument>()
                     .HasOne(p=>p.StaffRecord)
                     .WithMany(p=>p.StaffRecordDocuments)
@@ -65,11 +49,22 @@ namespace IntranetApi.DbContext
                     .WithMany(b => b.BrandEmployees)
                     .HasForeignKey(bc => bc.BrandId);
 
-            modelBuilder.Entity<User>()
-                    .HasOne(bc => bc.Employee)
-                    .WithOne(c => c.User)
-                    .HasForeignKey<Employee>(bc => bc.UserId)
-                    .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<UserRole>()
+                    .HasOne(p => p.User)
+                    .WithMany(p => p.UserRoles)
+                    .HasForeignKey(p => p.UserId);
+
+
+            modelBuilder.Entity<UserRole>()
+                    .HasOne(p => p.Role)
+                    .WithMany(p => p.UserRoles)
+                    .HasForeignKey(p => p.RoleId);
+
+            //modelBuilder.Entity<User>()
+            //        .HasOne(bc => bc.Employee)
+            //        .WithOne(c => c.User)
+            //        .HasForeignKey<Employee>(bc => bc.UserId)
+            //        .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

@@ -121,7 +121,7 @@ namespace IntranetApi.Services
                     var result = await userManager.CreateAsync(user, entity.IntranetPassword);
                     Console.WriteLine($"UserId: {user.Id}");
                     entity.UserId = user.Id;
-                    await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
+                    await db.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
                 }
                 
                 db.Employee.Add(entity);
@@ -154,8 +154,8 @@ namespace IntranetApi.Services
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 entity.IntranetUsername = entity.EmployeeCode;
-                var user = await db.User.FirstOrDefaultAsync(p => p.Id == entity.UserId);
-                if (user == null && entity.IntranetUsername.IsNotNullOrEmpty()) user = await db.User.FirstOrDefaultAsync(p => p.UserName == entity.IntranetUsername);
+                var user = await db.Users.FirstOrDefaultAsync(p => p.Id == entity.UserId);
+                if (user == null && entity.IntranetUsername.IsNotNullOrEmpty()) user = await db.Users.FirstOrDefaultAsync(p => p.UserName == entity.IntranetUsername);
                 if(user != null)
                 {
                     if (!user.UserName.Equals(input.IntranetUsername, StringComparison.OrdinalIgnoreCase))
@@ -173,13 +173,13 @@ namespace IntranetApi.Services
                         var result = await userManager.ResetPasswordAsync(user, code, entity.IntranetPassword);
                     }
 
-                    if(!await db.UserRole.AnyAsync(p=>p.UserId== entity.UserId && p.RoleId == entity.RoleId))
+                    if(!await db.UserRoles.AnyAsync(p=>p.UserId== entity.UserId && p.RoleId == entity.RoleId))
                     {
-                        var userRoles = await db.UserRole.Where(p => p.UserId == entity.UserId).ToListAsync();
+                        var userRoles = await db.UserRoles.Where(p => p.UserId == entity.UserId).ToListAsync();
                         if (userRoles.Any())
-                            db.UserRole.RemoveRange(userRoles);
+                            db.UserRoles.RemoveRange(userRoles);
 
-                        await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
+                        await db.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
                     }                    
                 }
                 else if(entity.IntranetUsername.IsNotNullOrEmpty() && entity.IntranetPassword.IsNotNullOrEmpty())
@@ -194,7 +194,7 @@ namespace IntranetApi.Services
                     };
                     var result = await userManager.CreateAsync(user, entity.IntranetPassword);
                     Console.WriteLine($"UserId: {user.Id}");
-                    await db.UserRole.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
+                    await db.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
                     entity.UserId = user.Id;
                 }                
                 await db.SaveChangesAsync();

@@ -56,7 +56,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity =await db.Bank.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+                var entity =await db.Banks.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
@@ -92,7 +92,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Bank.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Banks.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -116,7 +116,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Bank.FirstOrDefault(x => x.Id == id);
+                var entity = db.Banks.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 

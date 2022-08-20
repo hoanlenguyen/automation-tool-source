@@ -54,7 +54,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.Brand.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity = db.Brands.AsNoTracking().FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
@@ -89,7 +89,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Brand.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Brands.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -113,7 +113,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Brand.FirstOrDefault(x => x.Id == id);
+                var entity = db.Brands.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 

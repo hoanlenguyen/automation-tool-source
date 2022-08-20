@@ -60,15 +60,15 @@ namespace IntranetApi.Services
                         new Claim(ClaimTypes.Email, user.Email)
                     };
 
-                    var query = from s in db.UserRole.AsNoTracking()
+                    var query = from s in db.UserRoles.AsNoTracking()
                                 join sa in db.RoleClaims.AsNoTracking() on s.RoleId equals sa.RoleId
                                 where s.UserId == user.Id && sa.ClaimType == Permissions.Type
                                 select sa.ClaimValue;
 
                     var permissions = query.ToList();
 
-                    query = from s in db.UserRole
-                            join sa in db.Role on s.RoleId equals sa.Id
+                    query = from s in db.UserRoles
+                            join sa in db.Roles on s.RoleId equals sa.Id
                             where s.UserId == user.Id
                             select sa.Name;
 

@@ -58,7 +58,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.Role.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity = db.Roles.AsNoTracking().FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 var result = entity.Adapt<RoleCreateOrEdit>();
@@ -114,12 +114,12 @@ namespace IntranetApi.Services
             [FromServices] IMemoryCache memoryCache,
             [FromBody] RoleCreateOrEdit input) =>
             {
-                if(await db.Role.AnyAsync(p=>p.Name == input.Name && p.Id != input.Id))
+                if(await db.Roles.AnyAsync(p=>p.Name == input.Name && p.Id != input.Id))
                     throw new Exception("Role existed!");
 
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Role.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Roles.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -153,7 +153,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Role.FirstOrDefault(x => x.Id == id);
+                var entity = db.Roles.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -173,7 +173,7 @@ namespace IntranetApi.Services
             [FromBody] RoleFilterDto input) =>
             {
                 ProcessFilterValues(ref input);                 
-                var query = db.Role.AsNoTracking()
+                var query = db.Roles.AsNoTracking()
                            .Where(p => !p.IsDeleted)
                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword));
 
@@ -188,7 +188,7 @@ namespace IntranetApi.Services
                     var creatorUserIds = items.Select(p => p.CreatorUserId.GetValueOrDefault()).Distinct().ToList();
                     var lastModifierUserIds = items.Select(p => p.LastModifierUserId.GetValueOrDefault()).Distinct();
                     creatorUserIds.AddRange(lastModifierUserIds);
-                    var users = db.User.AsNoTracking()
+                    var users = db.Users.AsNoTracking()
                                     .Where(p => creatorUserIds.Contains(p.Id))
                                     .Select(p => new BaseDropdown { Id = p.Id, Name = p.Email })
                                     .ToList();
@@ -200,7 +200,7 @@ namespace IntranetApi.Services
                         if (item.LastModifierUserId != null)
                             item.LastModifierUser = users.FirstOrDefault(p => p.Id == item.LastModifierUserId.Value)?.Name;
 
-                        item.Count = await db.UserRole.Where(p => p.RoleId == item.Id).CountAsync();
+                        item.Count = await db.UserRoles.Where(p => p.RoleId == item.Id).CountAsync();
                     }
                 }               
                 return Results.Ok(new PagedResultDto<RoleListItem>(totalCount, items));
@@ -254,8 +254,8 @@ namespace IntranetApi.Services
             [FromQuery] int userId
             ) =>
             {
-                var role = await db.Role.AsNoTracking().FirstOrDefaultAsync(p => p.Id == roleId);
-                var user = await db.User/*.AsNoTracking()*/.FirstOrDefaultAsync(p => p.Id == userId);
+                var role = await db.Roles.AsNoTracking().FirstOrDefaultAsync(p => p.Id == roleId);
+                var user = await db.Users/*.AsNoTracking()*/.FirstOrDefaultAsync(p => p.Id == userId);
                 var result1 = await userManager.AddToRoleAsync(user, role.Name);
 
                 return Results.Ok(result1);

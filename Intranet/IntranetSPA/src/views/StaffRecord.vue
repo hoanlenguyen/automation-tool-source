@@ -134,31 +134,124 @@
         </b-pagination>        
       </div>
     </b-table>
-    <b-modal v-model="isModalActive" trap-focus has-modal-card :can-cancel="false" width="1200" scroll="keep">
-      <form action="">
-        <div class="modal-card">
-          <header class="modal-card-head">
-            <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
-          </header>
-          <section class="modal-card-body">
-            <b-field>
-              <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
-            </b-field>
-            <b-field label="Name">
-                <b-input
-                  type="Text"
-                  v-model="model.name"
-                  placeholder="Name...."
-                  required>
-                </b-input>
-            </b-field>                 
-          </section>
-          <footer class="modal-card-foot">
-              <b-button label="Cancel" @click="cancelCreateOrUpdate" />
-              <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
-          </footer>
+    <b-modal v-model="isModalActive" trap-focus has-modal-card :can-cancel="false" scroll="keep">
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
+        </header>
+        <section class="modal-card-body"> 
+          <b-field label="Name of staff">             
+             <b-autocomplete
+              open-on-focus
+              v-model="searchEmployee"
+              :data="filterEmployees"
+              field="fullName"
+              placeholder="Search employee..."                           
+              clearable
+              size="is-small"
+              @typing="getAsyncData"              
+              @select="option => {selected = option; model.employeeId=option!==null? option.id:0}">
+              <template #empty>No employees found</template>
+            </b-autocomplete>
+          </b-field>
+
+          <b-field label="Department"> 
+            <b-radio v-for="(item, index) in departments" :key="index" v-model="model.departmentId"
+              :native-value="item.id"
+              type="is-info">
+              {{item.name}}
+            </b-radio>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+          <b-field label="Name">
+            <b-input
+              type="Text"
+              v-model="model.name"
+              required>
+            </b-input>
+          </b-field>
+        </section>        
+        <footer class="modal-card-foot">
+          <b-button label="Close" @click="cancelCreateOrUpdate" />
+          <b-button :label="model.id==0?'Create':'Update'"type="is-primary" @click="createOrUpdateModel"/>
+        </footer>
         </div>
-      </form>
     </b-modal>
 
     <b-modal v-model="isDeleteModalActive" trap-focus has-modal-card auto-focus :can-cancel="false" scroll="keep">
@@ -175,10 +268,13 @@
   </section>
 </template>
 <script>
-import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/staffRecord";
+import { getDetail, getList, createOrUpdate, deleteData , getEmployeeByBrand } from "@/api/staffRecord";
+import { getDropdown as getDepartmentDropdown } from "@/api/department";
 export default {
   name:"staffRecord",
   created() {
+    this.getEmployeeByBrand();
+    this.getDepartmentDropdown();
     this.getList();
   },
   data() {
@@ -200,8 +296,10 @@ export default {
       pageOptions:[20,50,100],
       importTimeFrom:null,
       importTimeTo:null,
-      sources:[],
       searchSource:null,
+      employees:[],
+      filterEmployees:[],
+      departments:[],
       filter:{
         page:1,
         rowsPerPage:20,
@@ -221,16 +319,22 @@ export default {
       model:{
         name:null,
         status:true,
-        id:0
+        id:0,
+        employeeId:0,
+        departmentId:0
       },
       defaultModel:{
         name:null,
         status:true,
-        id:0
+        id:0,
+        employeeId:0,
+        departmentId:0
       },
-      isModalActive:false,
+      isModalActive:true,
       isDeleteModalActive:false,
       selectedId:null,
+      selected:null,
+      searchEmployee: '',
     };
   },
   watch: {},
@@ -258,6 +362,15 @@ export default {
           "Bank.Delete"
         )
       );
+    },
+    filteredDataArray() {
+      if(!this.searchEmployee) return this.employees;
+      return this.employees.filter((option) => {
+          return option
+              .toString()
+              .toLowerCase()
+              .indexOf(this.searchEmployee.toLowerCase()) >= 0
+      })
     }
    },
   methods: {
@@ -320,6 +433,22 @@ export default {
         this.getList();
       });
     },
+    getAsyncData(){
+      let searchEmployee= this.searchEmployee.toLowerCase();         
+      if(!searchEmployee) this.filterEmployees=[...this.employees];
+          let array= this.employees.filter((option) => {
+            console.log(option);
+          return (option.employeeCode
+                      .toLowerCase()
+                      .indexOf(searchEmployee) >= 0)
+                ||(option.name
+                      .toLowerCase()
+                      .indexOf(searchEmployee) >= 0)
+      });
+      console.log(array.length);
+      console.log(this.employees.length);
+      this.filterEmployees=[...array];
+      },
     editModel(input){
       this.model= {...input};
       this.isModalActive= true;
@@ -348,7 +477,34 @@ export default {
         this.isDeleteModalActive=true;
         this.selectedId= id;
       }
-    }
+    },
+    getEmployeeByBrand(){
+      getEmployeeByBrand()
+      .then((response) => {
+        if (response.status == 200) {
+          this.employees= [... response.data]; 
+          this.filterEmployees= [... response.data]; 
+          }
+        })
+      .catch((error) => {
+          this.openErrorMessage(error.response.status); 
+        })
+      .finally(() => {});
+    },
+    getDepartmentDropdown() {
+      getDepartmentDropdown()
+        .then((response) => {
+          if (response.status == 200) {
+            this.departments = [...response.data];
+            this.departments.push({id:0,name:'Other: '})
+          } 
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+        });
+    },
   }
 };
 </script>

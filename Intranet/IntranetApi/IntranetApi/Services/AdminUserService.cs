@@ -1,4 +1,5 @@
 ﻿using IntranetApi.DbContext;
+using IntranetApi.Enum;
 using IntranetApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,22 +16,27 @@ namespace IntranetApi.Services
     {
         public static void AddAdminUserService(this WebApplication app)
         {
-            app.MapPost("auth/register", [AllowAnonymous] async (UserManager<User> userManager, UserCreateOrUpdateDto input) =>
+            app.MapPost("auth/registerAdmin", [AllowAnonymous] async ([FromServices] UserManager<User> userManager, [FromServices] ApplicationDbContext db, UserCreateOrUpdateDto input) =>
             {
                 var user = new User
                 {
                     UserName = input.UserName ?? input.Email,
                     Name = input.Name,
                     Email = input.Email,
-                    IsSuperAdmin =true,
-                    IsFirstTimeLogin = true
+                    IsFirstTimeLogin = true,
+                    UserType= UserType.SuperAdmin,
+                    EmployeeCode= input.UserName,
+                    //IntranetPassword= input.Password
                 };
 
                 var result = await userManager.CreateAsync(user, input.Password);
 
                 if (result.Succeeded)
+                {
+                    //db.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = 1 });
+                    //db.SaveChanges();
                     return Results.Ok();
-
+                }
                 return Results.BadRequest();
             });
 
@@ -57,7 +63,7 @@ namespace IntranetApi.Services
                     var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                        new Claim(ClaimTypes.Email, user.Email)
+                        new Claim(ClaimTypes.Email, user.Email??user.UserName)
                     };
 
                     var query = from s in db.UserRoles.AsNoTracking()

@@ -30,7 +30,7 @@ namespace IntranetApi.Services
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Rank where IsDeleted = 0").ToList();
+            return connection.Query<BaseDropdown>("select Id, Name from Ranks where IsDeleted = 0").ToList();
         }
 
         public static void AddRankDataService(this WebApplication app, string sqlConnectionStr)
@@ -40,7 +40,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.Rank.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity = db.Ranks.AsNoTracking().FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
@@ -78,7 +78,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Rank.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Ranks.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -101,7 +101,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Rank.FirstOrDefault(x => x.Id == id);
+                var entity = db.Ranks.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -121,13 +121,15 @@ namespace IntranetApi.Services
             [FromBody] RankFilterDto input) =>
             {
                 ProcessFilterValues(ref input);
-                var query = db.Rank.AsNoTracking()
+                var query = db.Ranks.AsNoTracking()
                             .Where(p => !p.IsDeleted)
                             .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                             ;
                 var totalCount =await query.CountAsync();
-                query = query.OrderByDynamic(input.SortBy, input.SortDirection);
-                var items = await query.Skip(input.SkipCount).Take(input.RowsPerPage).ToListAsync();
+                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                                       .Skip(input.SkipCount)
+                                       .Take(input.RowsPerPage)
+                                       .ToListAsync();
                 return Results.Ok(new PagedResultDto<Rank>(totalCount, items));
             })
             .RequireAuthorization(RankPermissions.View)

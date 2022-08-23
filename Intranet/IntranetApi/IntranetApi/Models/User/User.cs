@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using IntranetApi.Enum;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -8,7 +9,7 @@ namespace IntranetApi.Models
     {
         [MaxLength(150)]
         public string Name { get; set; }
-        public bool IsSuperAdmin { get; set; }
+        public UserType UserType { get; set; } = UserType.Employee;
         public bool IsDeleted { get; set; } = false;
         public bool IsFirstTimeLogin { get; set; } = false;
         public DateTime CreationTime { get; set; } = DateTime.Now;
@@ -21,30 +22,28 @@ namespace IntranetApi.Models
         //public override string? Email { get; set; }
         #region Employee
         [MaxLength(50)]
-        public string EmployeeCode { get; set; }
+        public string EmployeeCode { get; set; }=string.Empty;
 
-        public int RoleId { get; set; }
-        public int RankId { get; set; }
-        public int DeptId { get; set; }
-        public int BankId { get; set; }
+        public int RoleId { get; set; } = 1;
+        public int RankId { get; set; } = 1;
+        public int DeptId { get; set; } = 1;
+        public int BankId { get; set; } = 1;
 
         [MaxLength(20)]
         public string? BankAccountNumber { get; set; }
 
         public DateTime? StartDate { get; set; }
 
-        public DateTime BirthDate { get; set; }
+        public DateTime BirthDate { get; set; }=DateTime.Now;
 
         [MaxLength(20)]
-        public string IdNumber { get; set; }
+        public string? IdNumber { get; set; }
 
         [MaxLength(20)]
         public string? BackendUser { get; set; }
 
         [MaxLength(20)]
         public string? BackendPass { get; set; }
-
-        public int UserId { get; set; }
 
         public int Salary { get; set; }
 
@@ -55,7 +54,7 @@ namespace IntranetApi.Models
         //public string IntranetUsername { get; set; }
 
         [MaxLength(20)]
-        public string IntranetPassword { get; set; }
+        public string IntranetPassword { get; set; }=string.Empty;
 
         [MaxLength(80)]
         public string? Country { get; set; }
@@ -71,6 +70,9 @@ namespace IntranetApi.Models
 
         [ForeignKey(nameof(BankId))]
         public virtual Bank Bank { get; set; }
+
+        [ForeignKey(nameof(RoleId))]
+        public virtual Role Role { get; set; }
 
         #endregion Employee
     }

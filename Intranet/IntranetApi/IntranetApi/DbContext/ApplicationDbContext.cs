@@ -21,14 +21,20 @@ namespace IntranetApi.DbContext
         public DbSet<BrandEmployee> BrandEmployees { get; set; }
         public DbSet<Department> Departments { get; set; }
         //public DbSet<Employee> Employee { get; set; }
-        public DbSet<Rank> Rank { get; set; }
-        public DbSet<StaffRecord> StaffRecord { get; set; }
-        public DbSet<StaffRecordDocument> StaffRecordDocument { get; set; }
+        public DbSet<Rank> Ranks { get; set; }
+        public DbSet<StaffRecord> StaffRecords { get; set; }
+        public DbSet<StaffRecordDocument> StaffRecordDocuments { get; set; }
         public DbSet<EmployeeImportHistory> EmployeeImportHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<Role>().ToTable("Roles");
+            modelBuilder.Entity<UserRole>().ToTable("UserRoles");
+            modelBuilder.Entity<RoleClaim>().ToTable("RoleClaims");
+
             modelBuilder.Entity<User>().HasIndex(p => p.EmployeeCode).IsUnique();
             modelBuilder.Entity<BrandEmployee>().HasKey(p => new { p.BrandId, p.EmployeeId });
             modelBuilder.Entity<StaffRecordDocument>()
@@ -49,6 +55,11 @@ namespace IntranetApi.DbContext
                     .WithMany(b => b.BrandEmployees)
                     .HasForeignKey(bc => bc.BrandId);
 
+            modelBuilder.Entity<BrandEmployee>()
+                    .HasOne(bc => bc.Employee)
+                    .WithMany(b => b.BrandEmployees)
+                    .HasForeignKey(bc => bc.EmployeeId);
+
             modelBuilder.Entity<UserRole>()
                     .HasOne(p => p.User)
                     .WithMany(p => p.UserRoles)
@@ -60,11 +71,6 @@ namespace IntranetApi.DbContext
                     .WithMany(p => p.UserRoles)
                     .HasForeignKey(p => p.RoleId);
 
-            //modelBuilder.Entity<User>()
-            //        .HasOne(bc => bc.Employee)
-            //        .WithOne(c => c.User)
-            //        .HasForeignKey<Employee>(bc => bc.UserId)
-            //        .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

@@ -48,7 +48,7 @@ namespace IntranetApi.Services
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Role where IsDeleted = 0").ToList();
+            return connection.Query<BaseDropdown>("select Id, Name from Roles where IsDeleted = 0").ToList();
         }
 
         public static void AddRoleDataService(this WebApplication app, string sqlConnectionStr)
@@ -98,7 +98,7 @@ namespace IntranetApi.Services
                 {
                     Console.WriteLine($"permissions Count: {input.Permissions.Count}");
                     var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
-                    await db.RoleClaim.AddRangeAsync(roleClaims);
+                    await db.RoleClaims.AddRangeAsync(roleClaims);
                 }
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 await db.SaveChangesAsync();
@@ -128,14 +128,14 @@ namespace IntranetApi.Services
                 entity.Status = input.Status;
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
-                var existedRoleClaims = await db.RoleClaim.Where(p => p.RoleId == entity.Id).ToListAsync();
+                var existedRoleClaims = await db.RoleClaims.Where(p => p.RoleId == entity.Id).ToListAsync();
                 if(existedRoleClaims.Any())
-                    db.RoleClaim.RemoveRange(existedRoleClaims);
+                    db.RoleClaims.RemoveRange(existedRoleClaims);
 
                 if (input.Permissions.Any())
                 {
                     var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
-                    await db.RoleClaim.AddRangeAsync(roleClaims);
+                    await db.RoleClaims.AddRangeAsync(roleClaims);
                 }
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 db.SaveChanges();
@@ -212,14 +212,15 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IMemoryCache memoryCache) =>
             {
-                List<BaseDropdown> items = null;
-                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-                if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out items))
-                {
-                    items = GetBaseDropdown(sqlConnectionStr);
-                    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
-                }
-                return Results.Ok(items);
+                //List<BaseDropdown> items = null;
+                //var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+                //if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out items))
+                //{
+                //    items = GetBaseDropdown(sqlConnectionStr);
+                //    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
+                //}
+                //return Results.Ok(items);
+                return Results.Ok(GetBaseDropdown(sqlConnectionStr));
             });
 
             app.MapPost("Role/addPermission", [Authorize]

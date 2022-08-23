@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IntranetApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220817033529_StaffRecord_update_ForeignKey_EmployeeId_FileUrl")]
-    partial class StaffRecord_update_ForeignKey_EmployeeId_FileUrl
+    [Migration("20220822033251_initialize_DB")]
+    partial class initialize_DB
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -52,7 +52,7 @@ namespace IntranetApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Bank", (string)null);
+                    b.ToTable("Banks");
                 });
 
             modelBuilder.Entity("IntranetApi.Models.Brand", b =>
@@ -86,24 +86,22 @@ namespace IntranetApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Brand", (string)null);
+                    b.ToTable("Brands");
                 });
 
             modelBuilder.Entity("IntranetApi.Models.BrandEmployee", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
                     b.Property<int>("BrandId")
                         .HasColumnType("int");
 
                     b.Property<int>("EmployeeId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("BrandId", "EmployeeId");
 
-                    b.ToTable("BrandEmployee", (string)null);
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("BrandEmployees");
                 });
 
             modelBuilder.Entity("IntranetApi.Models.Department", b =>
@@ -137,113 +135,7 @@ namespace IntranetApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Department", (string)null);
-                });
-
-            modelBuilder.Entity("IntranetApi.Models.Employee", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("BackendPass")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("BackendUser")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("BankAccountNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<int>("BankId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("BirthDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("BrandIds")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("Country")
-                        .HasMaxLength(80)
-                        .HasColumnType("varchar(80)");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("CreatorUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DeptId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EmployeeCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("IdNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("IntranetPassword")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("IntranetUsername")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("LastModifierUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("varchar(150)");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(150)
-                        .HasColumnType("varchar(150)");
-
-                    b.Property<int>("RankId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Salary")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmployeeCode")
-                        .IsUnique();
-
-                    b.ToTable("Employee", (string)null);
+                    b.ToTable("Departments");
                 });
 
             modelBuilder.Entity("IntranetApi.Models.EmployeeImportHistory", b =>
@@ -270,7 +162,7 @@ namespace IntranetApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EmployeeImportHistory", (string)null);
+                    b.ToTable("EmployeeImportHistories");
                 });
 
             modelBuilder.Entity("IntranetApi.Models.Rank", b =>
@@ -304,7 +196,7 @@ namespace IntranetApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Rank", (string)null);
+                    b.ToTable("Ranks");
                 });
 
             modelBuilder.Entity("IntranetApi.Models.Role", b =>
@@ -335,10 +227,12 @@ namespace IntranetApi.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
 
                     b.Property<string>("NormalizedName")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
 
@@ -351,7 +245,7 @@ namespace IntranetApi.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("Role", (string)null);
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("IntranetApi.Models.RoleClaim", b =>
@@ -377,7 +271,7 @@ namespace IntranetApi.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RoleClaim", (string)null);
+                    b.ToTable("RoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("IntranetApi.Models.StaffRecord", b =>
@@ -432,7 +326,7 @@ namespace IntranetApi.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("StaffRecord");
+                    b.ToTable("StaffRecords");
                 });
 
             modelBuilder.Entity("IntranetApi.Models.StaffRecordDocument", b =>
@@ -452,7 +346,7 @@ namespace IntranetApi.Migrations
 
                     b.HasIndex("StaffRecordId");
 
-                    b.ToTable("StaffRecordDocument");
+                    b.ToTable("StaffRecordDocuments");
                 });
 
             modelBuilder.Entity("IntranetApi.Models.User", b =>
@@ -464,9 +358,40 @@ namespace IntranetApi.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("BackendPass")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("BackendUser")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("BankAccountNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("BankId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BirthDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreatorUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DeptId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -475,14 +400,31 @@ namespace IntranetApi.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("EmployeeCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("IdNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("IntranetPassword")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("IsFirstTimeLogin")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<bool>("IsSuperAdmin")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("LastModifierUserId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");
@@ -492,8 +434,8 @@ namespace IntranetApi.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("varchar(300)");
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -502,6 +444,10 @@ namespace IntranetApi.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("longtext");
@@ -512,8 +458,23 @@ namespace IntranetApi.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<int>("RankId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Salary")
+                        .HasColumnType("int");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("tinyint(1)");
@@ -522,7 +483,17 @@ namespace IntranetApi.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
 
+                    b.Property<int>("UserType")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("BankId");
+
+                    b.HasIndex("DeptId");
+
+                    b.HasIndex("EmployeeCode")
+                        .IsUnique();
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -531,7 +502,11 @@ namespace IntranetApi.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("User", (string)null);
+                    b.HasIndex("RankId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("IntranetApi.Models.UserRole", b =>
@@ -546,7 +521,7 @@ namespace IntranetApi.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRole", (string)null);
+                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
@@ -611,6 +586,25 @@ namespace IntranetApi.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("IntranetApi.Models.BrandEmployee", b =>
+                {
+                    b.HasOne("IntranetApi.Models.Brand", "Brand")
+                        .WithMany("BrandEmployees")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IntranetApi.Models.User", "Employee")
+                        .WithMany("BrandEmployees")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Brand");
+
+                    b.Navigation("Employee");
+                });
+
             modelBuilder.Entity("IntranetApi.Models.RoleClaim", b =>
                 {
                     b.HasOne("IntranetApi.Models.Role", null)
@@ -622,7 +616,7 @@ namespace IntranetApi.Migrations
 
             modelBuilder.Entity("IntranetApi.Models.StaffRecord", b =>
                 {
-                    b.HasOne("IntranetApi.Models.Employee", "Employee")
+                    b.HasOne("IntranetApi.Models.User", "Employee")
                         .WithMany("StaffRecords")
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.NoAction);
@@ -641,19 +635,58 @@ namespace IntranetApi.Migrations
                     b.Navigation("StaffRecord");
                 });
 
-            modelBuilder.Entity("IntranetApi.Models.UserRole", b =>
+            modelBuilder.Entity("IntranetApi.Models.User", b =>
                 {
-                    b.HasOne("IntranetApi.Models.Role", null)
+                    b.HasOne("IntranetApi.Models.Bank", "Bank")
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IntranetApi.Models.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DeptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IntranetApi.Models.Rank", "Rank")
+                        .WithMany()
+                        .HasForeignKey("RankId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IntranetApi.Models.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("IntranetApi.Models.User", null)
-                        .WithMany()
+                    b.Navigation("Bank");
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Rank");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("IntranetApi.Models.UserRole", b =>
+                {
+                    b.HasOne("IntranetApi.Models.Role", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IntranetApi.Models.User", "User")
+                        .WithMany("UserRoles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
@@ -683,14 +716,28 @@ namespace IntranetApi.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("IntranetApi.Models.Employee", b =>
+            modelBuilder.Entity("IntranetApi.Models.Brand", b =>
                 {
-                    b.Navigation("StaffRecords");
+                    b.Navigation("BrandEmployees");
+                });
+
+            modelBuilder.Entity("IntranetApi.Models.Role", b =>
+                {
+                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("IntranetApi.Models.StaffRecord", b =>
                 {
                     b.Navigation("StaffRecordDocuments");
+                });
+
+            modelBuilder.Entity("IntranetApi.Models.User", b =>
+                {
+                    b.Navigation("BrandEmployees");
+
+                    b.Navigation("StaffRecords");
+
+                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

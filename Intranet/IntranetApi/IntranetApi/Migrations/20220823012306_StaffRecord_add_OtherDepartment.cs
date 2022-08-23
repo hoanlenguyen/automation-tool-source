@@ -4,25 +4,24 @@
 
 namespace IntranetApi.Migrations
 {
-    public partial class Employee_add_brandIds : Migration
+    public partial class StaffRecord_add_OtherDepartment : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "BrandIds",
-                table: "Employee",
-                type: "varchar(100)",
-                maxLength: 100,
-                nullable: false,
-                defaultValue: "")
+                name: "OtherDepartment",
+                table: "StaffRecords",
+                type: "varchar(200)",
+                maxLength: 200,
+                nullable: true)
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "BrandIds",
-                table: "Employee");
+                name: "OtherDepartment",
+                table: "StaffRecords");
         }
     }
 }

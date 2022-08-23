@@ -44,7 +44,7 @@ namespace IntranetApi.Services
         private static List<BaseDropdown> GetDataList(string sqlConnectionStr, string tableName)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>($"select Id, Name from {tableName} where IsDeleted = 0").ToList();
+            return connection.Query<BaseDropdown>($"select Id, Name from {tableName}s where IsDeleted = 0").ToList();
         }
 
         private static void ProcessFilterValues(ref EmployeeFilterDto input)
@@ -54,27 +54,7 @@ namespace IntranetApi.Services
             if (string.IsNullOrEmpty(input.SortDirection))
                 input.SortDirection = "desc";
         }
-
-        private static int GetTotalCountByFilter(string sqlConnectionStr, ref EmployeeFilterDto input)
-        {
-            using (var conn = new MySqlConnection(sqlConnectionStr))
-            {
-                conn.Open();
-                var cmd = new MySqlCommand(StoredProcedureName.GetEmployeeTotal, conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@keyword", input.Keyword);
-                cmd.Parameters.AddWithValue("@status", input.Status);
-
-                MySqlDataReader rdr = cmd.ExecuteReader();
-                int count = 0;
-                while (rdr.Read())
-                    count = (int)rdr.GetInt64(0);
-                rdr.Close();
-                conn.Close();
-                return count;
-            }
-        }
-
+         
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
@@ -88,10 +68,10 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.Employee.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity = db.Users.Include(p=>p.BrandEmployees).AsNoTracking().FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
-                return Results.Ok(entity);
+                return Results.Ok(entity.Adapt<EmployeeCreateOrEdit>());
             })
             .RequireAuthorization(EmployeePermissions.View)
             ;
@@ -104,28 +84,17 @@ namespace IntranetApi.Services
             [FromBody] EmployeeCreateOrEdit input) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (input.EmployeeCode.IsNullOrEmpty())
+                    throw new Exception("Missing EmployeeCode!");
+
+                if (input.IntranetPassword.IsNullOrEmpty())
+                    throw new Exception("Missing IntranetPassword!");
                 int.TryParse(userIdStr, out var userId);
-                var entity = input.Adapt<Employee>();
-                entity.CreatorUserId = userId;
-                entity.IntranetUsername = entity.EmployeeCode;
-                if (entity.IntranetUsername.IsNotNullOrEmpty() && entity.IntranetPassword.IsNotNullOrEmpty())
-                {
-                    var user = new User
-                    {
-                        UserName = entity.IntranetUsername,
-                        Name = entity.Name,
-                        Email = $"{entity.EmployeeCode}@intranet.com",
-                        IsSuperAdmin = false,
-                        IsFirstTimeLogin = true
-                    };
-                    var result = await userManager.CreateAsync(user, entity.IntranetPassword);
-                    Console.WriteLine($"UserId: {user.Id}");
-                    entity.UserId = user.Id;
-                    await db.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
-                }
-                
-                db.Employee.Add(entity);
-                db.SaveChanges();
+                var entity = input.Adapt<User>();
+                entity.CreatorUserId = userId;                 
+                var result = await userManager.CreateAsync(entity, entity.IntranetPassword);
+                Console.WriteLine($"UserId: {entity.Id}");
+                //await db.UserRoles.AddAsync(new UserRole { UserId = entity.Id, RoleId = entity.RoleId });
                 return Results.Ok();
             })
             .RequireAuthorization(EmployeePermissions.Create)
@@ -140,63 +109,30 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Employee.Include(p=>p.BrandEmployees).FirstOrDefault(x => x.Id == input.Id);
-                if (entity == null)
+                var user = db.Users.Include(p=>p.BrandEmployees)
+                                   .Include(p=>p.UserRoles)
+                                   .FirstOrDefault(x => x.Id == input.Id);
+                if (user == null)
                     return Results.NotFound();
 
-                Console.WriteLine($"IntranetUsername { input.IntranetUsername}");
+                Console.WriteLine($"EmployeeCode { input.EmployeeCode}");
                 Console.WriteLine($"IntranetPassword { input.IntranetPassword}");
 
-                entity.BrandEmployees.Clear();
-                var currentPassword = entity.IntranetPassword;
+                var currentPassword = user.IntranetPassword;
+                user.BrandEmployees.Clear();
+                user.UserRoles.Clear();
+                input.Adapt(user);
+                user.LastModifierUserId = userId;
+                user.LastModificationTime = DateTime.Now;
+                user.UserName = user.EmployeeCode;
 
-                input.Adapt(entity);
-                entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
-                entity.IntranetUsername = entity.EmployeeCode;
-                var user = await db.Users.FirstOrDefaultAsync(p => p.Id == entity.UserId);
-                if (user == null && entity.IntranetUsername.IsNotNullOrEmpty()) user = await db.Users.FirstOrDefaultAsync(p => p.UserName == entity.IntranetUsername);
-                if(user != null)
+                if (!user.IntranetPassword.Equals(currentPassword)
+                                    && user.IntranetPassword.IsNotNullOrEmpty())
                 {
-                    if (!user.UserName.Equals(input.IntranetUsername, StringComparison.OrdinalIgnoreCase))
-                    {
-                        user.UserName = entity.IntranetUsername;
-                        user.NormalizedUserName = user.UserName.ToUpper();
-                        entity.UserId = user.Id;
-                    }
-                    
-                    if(entity.IntranetPassword != currentPassword 
-                    && entity.IntranetUsername.IsNotNullOrEmpty() 
-                    && entity.IntranetPassword.IsNotNullOrEmpty())
-                    {
-                        var code = await userManager.GeneratePasswordResetTokenAsync(user);
-                        var result = await userManager.ResetPasswordAsync(user, code, entity.IntranetPassword);
-                    }
-
-                    if(!await db.UserRoles.AnyAsync(p=>p.UserId== entity.UserId && p.RoleId == entity.RoleId))
-                    {
-                        var userRoles = await db.UserRoles.Where(p => p.UserId == entity.UserId).ToListAsync();
-                        if (userRoles.Any())
-                            db.UserRoles.RemoveRange(userRoles);
-
-                        await db.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
-                    }                    
+                    var code = await userManager.GeneratePasswordResetTokenAsync(user);
+                    var result = await userManager.ResetPasswordAsync(user, code, user.IntranetPassword);
                 }
-                else if(entity.IntranetUsername.IsNotNullOrEmpty() && entity.IntranetPassword.IsNotNullOrEmpty())
-                {
-                    user = new User
-                    {
-                        UserName = entity.IntranetUsername,
-                        Name = entity.Name,
-                        Email = $"{entity.EmployeeCode}@intranet.com",
-                        IsSuperAdmin = false,
-                        IsFirstTimeLogin = true
-                    };
-                    var result = await userManager.CreateAsync(user, entity.IntranetPassword);
-                    Console.WriteLine($"UserId: {user.Id}");
-                    await db.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = entity.RoleId });
-                    entity.UserId = user.Id;
-                }                
+                
                 await db.SaveChangesAsync();
                 return Results.Ok();
             })
@@ -211,7 +147,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Employee.FirstOrDefault(x => x.Id == id);
+                var entity = db.Users.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -273,11 +209,11 @@ namespace IntranetApi.Services
                     adminUsers = GetDataList(sqlConnectionStr, nameof(User));
                     memoryCache.Set(CacheKeys.GetAdminUserDropdown, adminUsers, cacheOptions);
                 }
-                var query = db.Employee
+                var query = db.Users
                            .Include(p=>p.BrandEmployees)
                            .ThenInclude(p=>p.Brand)
                            .AsNoTracking()
-                           .Where(p => !p.IsDeleted)
+                           .Where(p => !p.IsDeleted && p.UserType== UserType.Employee)
                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                            ;
                 var totalCount = await query.CountAsync();
@@ -286,19 +222,14 @@ namespace IntranetApi.Services
                                 .Take(input.RowsPerPage)
                                 .ProjectToType<EmployeeExcelInput>()
                                 .ToListAsync();
-                //var items = data.Adapt<List<EmployeeExcelInput>>();
+
                 foreach (var item in items)
                 {
                     item.Role = roles.FirstOrDefault(p => p.Id == item.RoleId)?.Name;
                     item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
                     item.Dept = departments.FirstOrDefault(p => p.Id == item.DeptId)?.Name;
                     item.BankName = banks.FirstOrDefault(p => p.Id == item.BankId)?.Name;
-                    item.LastModifierUser = adminUsers.FirstOrDefault(p => p.Id == (item.LastModifierUserId ?? item.CreatorUserId).GetValueOrDefault())?.Name;
-                    //if (!string.IsNullOrEmpty(item.BrandIds) && !item.BrandIds.Equals(BrandValue.AllBrands, StringComparison.OrdinalIgnoreCase))
-                    //{
-                    //    item.BrandIds = item.BrandIds.Split(',').Select(p => int.Parse(p)).ToList();
-                    //    item.Brand = string.Join(", ", brands.Where(p => item.BrandIds.Contains(p.Id)).Select(p => p.Name));
-                    //}
+                    item.LastModifierUser = adminUsers.FirstOrDefault(p => p.Id == (item.LastModifierUserId ?? item.CreatorUserId).GetValueOrDefault())?.Name;                    
                 }
                 return Results.Ok(new PagedResultDto<EmployeeExcelInput>(totalCount, items));
             })
@@ -710,7 +641,6 @@ namespace IntranetApi.Services
                                 UserName = item.IntranetUsername ?? item.EmployeeCode,
                                 Name = item.Name,
                                 Email = $"{item.EmployeeCode}@intranet.com",
-                                IsSuperAdmin = false,
                                 IsFirstTimeLogin = true
                             };
 
@@ -722,7 +652,7 @@ namespace IntranetApi.Services
                             throw;
                         }
                     }
-                    await db.Employee.AddRangeAsync(employees.Adapt<IEnumerable<Employee>>());
+                    await db.Users.AddRangeAsync(employees.Adapt<IEnumerable<User>>());
                     await db.SaveChangesAsync();
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
@@ -743,7 +673,6 @@ namespace IntranetApi.Services
                 return Results.Ok(items);
             });
 
-
             app.MapGet("employee/GetByBrand", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
@@ -753,9 +682,9 @@ namespace IntranetApi.Services
                 var result = new List<EmployeeDropdown>();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var employeeManager = db.Employee
+                var employeeManager = db.Users
                 .Include(p=>p.BrandEmployees.DefaultIfEmpty())
-                .FirstOrDefault(p => p.UserId == userId)
+                .FirstOrDefault(p => p.Id == userId)
                 ;
                 if (employeeManager == null)
                     return Results.Ok(result);

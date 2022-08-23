@@ -8,10 +8,15 @@ namespace IntranetApi.Models
     {
         public int EmployeeId { get; set; }
         public int DepartmentId { get; set; }
+
+        [MaxLength(200)]
+        public string? OtherDepartment { get; set; }
+
         public StaffRecordType RecordType { get; set; }
 
         [MaxLength(500)]
         public string Reason { get; set; } = string.Empty;
+
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
@@ -19,7 +24,7 @@ namespace IntranetApi.Models
         public string? Remarks { get; set; }
 
         public virtual ICollection<StaffRecordDocument> StaffRecordDocuments { get; set; }
-        
+
         [ForeignKey(nameof(EmployeeId))]
         public virtual User Employee { get; set; }
     }

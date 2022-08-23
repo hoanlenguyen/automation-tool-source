@@ -8,16 +8,7 @@ namespace IntranetApi.Mapper
     {
         public static void AddMapperConfigs()
         {
-            TypeAdapterConfig<RankCreateOrEdit, Rank>.NewConfig()
-                            .Ignore(p => p.CreationTime)
-                            .Map(dest => dest.IsDeleted, src => false)
-                            ;
-
-            TypeAdapterConfig<EmployeeExcelInput, Employee>.NewConfig()
-                            .Map(dest => dest.Status, src => src.StatusStr.Equals(StatusValue.Active,StringComparison.OrdinalIgnoreCase))
-                            .Map(dest => dest.IsDeleted, src => false)
-                            ;
-
+             
             TypeAdapterConfig<EmployeeExcelInput, EmployeeBulkInsert>.NewConfig()
                             .Map(dest => dest.Status, src => src.StatusStr.Equals(StatusValue.Active, StringComparison.OrdinalIgnoreCase))
                             .Map(dest => dest.IsDeleted, src => false)
@@ -31,7 +22,8 @@ namespace IntranetApi.Mapper
                             .Map(dest => dest.StartDate, src => src.StartDateStr)
                             ;
 
-            TypeAdapterConfig<Employee, EmployeeExcelInput>.NewConfig()
+            TypeAdapterConfig<User, EmployeeExcelInput>.NewConfig()
+                            .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p=>p.BrandId).ToList())
                             .Map(dest => dest.Brand, src => string.Join(',', src.BrandEmployees.Select(q=>q.Brand.Name)))
                             ;
 
@@ -40,11 +32,13 @@ namespace IntranetApi.Mapper
                            .Map(dest => dest.UserName, src => src.BackendUser)
                            ;
 
-            TypeAdapterConfig<EmployeeCreateOrEdit, Employee>.NewConfig()
+            TypeAdapterConfig<EmployeeCreateOrEdit, User>.NewConfig()
+                           .Map(dest => dest.UserName, src=>src.EmployeeCode )
+                           .Map(dest => dest.UserRoles, src => new List<UserRole> { new UserRole {RoleId= src.RoleId } })
                            .Map(dest => dest.BrandEmployees, src => src.BrandIds.Select(p=>new BrandEmployee { BrandId=p, EmployeeId= src.Id}))
                            ;
 
-            TypeAdapterConfig<Employee, EmployeeCreateOrEdit>.NewConfig()
+            TypeAdapterConfig<User, EmployeeCreateOrEdit>.NewConfig()
                            .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p => p.BrandId).ToList())
                            ;
 

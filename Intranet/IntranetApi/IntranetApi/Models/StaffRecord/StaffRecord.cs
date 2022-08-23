@@ -23,7 +23,7 @@ namespace IntranetApi.Models
         [MaxLength(200)]
         public string? Remarks { get; set; }
 
-        public virtual ICollection<StaffRecordDocument> StaffRecordDocuments { get; set; }
+        public virtual ICollection<StaffRecordDocument> StaffRecordDocuments { get; set; }= new HashSet<StaffRecordDocument>();
 
         [ForeignKey(nameof(EmployeeId))]
         public virtual User Employee { get; set; }

@@ -207,5 +207,6 @@ app.AddDepartmentDataService(mySQLConnection.ConnectionString);
 app.AddRankDataService(mySQLConnection.ConnectionString);
 app.AddEmployeeDataService(mySQLConnection.ConnectionString);
 app.AddStaffRecordDataService(mySQLConnection.ConnectionString);
+app.AddFileDataService();
 
 app.Run();

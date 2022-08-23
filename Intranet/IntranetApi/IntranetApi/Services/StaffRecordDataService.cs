@@ -41,9 +41,9 @@ namespace IntranetApi.Services
             int id) =>
             {
                 var entity = db.StaffRecords
-                .Include(p=>p.StaffRecordDocuments)
-                .AsNoTracking()
-                .FirstOrDefault(x => x.Id == id);
+                            .Include(p=>p.StaffRecordDocuments)
+                            .AsNoTracking()
+                            .FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity.Adapt<StaffRecordCreateOrEdit>());
@@ -51,28 +51,28 @@ namespace IntranetApi.Services
             .RequireAuthorization(StaffRecordPermissions.View)
             ;
 
-            app.MapPost("StaffRecord", [Authorize]
+            app.MapPost("StaffRecord", [AllowAnonymous]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
             [FromServices] IFileStorageService fileService,
-            [FromBody] StaffRecordCreateOrEdit input,
-            HttpRequest request
+            [FromBody] StaffRecordCreateOrEdit input
+            //,HttpRequest request
             ) =>
             {
-                if (request.Form.Files.Any())
-                {
-                    foreach (var file in request.Form.Files)
-                    {
-                        if (file is null || file.Length == 0)
-                            continue;
+                //if (request.Form.Files.Any())
+                //{
+                //    foreach (var file in request.Form.Files)
+                //    {
+                //        if (file is null || file.Length == 0)
+                //            continue;
 
-                        using var fileStream = file.OpenReadStream();
-                        byte[] bytes = new byte[file.Length];
-                        fileStream.Read(bytes, 0, (int)file.Length);
-                        input.StaffRecordDocuments.Add(await fileService.SaveAndGetShortUrl(bytes, file.FileName, "StaffRecord", isAddAppfix: true));
-                    }
-                }
+                //        using var fileStream = file.OpenReadStream();
+                //        byte[] bytes = new byte[file.Length];
+                //        fileStream.Read(bytes, 0, (int)file.Length);
+                //        input.StaffRecordDocuments.Add(await fileService.SaveAndGetShortUrl(bytes, file.FileName, "StaffRecord", isAddAppfix: true));
+                //    }
+                //}
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<StaffRecord>();
@@ -81,7 +81,7 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 return Results.Ok();
             })
-            .RequireAuthorization(StaffRecordPermissions.Create)
+            //.RequireAuthorization(StaffRecordPermissions.Create)
             ;
 
             app.MapPut("StaffRecord", [Authorize]
@@ -89,8 +89,9 @@ namespace IntranetApi.Services
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
             [FromServices] IFileStorageService fileService,
-            [FromBody] StaffRecordCreateOrEdit input,
-            HttpRequest request) =>
+            [FromBody] StaffRecordCreateOrEdit input
+            //,HttpRequest request
+            ) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 
@@ -98,22 +99,11 @@ namespace IntranetApi.Services
                 var entity = db.StaffRecords.Include(p => p.StaffRecordDocuments).FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
-
-                if (request.Form.Files.Any())
-                {
-                    foreach (var file in request.Form.Files)
-                    {
-                        if (file is null || file.Length == 0)
-                            continue;
-
-                        using var fileStream = file.OpenReadStream();
-                        byte[] bytes = new byte[file.Length];
-                        fileStream.Read(bytes, 0, (int)file.Length);
-                        input.StaffRecordDocuments.Add(await fileService.SaveAndGetShortUrl(bytes, file.FileName, "StaffRecord", isAddAppfix: true));
-                    }
-                }
+ 
                 entity.StaffRecordDocuments.Clear();
+                Console.WriteLine($"RecordType {entity.RecordType}");
                 input.Adapt(entity);
+                Console.WriteLine($"RecordType {entity.RecordType}");
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
@@ -173,14 +163,24 @@ namespace IntranetApi.Services
                     memoryCache.Set(CacheKeys.GetRanksDropdown, ranks, cacheOptions);
                 }
                 ProcessFilterValues(ref input);
-                var query = db.StaffRecords.AsNoTracking()
+                var query = db.StaffRecords
+                            .Include(p=>p.Employee)
+                            .AsNoTracking()
                             .Where(p => !p.IsDeleted)
                             //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                              ;
                 var totalCount = await query.CountAsync();
-                query = query.OrderByDynamic(input.SortBy, input.SortDirection);
-                var items = await query.Skip(input.SkipCount).Take(input.RowsPerPage).ToListAsync();
-                return Results.Ok(new PagedResultDto<StaffRecord>(totalCount, items));
+                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                                       .Skip(input.SkipCount)
+                                       .Take(input.RowsPerPage)
+                                       .ProjectToType<StaffRecordList>()
+                                       .ToListAsync();
+                foreach (var item in items)
+                {
+                    item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
+                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
+                }
+                return Results.Ok(new PagedResultDto<StaffRecordList>(totalCount, items));
             })
             .RequireAuthorization(StaffRecordPermissions.View)
             ;

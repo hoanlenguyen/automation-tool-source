@@ -43,14 +43,18 @@ namespace IntranetApi.Mapper
                            ;
 
             TypeAdapterConfig<StaffRecord, StaffRecordCreateOrEdit>.NewConfig()
+                           .Map(dest => dest.RecordType, src => (int)src.RecordType)
                            .Map(dest => dest.StaffRecordDocuments, src => src.StaffRecordDocuments.Select(p=>p.FileUrl).ToList())
                            ;
 
             TypeAdapterConfig<StaffRecordCreateOrEdit, StaffRecord>.NewConfig()
+                           .Map(dest => dest.RecordType, src => (StaffRecordType)src.RecordType)
                            .Map(dest => dest.StaffRecordDocuments, src => src.StaffRecordDocuments.Select(p => new StaffRecordDocument { FileUrl = p }).ToList())
                            ;
 
             TypeAdapterConfig<StaffRecord, StaffRecordList>.NewConfig()
+                            .Map(dest => dest.EmployeeName, src => src.Employee!=null? src.Employee.Name : "")
+                            .Map(dest => dest.EmployeeCode, src => src.Employee != null ? src.Employee.EmployeeCode : "")
                            ;
 
             

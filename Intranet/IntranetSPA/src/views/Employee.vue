@@ -305,8 +305,7 @@
             <b-field label="Id Number" class="column is-3">
               <b-input
                 type="Text"
-                v-model="model.idNumber"
-                required>
+                v-model="model.idNumber">
               </b-input>
             </b-field>
 
@@ -401,16 +400,14 @@
           <b-field label="Backend User" class="column is-3">
             <b-input
               type="Text"
-              v-model="model.backendUser"
-              required>
+              v-model="model.backendUser">
             </b-input>
           </b-field>
 
           <b-field label="Backend Pass" class="column is-3">
             <b-input
               type="Text"
-              v-model="model.backendPass"
-              required>
+              v-model="model.backendPass">
             </b-input>
           </b-field>
         </div>
@@ -707,7 +704,7 @@ export default {
       if(this.startDate)
         this.model.startDate = `${this.startDate.getFullYear()}-${('0' + (this.startDate.getMonth()+1)).slice(-2)}-${('0' + this.startDate.getDate()).slice(-2)}`;
       
-      this.model.brandIds = this.selectBrands.length>0? this.selectBrands.map((p) => p.id).join():null;       
+      this.model.brandIds = this.selectBrands.length>0? this.selectBrands.map((p) => p.id):[];       
       console.log('this.model.brandIds' + this.model.brandIds);
       createOrUpdate(this.model)
       .then((response) => {
@@ -730,10 +727,7 @@ export default {
       this.startDate= moment(this.model.startDate,'YYYY-MM-DD').toDate();
       console.log('brandIds '+this.model.brandIds);
       if(this.model.brandIds){
-        let brandIds= this.model.brandIds.split(',').map(Number);
-        //console.log('brandIds array '+ brandIds);
-        this.selectBrands= this.brands.filter(p=> brandIds.includes(p.id));
-        //console.log('selectBrands '+  this.selectBrands);
+        this.selectBrands= this.brands.filter(p=> this.model.brandIds.includes(p.id));
       }
 
       this.isModalActive= true;

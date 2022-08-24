@@ -30,7 +30,7 @@ namespace IntranetApi.Services
         private static List<BaseDropdown> GetDataList(string sqlConnectionStr, string tableName)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>($"select Id, Name from {tableName} where IsDeleted = 0").ToList();
+            return connection.Query<BaseDropdown>($"select Id, Name from {tableName}s where IsDeleted = 0").ToList();
         }
 
         public static void AddStaffRecordDataService(this WebApplication app, string sqlConnectionStr)
@@ -40,10 +40,10 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.StaffRecord
-                .Include(p=>p.StaffRecordDocuments)
-                .AsNoTracking()
-                .FirstOrDefault(x => x.Id == id);
+                var entity = db.StaffRecords
+                            .Include(p=>p.StaffRecordDocuments)
+                            .AsNoTracking()
+                            .FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity.Adapt<StaffRecordCreateOrEdit>());
@@ -51,37 +51,37 @@ namespace IntranetApi.Services
             .RequireAuthorization(StaffRecordPermissions.View)
             ;
 
-            app.MapPost("StaffRecord", [Authorize]
+            app.MapPost("StaffRecord", [AllowAnonymous]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
             [FromServices] IFileStorageService fileService,
-            [FromBody] StaffRecordCreateOrEdit input,
-            HttpRequest request
+            [FromBody] StaffRecordCreateOrEdit input
+            //,HttpRequest request
             ) =>
             {
-                if (request.Form.Files.Any())
-                {
-                    foreach (var file in request.Form.Files)
-                    {
-                        if (file is null || file.Length == 0)
-                            continue;
+                //if (request.Form.Files.Any())
+                //{
+                //    foreach (var file in request.Form.Files)
+                //    {
+                //        if (file is null || file.Length == 0)
+                //            continue;
 
-                        using var fileStream = file.OpenReadStream();
-                        byte[] bytes = new byte[file.Length];
-                        fileStream.Read(bytes, 0, (int)file.Length);
-                        input.StaffRecordDocuments.Add(await fileService.SaveAndGetShortUrl(bytes, file.FileName, "StaffRecord", isAddAppfix: true));
-                    }
-                }
+                //        using var fileStream = file.OpenReadStream();
+                //        byte[] bytes = new byte[file.Length];
+                //        fileStream.Read(bytes, 0, (int)file.Length);
+                //        input.StaffRecordDocuments.Add(await fileService.SaveAndGetShortUrl(bytes, file.FileName, "StaffRecord", isAddAppfix: true));
+                //    }
+                //}
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<StaffRecord>();
                 entity.CreatorUserId = userId;
-                db.StaffRecord.Add(entity);
+                db.StaffRecords.Add(entity);
                 db.SaveChanges();
                 return Results.Ok();
             })
-            .RequireAuthorization(StaffRecordPermissions.Create)
+            //.RequireAuthorization(StaffRecordPermissions.Create)
             ;
 
             app.MapPut("StaffRecord", [Authorize]
@@ -89,31 +89,21 @@ namespace IntranetApi.Services
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
             [FromServices] IFileStorageService fileService,
-            [FromBody] StaffRecordCreateOrEdit input,
-            HttpRequest request) =>
+            [FromBody] StaffRecordCreateOrEdit input
+            //,HttpRequest request
+            ) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.StaffRecord.Include(p => p.StaffRecordDocuments).FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.StaffRecords.Include(p => p.StaffRecordDocuments).FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
-
-                if (request.Form.Files.Any())
-                {
-                    foreach (var file in request.Form.Files)
-                    {
-                        if (file is null || file.Length == 0)
-                            continue;
-
-                        using var fileStream = file.OpenReadStream();
-                        byte[] bytes = new byte[file.Length];
-                        fileStream.Read(bytes, 0, (int)file.Length);
-                        input.StaffRecordDocuments.Add(await fileService.SaveAndGetShortUrl(bytes, file.FileName, "StaffRecord", isAddAppfix: true));
-                    }
-                }
+ 
                 entity.StaffRecordDocuments.Clear();
+                Console.WriteLine($"RecordType {entity.RecordType}");
                 input.Adapt(entity);
+                Console.WriteLine($"RecordType {entity.RecordType}");
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
@@ -130,7 +120,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.StaffRecord.FirstOrDefault(x => x.Id == id);
+                var entity = db.StaffRecords.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -173,17 +163,53 @@ namespace IntranetApi.Services
                     memoryCache.Set(CacheKeys.GetRanksDropdown, ranks, cacheOptions);
                 }
                 ProcessFilterValues(ref input);
-                var query = db.StaffRecord.AsNoTracking()
+                var query = db.StaffRecords
+                            .Include(p=>p.Employee)
+                            .AsNoTracking()
                             .Where(p => !p.IsDeleted)
                             //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                              ;
                 var totalCount = await query.CountAsync();
-                query = query.OrderByDynamic(input.SortBy, input.SortDirection);
-                var items = await query.Skip(input.SkipCount).Take(input.RowsPerPage).ToListAsync();
-                return Results.Ok(new PagedResultDto<StaffRecord>(totalCount, items));
+                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                                       .Skip(input.SkipCount)
+                                       .Take(input.RowsPerPage)
+                                       .ProjectToType<StaffRecordList>()
+                                       .ToListAsync();
+                foreach (var item in items)
+                {
+                    item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
+                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
+                }
+                return Results.Ok(new PagedResultDto<StaffRecordList>(totalCount, items));
             })
             .RequireAuthorization(StaffRecordPermissions.View)
-            ;            
+            ;
+
+            app.MapGet("StaffRecord/GetEmployeeByBrand", [Authorize]
+            async Task<IResult> (
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] ApplicationDbContext db) =>
+            {
+                var result = new List<EmployeeDropdown>();
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
+                var brandIds= db.BrandEmployees.Where(p=>p.EmployeeId== userId).Select(p => p.BrandId).Distinct(); 
+
+                var query = from be in db.BrandEmployees
+                            join u in db.Users on be.EmployeeId equals u.Id
+                            where brandIds.Contains(be.BrandId)
+                            select new {u.Id, u.EmployeeCode, u.Name, FullName=$"{u.EmployeeCode} - {u.Name}"};
+
+                //var employees = db.BrandEmployees
+                //                .Include(p=>p.Employee)
+                //                .Where(p=>p.EmployeeId== userId)
+                //                .Select(p=>new {p.Employee.Id, p.Employee.EmployeeCode, p.Employee.Name})
+                //                .ToList();
+                
+                return Results.Ok(query.ToList().DistinctBy(p => p.Id));
+            })
+            .RequireAuthorization(StaffRecordPermissions.View)
+            ;
         }
     }
 }

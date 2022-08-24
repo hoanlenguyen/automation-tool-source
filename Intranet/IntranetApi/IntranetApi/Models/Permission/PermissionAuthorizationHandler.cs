@@ -33,7 +33,7 @@ namespace IntranetApi.Models.Permission
 
                 var userId = Convert.ToInt32(userIdClaim.Value);
                 Console.WriteLine($"userId {userId}");
-                var query = from s in db.UserRole
+                var query = from s in db.UserRoles
                             join sa in db.RoleClaims on s.RoleId equals sa.RoleId
                             where s.UserId == userId && sa.ClaimType == Permissions.Type
                             select sa.ClaimValue;

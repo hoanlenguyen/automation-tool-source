@@ -3,6 +3,7 @@ using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -45,7 +46,7 @@ namespace IntranetApi.Services
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Brand where IsDeleted = 0").ToList();
+            return connection.Query<BaseDropdown>("select Id, Name from Brands where IsDeleted = 0").ToList();
         }
         public static void AddBrandDataService(this WebApplication app, string sqlConnectionStr)
         {
@@ -54,7 +55,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.Brand.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity = db.Brands.AsNoTracking().FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
@@ -89,7 +90,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Brand.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Brands.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -113,7 +114,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Brand.FirstOrDefault(x => x.Id == id);
+                var entity = db.Brands.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -133,37 +134,18 @@ namespace IntranetApi.Services
             [FromBody] BrandFilterDto input) =>
             {
                 ProcessFilterValues(ref input);
-                var totalCount = GetTotalCountByFilter(sqlConnectionStr, ref input);
-                using (var conn = new MySqlConnection(sqlConnectionStr))
-                {
-                    conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetBrandList, conn);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@keyword", input.Keyword);
-                    cmd.Parameters.AddWithValue("@status", input.Status);
-                    cmd.Parameters.AddWithValue("@sortBy", input.SortBy);
-                    cmd.Parameters.AddWithValue("@sortDirection", input.SortDirection);
-
-                    cmd.Parameters.AddWithValue("@exportOffset", input.SkipCount);
-                    cmd.Parameters.AddWithValue("@exportLimit", input.RowsPerPage);
-
-                    MySqlDataReader rdr = cmd.ExecuteReader();
-                    var items = new List<BrandCreateOrEdit>();
-                    while (rdr.Read())
-                    {
-                        items.Add(new BrandCreateOrEdit
-                        {
-                            Id = CommonHelper.ConvertFromDBVal<int>(rdr["Id"]),
-                            Name = CommonHelper.ConvertFromDBVal<string>(rdr["Name"]),
-                            Status = CommonHelper.ConvertFromDBVal<bool>(rdr["Status"]),
-                            CreationTime = CommonHelper.ConvertFromDBVal<DateTime>(rdr["CreationTime"])
-                        });
-                    }
-                    rdr.Close();
-                    conn.Close();
-
-                    return Results.Ok(new PagedResultDto<BrandCreateOrEdit>(totalCount, items));
-                }
+                var query = db.Brands
+                           .AsNoTracking()
+                           .Where(p => !p.IsDeleted)
+                           .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
+                           ;
+                var totalCount = await query.CountAsync();
+                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                                .Skip(input.SkipCount)
+                                .Take(input.RowsPerPage)
+                                .ProjectToType<BrandCreateOrEdit>()
+                                .ToListAsync();
+                return Results.Ok(new PagedResultDto<BrandCreateOrEdit>(totalCount, items));                 
             })
             .RequireAuthorization(BrandPermissions.View)
             ;

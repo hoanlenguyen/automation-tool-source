@@ -48,7 +48,7 @@ namespace IntranetApi.Services
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Role where IsDeleted = 0").ToList();
+            return connection.Query<BaseDropdown>("select Id, Name from Roles where IsDeleted = 0").ToList();
         }
 
         public static void AddRoleDataService(this WebApplication app, string sqlConnectionStr)
@@ -58,7 +58,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.Role.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity = db.Roles.AsNoTracking().FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 var result = entity.Adapt<RoleCreateOrEdit>();
@@ -98,7 +98,7 @@ namespace IntranetApi.Services
                 {
                     Console.WriteLine($"permissions Count: {input.Permissions.Count}");
                     var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
-                    await db.RoleClaim.AddRangeAsync(roleClaims);
+                    await db.RoleClaims.AddRangeAsync(roleClaims);
                 }
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 await db.SaveChangesAsync();
@@ -114,12 +114,12 @@ namespace IntranetApi.Services
             [FromServices] IMemoryCache memoryCache,
             [FromBody] RoleCreateOrEdit input) =>
             {
-                if(await db.Role.AnyAsync(p=>p.Name == input.Name && p.Id != input.Id))
+                if(await db.Roles.AnyAsync(p=>p.Name == input.Name && p.Id != input.Id))
                     throw new Exception("Role existed!");
 
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Role.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Roles.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -128,14 +128,14 @@ namespace IntranetApi.Services
                 entity.Status = input.Status;
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
-                var existedRoleClaims = await db.RoleClaim.Where(p => p.RoleId == entity.Id).ToListAsync();
+                var existedRoleClaims = await db.RoleClaims.Where(p => p.RoleId == entity.Id).ToListAsync();
                 if(existedRoleClaims.Any())
-                    db.RoleClaim.RemoveRange(existedRoleClaims);
+                    db.RoleClaims.RemoveRange(existedRoleClaims);
 
                 if (input.Permissions.Any())
                 {
                     var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
-                    await db.RoleClaim.AddRangeAsync(roleClaims);
+                    await db.RoleClaims.AddRangeAsync(roleClaims);
                 }
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 db.SaveChanges();
@@ -153,7 +153,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Role.FirstOrDefault(x => x.Id == id);
+                var entity = db.Roles.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -173,7 +173,7 @@ namespace IntranetApi.Services
             [FromBody] RoleFilterDto input) =>
             {
                 ProcessFilterValues(ref input);                 
-                var query = db.Role.AsNoTracking()
+                var query = db.Roles.AsNoTracking()
                            .Where(p => !p.IsDeleted)
                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword));
 
@@ -188,7 +188,7 @@ namespace IntranetApi.Services
                     var creatorUserIds = items.Select(p => p.CreatorUserId.GetValueOrDefault()).Distinct().ToList();
                     var lastModifierUserIds = items.Select(p => p.LastModifierUserId.GetValueOrDefault()).Distinct();
                     creatorUserIds.AddRange(lastModifierUserIds);
-                    var users = db.User.AsNoTracking()
+                    var users = db.Users.AsNoTracking()
                                     .Where(p => creatorUserIds.Contains(p.Id))
                                     .Select(p => new BaseDropdown { Id = p.Id, Name = p.Email })
                                     .ToList();
@@ -200,7 +200,7 @@ namespace IntranetApi.Services
                         if (item.LastModifierUserId != null)
                             item.LastModifierUser = users.FirstOrDefault(p => p.Id == item.LastModifierUserId.Value)?.Name;
 
-                        item.Count = await db.UserRole.Where(p => p.RoleId == item.Id).CountAsync();
+                        item.Count = await db.UserRoles.Where(p => p.RoleId == item.Id).CountAsync();
                     }
                 }               
                 return Results.Ok(new PagedResultDto<RoleListItem>(totalCount, items));
@@ -212,14 +212,15 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IMemoryCache memoryCache) =>
             {
-                List<BaseDropdown> items = null;
-                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-                if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out items))
-                {
-                    items = GetBaseDropdown(sqlConnectionStr);
-                    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
-                }
-                return Results.Ok(items);
+                //List<BaseDropdown> items = null;
+                //var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+                //if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out items))
+                //{
+                //    items = GetBaseDropdown(sqlConnectionStr);
+                //    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
+                //}
+                //return Results.Ok(items);
+                return Results.Ok(GetBaseDropdown(sqlConnectionStr));
             });
 
             app.MapPost("Role/addPermission", [Authorize]
@@ -254,8 +255,8 @@ namespace IntranetApi.Services
             [FromQuery] int userId
             ) =>
             {
-                var role = await db.Role.AsNoTracking().FirstOrDefaultAsync(p => p.Id == roleId);
-                var user = await db.User/*.AsNoTracking()*/.FirstOrDefaultAsync(p => p.Id == userId);
+                var role = await db.Roles.AsNoTracking().FirstOrDefaultAsync(p => p.Id == roleId);
+                var user = await db.Users/*.AsNoTracking()*/.FirstOrDefaultAsync(p => p.Id == userId);
                 var result1 = await userManager.AddToRoleAsync(user, role.Name);
 
                 return Results.Ok(result1);

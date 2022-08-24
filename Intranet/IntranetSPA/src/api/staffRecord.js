@@ -27,4 +27,10 @@ export function deleteData(id) {
     url: `/StaffRecord/${id}`,
     method: 'delete'})
 }
+
+export function getEmployeeByBrand() {
+  return request({
+    url: `/StaffRecord/GetEmployeeByBrand`,
+    method: 'get'})
+}
  

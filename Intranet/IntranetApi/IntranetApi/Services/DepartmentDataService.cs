@@ -3,6 +3,7 @@ using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +27,7 @@ namespace IntranetApi.Services
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Department where IsDeleted = 0").ToList();
+            return connection.Query<BaseDropdown>("select Id, Name from Departments where IsDeleted = 0").ToList();
         }
 
         private static int GetTotalCountByFilter(string sqlConnectionStr, ref DepartmentFilterDto input)
@@ -56,7 +57,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.Department.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity = db.Departments.AsNoTracking().FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
@@ -91,7 +92,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Department.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Departments.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -115,7 +116,7 @@ namespace IntranetApi.Services
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Department.FirstOrDefault(x => x.Id == id);
+                var entity = db.Departments.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
@@ -135,37 +136,18 @@ namespace IntranetApi.Services
             [FromBody] DepartmentFilterDto input) =>
             {
                 ProcessFilterValues(ref input);
-                var totalCount = GetTotalCountByFilter(sqlConnectionStr, ref input);
-                using (var conn = new MySqlConnection(sqlConnectionStr))
-                {
-                    conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetDepartmentList, conn);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@keyword", input.Keyword);
-                    cmd.Parameters.AddWithValue("@status", input.Status);
-                    cmd.Parameters.AddWithValue("@sortBy", input.SortBy);
-                    cmd.Parameters.AddWithValue("@sortDirection", input.SortDirection);
-
-                    cmd.Parameters.AddWithValue("@exportOffset", input.SkipCount);
-                    cmd.Parameters.AddWithValue("@exportLimit", input.RowsPerPage);
-
-                    MySqlDataReader rdr = cmd.ExecuteReader();
-                    var items = new List<DepartmentCreateOrEdit>();
-                    while (rdr.Read())
-                    {
-                        items.Add(new DepartmentCreateOrEdit
-                        {
-                            Id = CommonHelper.ConvertFromDBVal<int>(rdr["Id"]),
-                            Name = CommonHelper.ConvertFromDBVal<string>(rdr["Name"]),
-                            Status = CommonHelper.ConvertFromDBVal<bool>(rdr["Status"]),
-                            CreationTime = CommonHelper.ConvertFromDBVal<DateTime>(rdr["CreationTime"])
-                        });
-                    }
-                    rdr.Close();
-                    conn.Close();
-
-                    return Results.Ok(new PagedResultDto<DepartmentCreateOrEdit>(totalCount, items));
-                }
+                var query = db.Departments
+                           .AsNoTracking()
+                           .Where(p => !p.IsDeleted)
+                           .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
+                           ;
+                var totalCount = await query.CountAsync();
+                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                                .Skip(input.SkipCount)
+                                .Take(input.RowsPerPage)
+                                .ProjectToType<DepartmentCreateOrEdit>()
+                                .ToListAsync();
+                return Results.Ok(new PagedResultDto<DepartmentCreateOrEdit>(totalCount, items));
             })
             .RequireAuthorization(DepartmentPermissions.View)
             ;

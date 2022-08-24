@@ -34,12 +34,12 @@ namespace IntranetApi.Services
         {
             var fileExtension = Path.GetExtension(fileOriginName).ToLower();
             var fileName = isAddAppfix ? $"{Path.GetFileNameWithoutExtension(fileOriginName)}-{DateTime.Now.ToFileTime()}{fileExtension}" : fileOriginName;
-            var filePath = folder.IsNotNullOrEmpty() ? $"{folder}/{fileName}" : fileName;
+            //var filePath = folder.IsNotNullOrEmpty() ? $"{folder}/{fileName}" : fileName;
             var blobClient = containerClient.GetBlobClient($"{folder}/{fileName}");
             var stream = new MemoryStream(fileBytes);
             await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = fileExtension.GetFileContentType() });
             stream.Close();
-            return filePath;
+            return fileName;
         }
          
         public async Task<string> SaveAndGetFullUrl(byte[] fileBytes, string fileOriginName, string folder = "", bool isAddAppfix = false)

@@ -98,17 +98,15 @@
         v-slot="props"
         width="100px"
         header-class="is-size-7">
-        <b-button 
+        <a 
           v-if="canUpdate"
           title="edit"          
-          class="button mr-5"
-          @click="getDetail(props.row.id)"
-          style="padding: 0; border: none; background: none;">
+          @click="getDetail(props.row.id)">
           <b-icon
             icon="pencil"
             type="is-info">
           </b-icon>
-        </b-button> 
+        </a> 
         <!-- <b-button 
           v-if="canDelete"
           title="delete"          
@@ -272,37 +270,31 @@
                 <span class="file-label" >Add files</span>
               </span>          
               </b-upload>
+              <b-button icon-left="download" @click="downloadStaffRecordDocuments" 
+                v-if="model.staffRecordDocuments.length>0">
+                Download all files
+              </b-button>
             </div>
-
+            
             <div v-if="model.staffRecordDocuments.length>0">
-              <b-tag v-for="(fileName, index) in model.staffRecordDocuments "
-              :key="index"
-              type="is-info"
-              class="is-flex my-3" >
-              <span class="mr-3">{{fileName}}</span>
-              <button class="delete is-small"
-                type="button"
-                @click="files.splice(index, 1)">
-              </button>
-              </b-tag>    
-            </div> 
-
-            <div v-else>
-              <b-tag v-for="(fileItem, index) in files"
-              :key="index"
-              type="is-info"
-              class="is-flex my-3" >
-              <span class="mr-3">{{fileItem.name}}</span>
-              <button class="delete is-small"
-                type="button"
-                @click="files.splice(index, 1)">
-              </button>
-              </b-tag> 
+              <div v-for="(documentName, index) in model.staffRecordDocuments" 
+                  class="is-flex is-flex-direction-row my-3">
+                <b-tag
+                  :key="index"
+                  type="is-info"
+                  >
+                  <span>{{documentName}}</span>
+                  <button class="delete is-small ml-3" title="remove"
+                    type="button"
+                    @click="model.staffRecordDocuments.splice(index, 1);">
+                  </button>                                                    
+                </b-tag>                  
+                <a title="download" class="ml-3" @click="downloadSingleRecordDocument(documentName)">
+                  <b-icon icon="download" size="is-small"></b-icon>
+                </a>                   
+              </div>              
             </div>
-
-           
           </div>
-
          </b-field>
         </section>
         <footer class="modal-card-foot">
@@ -327,6 +319,7 @@
 </template>
 <script>
 import moment from "moment";
+import { saveAs } from 'file-saver';
 import { getDetail, getList, createOrUpdate, deleteData , getEmployeeByBrand } from "@/api/staffRecord";
 import { getDropdown as getDepartmentDropdown } from "@/api/department";
 import { uploadFiles  } from "@/api/fileService";
@@ -488,6 +481,7 @@ export default {
       this.isModalActive= false;
       this.startDate = null;
       this.endDate = null;
+      this.files=[];
     },
     cancelCreateOrUpdate(){
       this.closeModalDialog();
@@ -618,7 +612,7 @@ export default {
       uploadFiles({folderName:'StaffRecord'},formData)
         .then((response) => {
           if (response.status == 200) {
-            this.model.staffRecordDocuments =[...response.data];
+            this.model.staffRecordDocuments =[...this.model.staffRecordDocuments,...response.data];
         }})
         .catch((error) => {
           // this.$buefy.snackbar.open({
@@ -630,6 +624,33 @@ export default {
         .finally(() => {
           this.isLoadingFiles = false;
         });
+    },
+    downloadStaffRecordDocuments(){
+      let fileArr= this.model.staffRecordDocuments;
+      if(!fileArr|| fileArr.length===0)
+        return;
+      var baseUrl=`${process.env.VUE_APP_BASE_FILE_STORAGE_ENDPOINT}/`
+                  +`${process.env.VUE_APP_BASE_FILE_STORAGE_FOLDER}/`
+                  +'StaffRecord/';
+      for (let i = 0; i < fileArr.length; i++) {   
+        let filename = fileArr[i];
+        let fileUrl=`${baseUrl}${filename}`;
+        console.log(fileUrl);
+        setTimeout(function() {          
+          console.log(filename);
+          saveAs(fileUrl, filename); },200);
+      }
+    },
+    downloadSingleRecordDocument(fileName){
+      console.log(fileName);
+      if(!fileName) return;
+      let baseUrl=`${process.env.VUE_APP_BASE_FILE_STORAGE_ENDPOINT}/`
+                  +`${process.env.VUE_APP_BASE_FILE_STORAGE_FOLDER}/`
+                  +'StaffRecord/';
+      let fileUrl=`${baseUrl}${fileName}`;
+      console.log(fileUrl);
+      setTimeout(function() {          
+        saveAs(fileUrl, fileName); },200);
     }
   }
 };

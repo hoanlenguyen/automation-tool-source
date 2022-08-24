@@ -2,7 +2,7 @@
 
 namespace IntranetApi.Models
 {
-    public class StaffRecordList:BaseAuditEntity
+    public class StaffRecordList : BaseAuditEntity
     {
         public int EmployeeId { get; set; }
         public string EmployeeName { get; set; }
@@ -24,5 +24,6 @@ namespace IntranetApi.Models
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string? Remarks { get; set; }
+        public string? OtherDepartment { get; set; }
     }
 }

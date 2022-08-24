@@ -20,14 +20,16 @@ namespace IntranetApi.Services
     {
         public static void AddFileDataService(this WebApplication app)
         {
-            app.MapPost("File/Upload", [AllowAnonymous]
-            async Task<IResult> ([FromServices] IFileStorageService fileService, [FromQuery] string? folderName, HttpRequest request) =>
+            app.MapPost("File/Upload", [Authorize]
+            async Task<IResult> (
+                [FromServices] IFileStorageService fileService, 
+                [FromQuery] string? folderName, 
+                HttpRequest request) =>
             {
-                var result= new List<string>();
-                if(folderName.IsNotNullOrEmpty())
+                if(folderName.IsNullOrEmpty())
                     folderName = request.Headers["folderName"].ToString();
-                Console.WriteLine($"folderName {folderName}");
 
+                var result = new List<string>();
                 foreach (var file in request.Form.Files)
                 {
                     if (file is null || file.Length == 0)
@@ -36,7 +38,7 @@ namespace IntranetApi.Services
                     using var fileStream = file.OpenReadStream();
                     byte[] bytes = new byte[file.Length];
                     fileStream.Read(bytes, 0, (int)file.Length);
-                    result.Add(await fileService.SaveAndGetShortUrl(bytes, file.FileName, folderName, isAddAppfix: true));
+                    result.Add(await fileService.SaveAndGetShortUrl(bytes, file.FileName, folderName));
                 }
                 return Results.Ok(result);
             });

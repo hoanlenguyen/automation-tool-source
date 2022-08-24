@@ -178,7 +178,7 @@ namespace IntranetApi.Services
                 foreach (var item in items)
                 {
                     item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
-                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
+                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name??item.OtherDepartment;
                 }
                 return Results.Ok(new PagedResultDto<StaffRecordList>(totalCount, items));
             })

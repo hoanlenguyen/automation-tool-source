@@ -389,7 +389,7 @@ export default {
         remarks:null,
         staffRecordDocuments:[]
       },
-      isModalActive:true,
+      isModalActive:false,
       isDeleteModalActive:false,
       selectedId:null,
       selected:null,

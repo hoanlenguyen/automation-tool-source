@@ -1,7 +1,5 @@
 ﻿using IntranetApi.DbContext;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Filters;
-using System.Net;
 using System.Security.Claims;
 
 namespace IntranetApi.Models.Permission
@@ -32,12 +30,12 @@ namespace IntranetApi.Models.Permission
                 }
 
                 var userId = Convert.ToInt32(userIdClaim.Value);
-                Console.WriteLine($"userId {userId}");
+                //Console.WriteLine($"userId {userId}");
                 var query = from s in db.UserRoles
                             join sa in db.RoleClaims on s.RoleId equals sa.RoleId
                             where s.UserId == userId && sa.ClaimType == Permissions.Type
                             select sa.ClaimValue;
-                Console.WriteLine(query);
+                //Console.WriteLine(query);
                 var claims = query.ToList();
                 if (claims.Any(p => p.Equals(requirement.Permission, StringComparison.OrdinalIgnoreCase)))
                     context.Succeed(requirement);
@@ -52,7 +50,6 @@ namespace IntranetApi.Models.Permission
                     //});
                     context.Fail();
                 }
-                
 
                 return Task.CompletedTask;
             }

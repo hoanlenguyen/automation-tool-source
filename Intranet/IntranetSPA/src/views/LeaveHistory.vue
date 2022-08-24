@@ -239,7 +239,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "Bank.Create"
+          "StaffRecord.Create"
         )
       );
     },
@@ -247,7 +247,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userincludes(
-          "Bank.Update"
+          "StaffRecord.Update"
         )
       );
     },
@@ -255,7 +255,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userincludes(
-          "Bank.Delete"
+          "StaffRecord.Delete"
         )
       );
     }

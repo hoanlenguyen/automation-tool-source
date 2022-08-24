@@ -57,7 +57,12 @@ namespace IntranetApi.Mapper
                             .Map(dest => dest.EmployeeCode, src => src.Employee != null ? src.Employee.EmployeeCode : "")
                            ;
 
-            
+            TypeAdapterConfig<StaffRecord, LeaveHistoryList>.NewConfig()
+                            .Map(dest => dest.EmployeeName, src => src.Employee != null ? src.Employee.Name : "")
+                            .Map(dest => dest.EmployeeCode, src => src.Employee != null ? src.Employee.EmployeeCode : "")
+                            .Map(dest => dest.BrandEmployees, src => src.Employee != null ? src.Employee.BrandEmployees.Select(p =>p.BrandId).ToList() : new List<int>())
+                           ;
+
         }
     }
 }

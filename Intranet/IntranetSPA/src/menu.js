@@ -31,9 +31,9 @@ export default [
       icon: 'account-multiple'
     },
     {
-      to: '/staffRecord',
-      label: 'Staff Record',
-      icon: 'account-multiple'
+      to: '/time-off',
+      label: 'Time-off',
+      icon: 'clock-outline'
     }      
   ]  
 ]

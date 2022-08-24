@@ -73,10 +73,10 @@ const routes = [
   },
   {
     meta: {
-      title: 'Staff Record'
+      title: 'Time-off'
     },
-    path: '/staffRecord',
-    name: 'Staff Record',    
+    path: '/time-off',
+    name: 'Time-off',    
     component: () => import('@/views/StaffRecord.vue')
   },
   {

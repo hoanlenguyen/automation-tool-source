@@ -19,6 +19,8 @@ namespace IntranetApi.Models
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public int NumberOfDays { get; set; }
+        public int NumberOfHours { get; set; }
 
         [MaxLength(200)]
         public string? Remarks { get; set; }

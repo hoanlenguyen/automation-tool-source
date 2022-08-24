@@ -100,9 +100,9 @@ export default {
         "StaffRecord.View"
       ))
         items.push(  {
-        to: '/staffRecord',
-        label: 'Staff Record',
-        icon: 'account-multiple'
+        to: '/time-off',
+        label: 'Time-off',
+        icon: 'clock-outline'
         });
 
        return [items];

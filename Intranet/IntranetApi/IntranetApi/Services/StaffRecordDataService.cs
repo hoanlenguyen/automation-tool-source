@@ -16,7 +16,7 @@ namespace IntranetApi.Services
 {
     public static class StaffRecordDataService
     {
-        private static void ProcessFilterValues(ref StaffRecordFilterDto input)
+        private static void ProcessFilterValues(ref StaffRecordFilter input)
         {
             if (!string.IsNullOrEmpty(input.Keyword))
                 input.Keyword = input.Keyword.Trim();
@@ -76,6 +76,10 @@ namespace IntranetApi.Services
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<StaffRecord>();
+                if (entity.RecordType == StaffRecordType.PaidOffs || entity.RecordType == StaffRecordType.PaidMCs)
+                    entity.NumberOfDays = (entity.EndDate - entity.StartDate).Days + 1;
+                else
+                    entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
                 entity.CreatorUserId = userId;
                 db.StaffRecords.Add(entity);
                 db.SaveChanges();
@@ -101,9 +105,12 @@ namespace IntranetApi.Services
                     return Results.NotFound();
  
                 entity.StaffRecordDocuments.Clear();
-                Console.WriteLine($"RecordType {entity.RecordType}");
                 input.Adapt(entity);
-                Console.WriteLine($"RecordType {entity.RecordType}");
+
+                if (entity.RecordType == StaffRecordType.PaidOffs || entity.RecordType == StaffRecordType.PaidMCs)
+                    entity.NumberOfDays = (entity.EndDate - entity.StartDate).Days + 1;
+                else
+                    entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
@@ -137,7 +144,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
-            [FromBody] StaffRecordFilterDto input            
+            [FromBody] StaffRecordFilter input            
             ) =>
             {
                 List<BaseDropdown> brands = null;
@@ -209,6 +216,81 @@ namespace IntranetApi.Services
                 return Results.Ok(query.ToList().DistinctBy(p => p.Id));
             })
             .RequireAuthorization(StaffRecordPermissions.View)
+            ;
+
+            app.MapPost("LeaveHistory/list", [AllowAnonymous]
+            async Task<IResult> (
+            [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCache memoryCache,
+            [FromBody] LeaveHistoryFilter input
+            ) =>
+            {
+                List<BaseDropdown> brands = null;
+                List<BaseDropdown> departments = null;
+                List<BaseDropdown> ranks = null;
+                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+
+                if (!memoryCache.TryGetValue(CacheKeys.GetBrandsDropdown, out brands))
+                {
+                    brands = GetDataList(sqlConnectionStr, nameof(Brand));
+                    memoryCache.Set(CacheKeys.GetBrandsDropdown, brands, cacheOptions);
+                }
+
+                if (!memoryCache.TryGetValue(CacheKeys.GetDepartmentsDropdown, out departments))
+                {
+                    departments = GetDataList(sqlConnectionStr, nameof(Department));
+                    memoryCache.Set(CacheKeys.GetDepartmentsDropdown, departments, cacheOptions);
+                }
+
+                if (!memoryCache.TryGetValue(CacheKeys.GetRanksDropdown, out ranks))
+                {
+                    ranks = GetDataList(sqlConnectionStr, nameof(Rank));
+                    memoryCache.Set(CacheKeys.GetRanksDropdown, ranks, cacheOptions);
+                }
+                if (!string.IsNullOrEmpty(input.Keyword))
+                    input.Keyword = input.Keyword.Trim();
+
+                if (string.IsNullOrEmpty(input.SortBy))
+                    input.SortBy = nameof(BaseEntity.Id);
+
+                if (string.IsNullOrEmpty(input.SortDirection))
+                    input.SortDirection = SortDirection.DESC;
+
+                var query = db.StaffRecords
+                            .Include(p => p.Employee)
+                            .ThenInclude(q => q.BrandEmployees)
+                            .AsNoTracking()
+                            .Where(p => !p.IsDeleted)
+                            .GroupBy(p => p.EmployeeId)
+                            .Select(p => new LeaveHistoryList
+                            {
+                                DepartmentId = p.FirstOrDefault().Employee.DeptId,
+                                EmployeeName = p.FirstOrDefault().Employee.Name,
+                                EmployeeCode = p.FirstOrDefault().Employee.EmployeeCode,
+                                RankId = p.FirstOrDefault().Employee.RankId,
+                                BrandEmployees = p.FirstOrDefault().Employee.BrandEmployees.Select(p=>p.BrandId),
+                                
+
+                            });
+                             //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
+                             ;
+
+                var totalCount = await query.CountAsync();
+                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                                       .Skip(input.SkipCount)
+                                       .Take(input.RowsPerPage)
+                                       .ProjectToType<LeaveHistoryList>()
+                                       .ToListAsync();
+
+                foreach (var item in items)
+                {
+                    item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
+                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name ?? item.OtherDepartment;
+                    item.Brand = string.Join(',', brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name));
+                }
+                return Results.Ok(new PagedResultDto<LeaveHistoryList>(totalCount, items));
+            })
+            //.RequireAuthorization(StaffRecordPermissions.View)
             ;
         }
     }

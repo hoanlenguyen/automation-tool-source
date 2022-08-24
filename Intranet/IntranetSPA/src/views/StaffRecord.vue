@@ -373,8 +373,9 @@ export default {
         status:true,
         id:0,
         employeeId:0,
-        departmentId:0,
+        departmentId:null,
         otherDepartment:null,
+        recordType:0,
         reason:'',
         remarks:null,
         staffRecordDocuments:[]
@@ -383,8 +384,9 @@ export default {
         status:true,
         id:0,
         employeeId:0,
-        departmentId:0,
+        departmentId:null,
         otherDepartment:null,
+        recordType:0,
         reason:'',
         remarks:null,
         staffRecordDocuments:[]
@@ -487,6 +489,52 @@ export default {
       this.closeModalDialog();
     },
     createOrUpdateModel(){
+      if(!this.model.employeeId){
+        this.$buefy.snackbar.open({
+            message: 'Missing employee name!',
+            queue: false,
+            type: 'is-warning'
+          });
+        return;
+      }
+
+      if(this.model.departmentId===null){
+        this.$buefy.snackbar.open({
+            message: 'Missing Department!',
+            queue: false,
+            type: 'is-warning'
+          });
+        return;
+      }
+
+      if(this.model.departmentId==0 && !this.model.otherDepartment){
+        this.$buefy.snackbar.open({
+            message: 'Missing Other Department!',
+            queue: false,
+            type: 'is-warning'
+          });
+        return;
+      }
+
+      if(!this.startDate){
+        this.$buefy.snackbar.open({
+            message: 'Missing Start Date!',
+            queue: false,
+            type: 'is-warning'
+          });
+        return;
+      }
+
+      if(!this.endDate){
+        this.$buefy.snackbar.open({
+            message: 'Missing End Date!',
+            queue: false,
+            type: 'is-warning'
+          });
+        return;
+      }
+      
+
       if(this.startDate)
         this.model.startDate = `${this.startDate.getFullYear()}-${('0' + (this.startDate.getMonth()+1)).slice(-2)}-${('0' + this.startDate.getDate()).slice(-2)}`;
 

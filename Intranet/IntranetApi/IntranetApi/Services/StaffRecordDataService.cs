@@ -259,23 +259,25 @@ namespace IntranetApi.Services
                             .Include(p => p.Employee)
                             .ThenInclude(q => q.BrandEmployees)
                             .AsNoTracking()
-                            .Where(p => !p.IsDeleted && p.Employee.UserType==UserType.Employee)
+                            .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)
                             .ToList()
-                            .GroupBy(p => p.EmployeeId)                           
+                            .GroupBy(p => p.EmployeeId)
                             .Select(p => new LeaveHistoryList
                             {
-                                EmployeeId= p.Key,
+                                EmployeeId = p.Key,
                                 EmployeeName = p.FirstOrDefault().Employee.Name,
                                 EmployeeCode = p.FirstOrDefault().Employee.EmployeeCode,
                                 DepartmentId = p.FirstOrDefault().Employee.DeptId,
                                 RankId = p.FirstOrDefault().Employee.RankId,
-                                BrandEmployees = p.FirstOrDefault().Employee.BrandEmployees.Select(p=>p.BrandId),
-                                SumDaysOfPaidOffs=p.Where(p=>p.RecordType==StaffRecordType.PaidOffs).Sum(p=>p.NumberOfDays),
-                                SumDaysOfPaidMCs=p.Where(p=>p.RecordType == StaffRecordType.PaidMCs).Sum(p=>p.NumberOfDays),
-                                SumDaysOfDeduction=p.Where(p=>p.RecordType == StaffRecordType.Deduction).Sum(p=>p.NumberOfDays),
-                                SumHoursOfDeduction=p.Where(p=>p.RecordType == StaffRecordType.Deduction).Sum(p=>p.NumberOfHours),
-                                SumDaysOfExtraPay=p.Where(p=>p.RecordType == StaffRecordType.ExtraPay).Sum(p=>p.NumberOfDays),
-                                SumHoursOfExtraPay = p.Where(p=>p.RecordType == StaffRecordType.ExtraPay).Sum(p=>p.NumberOfHours),
+                                BrandEmployees = p.FirstOrDefault().Employee.BrandEmployees.Select(p => p.BrandId),
+                                SumDaysOfPaidOffs = p.Where(p => p.RecordType == StaffRecordType.PaidOffs).Sum(p => p.NumberOfDays),
+                                SumDaysOfPaidMCs = p.Where(p => p.RecordType == StaffRecordType.PaidMCs).Sum(p => p.NumberOfDays),
+                                SumDaysOfDeduction = p.Where(p => p.RecordType == StaffRecordType.Deduction).Sum(p => p.NumberOfDays),
+                                SumHoursOfDeduction = p.Where(p => p.RecordType == StaffRecordType.Deduction).Sum(p => p.NumberOfHours),
+                                SumDaysOfExtraPay = p.Where(p => p.RecordType == StaffRecordType.ExtraPay).Sum(p => p.NumberOfDays),
+                                SumHoursOfExtraPay = p.Where(p => p.RecordType == StaffRecordType.ExtraPay).Sum(p => p.NumberOfHours),
+                                LateAmount = p.Sum(p => p.LateAmount),
+                                Fines = p.Sum(p => p.Fine)
                             });
                              //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                              ;

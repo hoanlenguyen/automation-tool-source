@@ -8,6 +8,8 @@ namespace IntranetApi.Models
         public int DepartmentId { get; set; }
         public string? OtherDepartment { get; set; }
         public int RecordType { get; set; }
+        public int RecordDetailType { get; set; }
+        public int LateAmount { get; set; }
         public string Reason { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

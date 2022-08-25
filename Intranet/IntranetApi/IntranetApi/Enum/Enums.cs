@@ -13,4 +13,14 @@
         PaidOffs = 2,
         PaidMCs = 3
     }
+
+    public enum StaffRecordDetailType
+    {
+        ExtraPayOTs = 0,
+        ExtraPayCoverShift = 2,
+        DeductionLate = 4,
+        DeductionUnpaidLeave = 8,
+        PaidOffs = 16,
+        PaidMCs = 32
+    }
 }

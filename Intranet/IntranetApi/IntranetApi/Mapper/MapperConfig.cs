@@ -44,11 +44,13 @@ namespace IntranetApi.Mapper
 
             TypeAdapterConfig<StaffRecord, StaffRecordCreateOrEdit>.NewConfig()
                            .Map(dest => dest.RecordType, src => (int)src.RecordType)
+                           .Map(dest => dest.RecordDetailType, src => (int)src.RecordDetailType)
                            .Map(dest => dest.StaffRecordDocuments, src => src.StaffRecordDocuments.Select(p=>p.FileUrl).ToList())
                            ;
 
             TypeAdapterConfig<StaffRecordCreateOrEdit, StaffRecord>.NewConfig()
                            .Map(dest => dest.RecordType, src => (StaffRecordType)src.RecordType)
+                           .Map(dest => dest.RecordDetailType, src => (StaffRecordDetailType)src.RecordDetailType)
                            .Map(dest => dest.StaffRecordDocuments, src => src.StaffRecordDocuments.Select(p => new StaffRecordDocument { FileUrl = p }).ToList())
                            ;
 
@@ -63,6 +65,9 @@ namespace IntranetApi.Mapper
                             .Map(dest => dest.BrandEmployees, src => src.Employee != null ? src.Employee.BrandEmployees.Select(p =>p.BrandId).ToList() : new List<int>())
                            ;
 
+            TypeAdapterConfig<User, EmployeeList>.NewConfig()
+                            .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p=>p.BrandId))
+                           ;
         }
     }
 }

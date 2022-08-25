@@ -25,26 +25,6 @@ namespace IntranetApi.Services
                 input.SortDirection = "desc";
         }
 
-        private static int GetTotalCountByFilter(string sqlConnectionStr, ref RoleFilterDto input)
-        {
-            using (var conn = new MySqlConnection(sqlConnectionStr))
-            {
-                conn.Open();
-                var cmd = new MySqlCommand(StoredProcedureName.GetRoleTotal, conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@keyword", input.Keyword);
-                cmd.Parameters.AddWithValue("@status", input.Status);
-
-                MySqlDataReader rdr = cmd.ExecuteReader();
-                int count = 0;
-                while (rdr.Read())
-                    count = (int)rdr.GetInt64(0);
-                rdr.Close();
-                conn.Close();
-                return count;
-            }
-        }
-
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);

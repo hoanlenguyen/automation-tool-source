@@ -13,6 +13,8 @@ namespace IntranetApi.Models
         public string? OtherDepartment { get; set; }
 
         public StaffRecordType RecordType { get; set; }
+        public StaffRecordDetailType RecordDetailType { get; set; }
+        public int LateAmount { get; set; }
 
         [MaxLength(500)]
         public string Reason { get; set; } = string.Empty;

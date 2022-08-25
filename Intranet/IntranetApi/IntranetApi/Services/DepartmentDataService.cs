@@ -29,27 +29,7 @@ namespace IntranetApi.Services
             using var connection = new MySqlConnection(sqlConnectionStr);
             return connection.Query<BaseDropdown>("select Id, Name from Departments where IsDeleted = 0").ToList();
         }
-
-        private static int GetTotalCountByFilter(string sqlConnectionStr, ref DepartmentFilterDto input)
-        {
-            using (var conn = new MySqlConnection(sqlConnectionStr))
-            {
-                conn.Open();
-                var cmd = new MySqlCommand(StoredProcedureName.GetDepartmentTotal, conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@keyword", input.Keyword);
-                cmd.Parameters.AddWithValue("@status", input.Status);
-
-                MySqlDataReader rdr = cmd.ExecuteReader();
-                int count = 0;
-                while (rdr.Read())
-                    count = (int)rdr.GetInt64(0);
-                rdr.Close();
-                conn.Close();
-                return count;
-            }
-        }
-
+        
         public static void AddDepartmentDataService(this WebApplication app, string sqlConnectionStr)
         {
             app.MapGet("Department/{id:int}", [Authorize]

@@ -204,15 +204,9 @@ namespace IntranetApi.Services
 
                 var query = from be in db.BrandEmployees
                             join u in db.Users on be.EmployeeId equals u.Id
-                            where brandIds.Contains(be.BrandId)
+                            where brandIds.Contains(be.BrandId) && u.UserType == UserType.Employee
                             select new {u.Id, u.EmployeeCode, u.Name, FullName=$"{u.EmployeeCode} - {u.Name}"};
-
-                //var employees = db.BrandEmployees
-                //                .Include(p=>p.Employee)
-                //                .Where(p=>p.EmployeeId== userId)
-                //                .Select(p=>new {p.Employee.Id, p.Employee.EmployeeCode, p.Employee.Name})
-                //                .ToList();
-                
+ 
                 return Results.Ok(query.ToList().DistinctBy(p => p.Id));
             })
             .RequireAuthorization(StaffRecordPermissions.View)
@@ -247,6 +241,7 @@ namespace IntranetApi.Services
                     ranks = GetDataList(sqlConnectionStr, nameof(Rank));
                     memoryCache.Set(CacheKeys.GetRanksDropdown, ranks, cacheOptions);
                 }
+
                 if (!string.IsNullOrEmpty(input.Keyword))
                     input.Keyword = input.Keyword.Trim();
 
@@ -256,36 +251,46 @@ namespace IntranetApi.Services
                 if (string.IsNullOrEmpty(input.SortDirection))
                     input.SortDirection = SortDirection.DESC;
 
+                var totalCount = await db.StaffRecords.Include(p => p.Employee)
+                            .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)
+                            .Select(p => p.EmployeeId).Distinct().CountAsync();
+
                 var query = db.StaffRecords
                             .Include(p => p.Employee)
                             .ThenInclude(q => q.BrandEmployees)
                             .AsNoTracking()
-                            .Where(p => !p.IsDeleted)
-                            .GroupBy(p => p.EmployeeId)
+                            .Where(p => !p.IsDeleted && p.Employee.UserType==UserType.Employee)
+                            .ToList()
+                            .GroupBy(p => p.EmployeeId)                           
                             .Select(p => new LeaveHistoryList
                             {
-                                DepartmentId = p.FirstOrDefault().Employee.DeptId,
+                                EmployeeId= p.Key,
                                 EmployeeName = p.FirstOrDefault().Employee.Name,
                                 EmployeeCode = p.FirstOrDefault().Employee.EmployeeCode,
+                                DepartmentId = p.FirstOrDefault().Employee.DeptId,
                                 RankId = p.FirstOrDefault().Employee.RankId,
                                 BrandEmployees = p.FirstOrDefault().Employee.BrandEmployees.Select(p=>p.BrandId),
-                                
-
+                                SumDaysOfPaidOffs=p.Where(p=>p.RecordType==StaffRecordType.PaidOffs).Sum(p=>p.NumberOfDays),
+                                SumDaysOfPaidMCs=p.Where(p=>p.RecordType == StaffRecordType.PaidMCs).Sum(p=>p.NumberOfDays),
+                                SumDaysOfDeduction=p.Where(p=>p.RecordType == StaffRecordType.Deduction).Sum(p=>p.NumberOfDays),
+                                SumHoursOfDeduction=p.Where(p=>p.RecordType == StaffRecordType.Deduction).Sum(p=>p.NumberOfHours),
+                                SumDaysOfExtraPay=p.Where(p=>p.RecordType == StaffRecordType.ExtraPay).Sum(p=>p.NumberOfDays),
+                                SumHoursOfExtraPay = p.Where(p=>p.RecordType == StaffRecordType.ExtraPay).Sum(p=>p.NumberOfHours),
                             });
                              //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                              ;
-
-                var totalCount = await query.CountAsync();
-                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                var items = /*await*/ query/*.OrderByDynamic(input.SortBy, input.SortDirection)*/
                                        .Skip(input.SkipCount)
                                        .Take(input.RowsPerPage)
-                                       .ProjectToType<LeaveHistoryList>()
-                                       .ToListAsync();
+                                       .ToList();
+                                       //.ProjectToType<LeaveHistoryList>()
+                                       //.ToListAsync()
+                                       ;
 
                 foreach (var item in items)
                 {
                     item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
-                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name ?? item.OtherDepartment;
+                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
                     item.Brand = string.Join(',', brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name));
                 }
                 return Results.Ok(new PagedResultDto<LeaveHistoryList>(totalCount, items));

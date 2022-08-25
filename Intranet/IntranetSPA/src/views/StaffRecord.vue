@@ -212,7 +212,7 @@
           </b-field>
 
           <b-field label="Select Extra/ Deduction/ Paid-Offs">
-            <div class="is-flex is-flex-direction-column">
+            <!-- <div class="is-flex is-flex-direction-column">
               <div v-for ="(item, index) in recordTypes" :key="index">
                 <b-radio v-model="model.recordType" 
                   :native-value="item.id"
@@ -220,8 +220,71 @@
                   {{item.name}}
                 </b-radio>
               </div> 
+            </div> -->
+
+            <div class="is-flex is-flex-direction-column">
+              <div class="is-flex is-flex-direction-column mb-2">
+                <b-radio v-model="model.recordType" native-value="0" type="is-info">
+                    Extra pay (OTs, Cover Shift)
+                </b-radio> 
+                <div class="ml-5 my-3 pl-3" v-if="model.recordType==0">
+                  <b-radio v-model="model.recordDetailType"
+                    type="is-info" class="mr-5" size="is-small"
+                    :native-value="recordDetailTypes.extraPayOTs">
+                    OTs <span v-if="sumHours">{{sumHours}} hour(s)</span>
+                  </b-radio>
+                </div>
+                <div class="ml-5 mb-3 pl-3" v-if="model.recordType==0">
+                  <b-radio v-model="model.recordDetailType"
+                    type="is-info" size="is-small"
+                    :native-value="recordDetailTypes.extraPayCoverShift">
+                    Cover Shift
+                  </b-radio>
+                </div>                
+              </div>
+
+              <div class="is-flex is-flex-direction-column mb-2">
+                <b-radio v-model="model.recordType" native-value="1" type="is-info">
+                  Deduction (Late, Unpaid leave)
+                </b-radio>
+
+                <div class="ml-5 my-3 pl-3" v-if="model.recordType==1">
+                  <b-radio v-model="model.recordDetailType"
+                    type="is-info" class="mr-5" size="is-small"
+                    :native-value="recordDetailTypes.deductionUnpaidLeave">
+                    Unpaid leave
+                  </b-radio>
+                </div>
+
+                <div class="ml-5 mb-3  pl-3 is-flex is-flex-direction-row" v-if="model.recordType==1">
+                  <b-radio v-model="model.recordDetailType"
+                    type="is-info" size="is-small"
+                    :native-value="recordDetailTypes.deductionLate">
+                    Late
+                  </b-radio>
+                  <b-field label="Late amount" label-position="on-border">
+                      <b-input
+                      type="number"
+                      min="0"
+                      v-model="model.lateAmount">
+                    </b-input>
+                  </b-field>
+                </div>
+              </div>
+
+              <div>
+                <b-radio v-model="model.recordType" native-value="2" type="is-info">
+                  Paid-Offs
+                </b-radio>
+              </div>
+
+              <div>
+                <b-radio v-model="model.recordType" native-value="3" type="is-info">
+                  Paid-MCs
+                </b-radio>
+              </div>
             </div>
-            
+
           </b-field>
 
           <b-field label="Reason">
@@ -231,21 +294,41 @@
               required maxlength="500">
             </b-input>
           </b-field>
-          <b-field label="Start date">             
+          <b-field label="Start date"> 
+            <b-datetimepicker
+              icon="calendar-today"
+              locale="en-SG"
+              v-model="startDate"
+              editable required
+              v-if="model.recordDetailType==recordDetailTypes.extraPayOTs|| model.recordDetailType==recordDetailTypes.deductionLate">
+            </b-datetimepicker>
+
             <b-datepicker
               icon="calendar-today"
               locale="en-SG"
               v-model="startDate"
-              editable required>
+              editable required
+              v-else>
             </b-datepicker>
           </b-field>
 
           <b-field label="End date">
+            <b-datetimepicker
+              icon="calendar-today"
+              locale="en-SG"
+              v-model="endDate"
+              editable required
+              :min-datetime="startDate"
+              v-if="model.recordDetailType==recordDetailTypes.extraPayOTs|| model.recordDetailType==recordDetailTypes.deductionLate">
+            </b-datetimepicker>
+
             <b-datepicker
               icon="calendar-today"
               locale="en-SG"
               v-model="endDate"
-              editable required>
+              editable required
+              :min-date="startDate"
+              v-else>
             </b-datepicker>
           </b-field>
 
@@ -375,7 +458,8 @@ export default {
         employeeId:0,
         departmentId:null,
         otherDepartment:null,
-        recordType:0,
+        recordType:null,
+        recordDetailType:null,
         reason:'',
         remarks:null,
         staffRecordDocuments:[]
@@ -386,7 +470,8 @@ export default {
         employeeId:0,
         departmentId:null,
         otherDepartment:null,
-        recordType:0,
+        recordType:null,
+        recordDetailType:null,
         reason:'',
         remarks:null,
         staffRecordDocuments:[]
@@ -399,17 +484,46 @@ export default {
       startDate:null,
       endDate:null,
       isLoadingFiles:false,
-      recordTypes:
+      recordTypeValues:
       [
         {id:0,name:'Extra pay (OTs, Cover Shift)'},
         {id:1,name:'Deduction (Late, Unpaid leave)'},
         {id:2,name:'Paid-Offs'},
         {id:3,name:'Paid-MCs'},
-      ]
+      ],
+      recordTypes:{
+        extraPay:0,
+        deduction:1,
+        paidOff:2,
+        paidMCs:3
+      },
+      recordDetailTypes:
+      {
+        extraPayOTs:0,
+        extraPayCoverShift:2,
+        deductionLate:4,
+        deductionUnpaidLeave:8,
+        paidOffs:16,
+        paidMCs:32
+      },
     };
   },
-  watch: {},
+  watch: {
+    "model.recordType"(value){
+      if(value==2)
+        this.model.recordDetailType= this.recordDetailTypes.paidOffs;
+      else if(value==3)
+        this.model.recordDetailType= this.recordDetailTypes.paidMCs;
+    }
+  },
   computed: {
+    sumHours(){
+      if(!this.startDate || !this.endDate) return '';
+      return Math.round(Math.abs(this.endDate - this.startDate) / (1000 * 60 * 60));
+    },
+    sumDays(){
+
+    },
     canCreate() {
       return (
         this.$store.state.userPermissions &&
@@ -533,13 +647,12 @@ export default {
           });
         return;
       }
-      
 
       if(this.startDate)
-        this.model.startDate = `${this.startDate.getFullYear()}-${('0' + (this.startDate.getMonth()+1)).slice(-2)}-${('0' + this.startDate.getDate()).slice(-2)}`;
-
+        this.model.startDate = this.convertDateToString(this.startDate);
+        console.log(this.model.startDate);
       if(this.endDate)
-        this.model.endDate = `${this.endDate.getFullYear()}-${('0' + (this.endDate.getMonth()+1)).slice(-2)}-${('0' + this.endDate.getDate()).slice(-2)}`;
+        this.model.endDate = this.convertDateToString(this.endDate);
       
       createOrUpdate(this.model)
       .then((response) => {
@@ -576,8 +689,8 @@ export default {
       },
     editModel(input){
       this.model= {...input};
-      this.startDate= moment(this.model.startDate,'YYYY-MM-DD').toDate();
-      this.endDate= moment(this.model.endDate,'YYYY-MM-DD').toDate();
+      this.startDate= moment(this.model.startDate,'YYYY-MM-DD hh:mm:ss').toDate();
+      this.endDate= moment(this.model.endDate,'YYYY-MM-DD hh:mm:ss').toDate();
       this.isModalActive= true;
     },
     deleteData(){

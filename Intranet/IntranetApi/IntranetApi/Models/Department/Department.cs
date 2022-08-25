@@ -6,5 +6,6 @@ namespace IntranetApi.Models
     {
         [MaxLength(150)]
         public string Name { get; set; }
+        public int WorkingHours { get; set; }
     }
 }

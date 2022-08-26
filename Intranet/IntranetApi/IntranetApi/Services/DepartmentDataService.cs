@@ -32,7 +32,7 @@ namespace IntranetApi.Services
         
         public static void AddDepartmentDataService(this WebApplication app, string sqlConnectionStr)
         {
-            app.MapGet("Department/{id:int}", [Authorize]
+            app.MapGet("Department/{id:int}", [AllowAnonymous]
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             int id) =>

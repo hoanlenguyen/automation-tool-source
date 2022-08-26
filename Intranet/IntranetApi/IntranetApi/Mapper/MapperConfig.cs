@@ -14,6 +14,11 @@ namespace IntranetApi.Mapper
                             .Map(dest => dest.IsDeleted, src => false)
                             ;
 
+            TypeAdapterConfig<EmployeeBulkInsert, User>.NewConfig()
+                            .Map(dest => dest.Email, src => $"{src.EmployeeCode}@intranet.com")
+                            .Map(dest => dest.BrandEmployees, src => src.BrandIds.Select(p=> new BrandEmployee { BrandId = p }).ToList())
+                            ;
+
             TypeAdapterConfig<EmployeeExcelInput, EmployeeImportError>.NewConfig()
                             .Ignore(p => p.Cells)
                             .Ignore(p => p.ErrorDetails)
@@ -33,7 +38,7 @@ namespace IntranetApi.Mapper
                            ;
 
             TypeAdapterConfig<EmployeeCreateOrEdit, User>.NewConfig()
-                           .Map(dest => dest.UserName, src=>src.EmployeeCode )
+                           .Map(dest => dest.UserName, src=>src.EmployeeCode)
                            .Map(dest => dest.UserRoles, src => new List<UserRole> { new UserRole {RoleId= src.RoleId } })
                            .Map(dest => dest.BrandEmployees, src => src.BrandIds.Select(p=>new BrandEmployee { BrandId=p, EmployeeId= src.Id}))
                            ;

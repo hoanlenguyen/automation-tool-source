@@ -23,7 +23,6 @@ namespace IntranetApi.Models
         public DateTime EndDate { get; set; }
         public int NumberOfDays { get; set; }
         public int NumberOfHours { get; set; }
-        [Column(TypeName = "decimal(18,4)")]
         public decimal Fine { get; set; }
 
         [MaxLength(200)]

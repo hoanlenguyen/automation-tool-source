@@ -41,15 +41,10 @@ namespace IntranetApi.Models
         public bool Status { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
         public int Salary { get; set; }
-        [MaxLength(150)]
         public string? Note { get; set; }
-        [MaxLength(100)]
-        public string BrandIds { get; set; }
-        [MaxLength(20)]
+        public List<int> BrandIds { get; set; }
         public string IntranetUsername { get; set; }
-        [MaxLength(20)]
         public string IntranetPassword { get; set; }
-        [MaxLength(80)]
         public string? Country { get; set; }
     }
 }

@@ -125,7 +125,7 @@ namespace IntranetApi.Services
                 user.LastModifierUserId = userId;
                 user.LastModificationTime = DateTime.Now;
                 user.UserName = user.EmployeeCode;
-
+                user.NormalizedUserName= user.UserName.ToUpperInvariant();
                 if (!user.IntranetPassword.Equals(currentPassword)
                                     && user.IntranetPassword.IsNotNullOrEmpty())
                 {
@@ -260,11 +260,12 @@ namespace IntranetApi.Services
                 List<BaseDropdown> departments = null;
                 List<BaseDropdown> ranks = null;
                 var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-                if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out roles))
-                {
-                    roles = GetDataList(sqlConnectionStr, nameof(Role));
-                    memoryCache.Set(CacheKeys.GetRolesDropdown, roles, cacheOptions);
-                }
+                //if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out roles))
+                //{
+                //    roles = GetDataList(sqlConnectionStr, nameof(Role));
+                //    memoryCache.Set(CacheKeys.GetRolesDropdown, roles, cacheOptions);
+                //}
+                roles = GetDataList(sqlConnectionStr, nameof(Role));
 
                 if (!memoryCache.TryGetValue(CacheKeys.GetBanksDropdown, out banks))
                 {
@@ -549,7 +550,12 @@ namespace IntranetApi.Services
                         }
                     }
                     Console.WriteLine($"employees count {employees.Count}");
-                    var duplicateResult = await CheckUniqueValue(employees);
+                    //var duplicateResult = await CheckUniqueValue(employees);
+                    var duplicateResult = new EmployeeCheckUnique();
+                    var employeeCodes = employees.Select(p => p.EmployeeCode);
+                    duplicateResult.EmployeeCodes = db.Users.Where(p => employeeCodes.Contains(p.EmployeeCode))
+                                                            .Select(p=>p.EmployeeCode)
+                                                            .ToList();
                     var index = 0;
                     foreach (var value in duplicateResult.EmployeeCodes)
                     {
@@ -634,26 +640,21 @@ namespace IntranetApi.Services
                         ).ToList();                    
                     foreach (var item in employees)
                     {
-                        try
+                        //try
                         {
-                            var user = new User
-                            {
-                                UserName = item.IntranetUsername ?? item.EmployeeCode,
-                                Name = item.Name,
-                                Email = $"{item.EmployeeCode}@intranet.com",
-                                IsFirstTimeLogin = true
-                            };
-
+                            var user = item.Adapt<User>();
+                            Console.WriteLine(user.UserName);
                             var result = await userManager.CreateAsync(user, item.IntranetPassword);
                             item.UserId= user.Id;
+                            await db.UserRoles.AddAsync(new UserRole { RoleId = item.RoleId, UserId = user.Id });
                         }
-                        catch (Exception)
-                        {
-                            throw;
-                        }
+                        //catch (Exception)
+                        //{
+                        //    throw;
+                        //}
                     }
-                    await db.Users.AddRangeAsync(employees.Adapt<IEnumerable<User>>());
-                    await db.SaveChangesAsync();
+                    //await db.Users.AddRangeAsync(employees.Adapt<IEnumerable<User>>());
+                    //await db.SaveChangesAsync();
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
                 }
@@ -726,30 +727,29 @@ namespace IntranetApi.Services
                 var result = new EmployeeCheckUnique();
                 if (items.Count() == 0) return result;
                 var watch = Stopwatch.StartNew();
-                var dataTable = items.ToDataTable();
-                using var connection = new MySqlConnection(sqlConnectionStr);
-                connection.Open();
-                var commandStr = $"create temporary table IF NOT EXISTS TempEmployeeList SELECT * FROM Employee LIMIT 0;";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
-                {
-                    myCmd.CommandType = CommandType.Text;
-                    myCmd.ExecuteNonQuery();
-                }
-                Console.WriteLine($"create temporary table TempEmployeeList");
-                var bulkCopy = new MySqlBulkCopy(connection);
-                bulkCopy.DestinationTableName = "TempEmployeeList";
-                bulkCopy.BulkCopyTimeout = 0;
-                await bulkCopy.WriteToServerAsync(dataTable);
-                watch.Stop();
-                Console.WriteLine($"WriteToServerAsync TempEmployeeList time: {watch.Elapsed.TotalSeconds}");
-                watch.Restart();
-                commandStr = "select t.EmployeeCode " +
-                             "from TempEmployeeList  t " +
-                             "inner join Employee c " +
-                             "on t.EmployeeCode = c.EmployeeCode ";
-                result.EmployeeCodes = connection.Query<string>(commandStr).ToList();
-                watch.Stop();
-                Console.WriteLine($"query join table TempEmployeeList - EmployeeCode, time: {watch.Elapsed.TotalSeconds}");
+                //var dataTable = items.ToDataTable();
+                //using var connection = new MySqlConnection(sqlConnectionStr);
+                //connection.Open();
+                //var commandStr = $"create temporary table IF NOT EXISTS TempEmployeeList SELECT * FROM users LIMIT 0;";
+                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                //{
+                //    myCmd.CommandType = CommandType.Text;
+                //    myCmd.ExecuteNonQuery();
+                //}
+                //Console.WriteLine($"create temporary table TempEmployeeList");
+                //var bulkCopy = new MySqlBulkCopy(connection);
+                //bulkCopy.DestinationTableName = "TempEmployeeList";
+                //bulkCopy.BulkCopyTimeout = 0;
+                //await bulkCopy.WriteToServerAsync(dataTable);
+                //watch.Stop();
+                //Console.WriteLine($"WriteToServerAsync TempEmployeeList time: {watch.Elapsed.TotalSeconds}");
+                //watch.Restart();
+                //commandStr = "select t.EmployeeCode " +
+                //             "from TempEmployeeList  t " +
+                //             "inner join Employee c " +
+                //             "on t.EmployeeCode = c.EmployeeCode ";
+                //result.EmployeeCodes = connection.Query<string>(commandStr).ToList();
+                //watch.Stop();
 
                 //watch.Restart();
                 //commandStr = "select t.BackendUser " +
@@ -775,13 +775,12 @@ namespace IntranetApi.Services
                 //result.IntranetUsernames = connection.Query<string>(commandStr).ToList();
                 //Console.WriteLine($"query join table TempEmployeeList - IntranetUsername, time: {watch.Elapsed.TotalSeconds}");
 
-                commandStr = "DROP TEMPORARY TABLE IF EXISTS TempEmployeeList";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
-                {
-                    myCmd.CommandType = CommandType.Text;
-                    myCmd.ExecuteNonQuery();
-                }
-
+                //commandStr = "DROP TEMPORARY TABLE IF EXISTS TempEmployeeList";
+                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                //{
+                //    myCmd.CommandType = CommandType.Text;
+                //    myCmd.ExecuteNonQuery();
+                //}
                 return result;
             }
 

@@ -104,6 +104,15 @@ export default {
         label: 'Time-off',
         icon: 'clock-outline'
         });
+      
+      if(this.$store.state.userPermissions.includes(
+        "StaffRecord.View"
+      ))
+        items.push({
+        to: '/leave-history',
+        label: 'Leave history',
+        icon: 'clock-outline'
+      });
 
        return [items];
     },

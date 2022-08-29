@@ -25,60 +25,159 @@
       :debounce-page-input="200"
     >
       <b-table-column
-        field="Name"
-        label="Name"
+        field="departmentId"
+        label="Dept"
         sortable        
-        width="350px"
+        width="200px"
+        header-class="is-size-7"
         v-slot="props"
       >       
-      {{ props.row.name}}
+      {{ props.row.department}}
       </b-table-column>
 
       <b-table-column
-        field="Status"
-        label="Status"
-        sortable
+        field="employee.Name"
+        label="Name"
+        sortable        
+        width="200px"
+        header-class="is-size-7"
         v-slot="props"
-        width="300px">        
-       <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
+      >       
+      {{ props.row.employeeName}}
       </b-table-column>
 
       <b-table-column
-        field="CreationTime"
-        label="CreationTime"
-        sortable
+        field="employee.employeeCode"
+        label="Employee ID"
+        sortable        
+        width="200px"
+        header-class="is-size-7"
         v-slot="props"
-        width="300px">
-       {{ props.row.creationTime | dateTime }} 
+      >       
+      {{ props.row.employeeCode}}
       </b-table-column>
 
       <b-table-column
-        field="Edit"
-        label="Edit"        
+        field="employee.rankId"
+        label="Rank"
+        sortable        
+        width="200px"
+        header-class="is-size-7"
         v-slot="props"
-        width="100px">
-        <b-button 
-          v-if="canUpdate"
-          title="edit"          
-          class="button mr-5"
-          @click="editModel(props.row)" 
-          style="padding: 0; border: none; background: none;">
-          <b-icon
-            icon="pencil"
-            type="is-info">
-          </b-icon>
-        </b-button> 
-        <b-button 
-          v-if="canDelete"
-          title="delete"          
-          class="button has-text-grey"
-          @click="deleteSelectedModel(props.row.id)" 
-          style="padding: 0; border: none; background: none;">
-          <b-icon
-            icon="delete">
-          </b-icon>
-        </b-button>       
+      >       
+      {{ props.row.rank}}
       </b-table-column>
+
+      <b-table-column
+        field="BrandId"
+        label="Brand"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.brand}}
+      </b-table-column>
+
+      <b-table-column
+        field="sumDaysOfPaidMCs"
+        label="Paid MCs"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.sumDaysOfPaidMCs}}
+      </b-table-column>
+
+      <b-table-column
+        field="sumDaysOfPaidMCs"
+        label="Paid MCs"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.sumDaysOfPaidMCs}}
+      </b-table-column>
+      
+      <b-table-column
+        field="sumDaysOfPaidOffs"
+        label="Paid Offs"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.sumDaysOfPaidOffs}}
+      </b-table-column>
+
+      <b-table-column
+        field="sumDaysOfPaidOffs"
+        label="Paid Offs"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.sumDaysOfPaidOffs}}
+      </b-table-column>
+
+
+      <b-table-column
+        field="sumHoursOfExtraPay"
+        label="Rxtra OTs(hours)"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.sumHoursOfExtraPay}}
+      </b-table-column>
+
+      <b-table-column
+        field="sumDaysOfExtraPay"
+        label="Extra day"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.sumDaysOfExtraPay}}
+      </b-table-column>
+
+      <b-table-column
+        field="sumDaysOfDeduction"
+        label="Unpaid of Leaves (Amount of day)"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.sumDaysOfDeduction}}
+      </b-table-column>
+
+      <b-table-column
+        field="sumHoursOfDeduction"
+        label="Late"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.sumHoursOfDeduction}}
+      </b-table-column>
+
+      <b-table-column
+        field="lateAmount"
+        label="Late amount"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.lateAmount}}
+      </b-table-column>
+
+      <b-table-column
+        field="fines"
+        label="Fines"
+        width="200px"
+        header-class="is-size-7"
+        v-slot="props"
+      >       
+      {{ props.row.fines}}
+      </b-table-column>      
 
       <template #empty>
         <div class="has-text-centered">No records</div>
@@ -175,7 +274,7 @@
   </section>
 </template>
 <script>
-import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/bank";
+import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/leaveHistory";
 export default {
   name:"bank",
   created() {

@@ -84,8 +84,16 @@ const routes = [
       title: 'Profile'
     },
     path: '/profile',
-    name: 'profile',
+    name: 'Profile',
     component: () => import('@/views/Profile.vue')
+  },
+  {
+    meta: {
+      title: 'LeaveHistory'
+    },
+    path: '/leave-history',
+    name: 'Leave History',
+    component: () => import('@/views/LeaveHistory.vue')
   },  
   {
     path: '/full-page',

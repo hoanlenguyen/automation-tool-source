@@ -189,7 +189,6 @@ namespace IntranetApi.Services
                     item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
                     item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name??item.OtherDepartment;
                     item.CreatorName= creators.FirstOrDefault(p=>p.Id == item.CreatorUserId)?.Name;
-
                 }
                 return Results.Ok(new PagedResultDto<StaffRecordList>(totalCount, items));
             })
@@ -216,7 +215,7 @@ namespace IntranetApi.Services
             .RequireAuthorization(StaffRecordPermissions.View)
             ;
 
-            app.MapPost("LeaveHistory/list", [AllowAnonymous]
+            app.MapPost("LeaveHistory/list", [Authorize]
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,

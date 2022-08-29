@@ -124,7 +124,7 @@ namespace IntranetApi.Services
                 input.Adapt(user);
                 user.LastModifierUserId = userId;
                 user.LastModificationTime = DateTime.Now;
-                user.UserName = user.EmployeeCode;
+                //user.UserName = user.EmployeeCode;
                 user.NormalizedUserName= user.UserName.ToUpperInvariant();
                 if (!user.IntranetPassword.Equals(currentPassword)
                                     && user.IntranetPassword.IsNotNullOrEmpty())
@@ -303,7 +303,7 @@ namespace IntranetApi.Services
                     var brandEmployees = new List<BrandEmployee>();
                     var rowCount = 0;
                     var rowInput = new EmployeeExcelInput();
-                    var rowInputList = new List<EmployeeExcelInput>();
+                    //var rowInputList = new List<EmployeeExcelInput>();
                     //Process excel file
                     using (var stream = new MemoryStream())
                     {
@@ -345,9 +345,9 @@ namespace IntranetApi.Services
                                 rowInput.BackendUser = (worksheet.Cells[row, 14]?.Text ?? string.Empty).Trim();//N
                                 rowInput.BackendPass = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
                                 rowInput.Role = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//P
-                                rowInput.IntranetUsername = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
-                                rowInput.IntranetPassword = (worksheet.Cells[row, 18]?.Text ?? string.Empty).Trim();//R
-                                rowInput.Note = (worksheet.Cells[row, 19]?.Text ?? string.Empty).Trim();//S
+                                //rowInput.IntranetUsername = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
+                                rowInput.IntranetPassword = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
+                                rowInput.Note = (worksheet.Cells[row, 18]?.Text ?? string.Empty).Trim();//R
 
                                 //i = 0;
                                 //check error
@@ -518,13 +518,13 @@ namespace IntranetApi.Services
                                     }
                                 }
 
-                                if (string.IsNullOrEmpty(rowInput.IntranetUsername))//Q
-                                {
-                                    cells.Add($"Q{row}");
-                                    errorDetails.Add("Missing Intranet Username");
-                                }
+                                //if (string.IsNullOrEmpty(rowInput.IntranetUsername))//Q
+                                //{
+                                //    cells.Add($"Q{row}");
+                                //    errorDetails.Add("Missing Intranet Username");
+                                //}
 
-                                if (string.IsNullOrEmpty(rowInput.IntranetPassword))//R
+                                if (string.IsNullOrEmpty(rowInput.IntranetPassword))//Q
                                 {
                                     cells.Add($"R{row}");
                                     errorDetails.Add("Missing Intranet Password");
@@ -545,116 +545,52 @@ namespace IntranetApi.Services
                                 }
                                 cells = new List<string>(); //reset after add
                                 errorDetails = new List<string>(); //reset after add
-                                rowInputList.Add(rowInput);
+                                //rowInputList.Add(rowInput);
                             }
                         }
                     }
                     Console.WriteLine($"employees count {employees.Count}");
                     //var duplicateResult = await CheckUniqueValue(employees);
                     var duplicateResult = new EmployeeCheckUnique();
-                    var employeeCodes = employees.Select(p => p.EmployeeCode);
-                    duplicateResult.EmployeeCodes = db.Users.Where(p => employeeCodes.Contains(p.EmployeeCode))
+                    var employeeCodes = employees.Select(p => p.EmployeeCode.ToUpperInvariant());
+                    duplicateResult.EmployeeCodes = db.Users.Where(p => employeeCodes.Contains(p.NormalizedUserName))
                                                             .Select(p=>p.EmployeeCode)
                                                             .ToList();
                     var index = 0;
+                    //Console.WriteLine($"employees.Count {employees.Count}");
+                    //Console.WriteLine($"employees.0 {employees[0]?.EmployeeCode}");
+                    //Console.WriteLine($"employees.1 {employees[1]?.EmployeeCode}");
                     foreach (var value in duplicateResult.EmployeeCodes)
                     {
-                        Console.WriteLine($"duplicateResult.EmployeeCodes {value}");
-                        index = rowInputList.FindIndex(p => p.EmployeeCode.Equals(value, StringComparison.OrdinalIgnoreCase));
+                        index = employees.FindIndex(p => p.EmployeeCode.Equals(value, StringComparison.OrdinalIgnoreCase));
+                        Console.WriteLine($"index {index}");
                         if (index > -1)
                         {
-                            var employee = rowInputList[index].Adapt<EmployeeImportError>();
+                            Console.WriteLine($"duplicateResult.EmployeeCodes {value}");
+                            var employee = employees[index].Adapt<EmployeeImportError>();
                             employee.Cells = $"B{index + 1}";
                             employee.ErrorDetails = "EmployeeCode existed";
                             errorList.Add(employee);
                         }
                     }
-                    foreach (var value in duplicateResult.IdNumbers)
-                    {
-                        Console.WriteLine($"duplicateResult.IdNumbers {value}");
-                        index = rowInputList.FindIndex(p => p.IdNumber.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (index > -1)
-                        {
-                            var employee = rowInputList[index].Adapt<EmployeeImportError>();
-                            var checkIndex = rowInputList.FindIndex(p => p.EmployeeCode.Equals(employee.EmployeeCode, StringComparison.OrdinalIgnoreCase));
-                            if (checkIndex > -1)
-                            {
-                                errorList[checkIndex].Cells += $"-L{index + 2}";
-                                errorList[checkIndex].ErrorDetails += "-IdNumber existed";
-                            }
-                            else
-                            {
-                                employee.Cells += $"-L{index + 2}";
-                                employee.ErrorDetails += "-IdNumber existed";
-                                errorList.Add(employee);
-                            }
-                        }
-                    }
-                    foreach (var value in duplicateResult.BackendUsers)
-                    {
-                        Console.WriteLine($"duplicateResult.BackendUsers {value}");
-                        index = rowInputList.FindIndex(p => p.BackendUser.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (index > -1)
-                        {
-                            var employee = rowInputList[index].Adapt<EmployeeImportError>();
-                            var checkIndex = errorList.FindIndex(p => p.EmployeeCode.Equals(employee.EmployeeCode, StringComparison.OrdinalIgnoreCase));
-                            if (checkIndex > -1)
-                            {
-                                errorList[checkIndex].Cells += $"-M{index + 2}";
-                                errorList[checkIndex].ErrorDetails += "-BackendUser existed";
-                            }
-                            else
-                            {
-                                employee.Cells += $"-M{index + 2}";
-                                employee.ErrorDetails += "-BackendUser existed";
-                                errorList.Add(employee);
-                            }
-                        }
-                    }
-                    foreach (var value in duplicateResult.IntranetUsernames)
-                    {
-                        Console.WriteLine($"duplicateResult.IntranetUsernames {value}");
-                        index = rowInputList.FindIndex(p => p.IntranetUsername.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (index > -1)
-                        {
-                            var employee = rowInputList[index].Adapt<EmployeeImportError>();
-                            var checkIndex = rowInputList.FindIndex(p => p.IntranetUsername.Equals(employee.IntranetUsername, StringComparison.OrdinalIgnoreCase));
-                            if (checkIndex > -1)
-                            {
-                                errorList[checkIndex].Cells += $"-M{index + 2}";
-                                errorList[checkIndex].ErrorDetails += "-IntranetUsername existed";
-                            }
-                            else
-                            {
-                                employee.Cells += $"-M{index + 2}";
-                                employee.ErrorDetails += "-IntranetUsername existed";
-                                errorList.Add(employee);
-                            }
-                        }
-                    }
+                     
                     employees = employees.Where(
-                        p => !duplicateResult.EmployeeCodes.Contains(p.EmployeeCode)
-                    && !duplicateResult.IdNumbers.Contains(p.IdNumber)
-                    && !duplicateResult.BackendUsers.Contains(p.BackendUser)
-                    && !duplicateResult.IntranetUsernames.Contains(p.IntranetUsername)
-                        ).ToList();                    
+                        p => !duplicateResult.EmployeeCodes.Contains(p.EmployeeCode)                    
+                        ).ToList();
+                    var userRoles = new List<UserRole>();
                     foreach (var item in employees)
                     {
-                        //try
-                        {
-                            var user = item.Adapt<User>();
-                            Console.WriteLine(user.UserName);
-                            var result = await userManager.CreateAsync(user, item.IntranetPassword);
-                            item.UserId= user.Id;
-                            await db.UserRoles.AddAsync(new UserRole { RoleId = item.RoleId, UserId = user.Id });
-                        }
-                        //catch (Exception)
-                        //{
-                        //    throw;
-                        //}
+                        var user = item.Adapt<User>();
+                        var result = await userManager.CreateAsync(user, item.IntranetPassword);
+                        item.UserId = user.Id;
+                        userRoles.Add(new UserRole { RoleId = item.RoleId, UserId = user.Id });
                     }
-                    //await db.Users.AddRangeAsync(employees.Adapt<IEnumerable<User>>());
-                    //await db.SaveChangesAsync();
+
+                    if (userRoles.Any())
+                    {
+                        await db.UserRoles.AddRangeAsync(userRoles);
+                        await db.SaveChangesAsync();
+                    }                    
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
                 }

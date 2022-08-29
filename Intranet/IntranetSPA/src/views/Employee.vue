@@ -29,7 +29,7 @@
         field="Name"
         label="Name"
         sortable        
-        width="200"
+        width="300"
         header-class="is-size-7"        
         v-slot="props"
       >       
@@ -515,8 +515,8 @@
         </b-field>                
         </section>
         <footer class="modal-card-foot">
-          <b-button label="Cancel" @click="file=null;isShowImportResult=false;isModalImportActive=false" />
-          <b-button label="Import Data" type="is-primary" :disabled="file==null" @click="importEmployees"/>
+          <b-button label="Close" @click="file=null;isShowImportResult=false;isModalImportActive=false" />
+          <b-button label="Import Data" type="is-primary" :disabled="file==null" @click="importEmployees" :loading="isImportLoading"/>
         </footer>
         </div>
     </b-modal>

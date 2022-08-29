@@ -93,6 +93,16 @@
       </b-table-column>
 
       <b-table-column
+        field="creatorUserId"
+        label="Created by"
+        v-slot="props"
+        width="300px"
+        header-class="is-size-7">        
+       {{ props.row.creatorName}}       
+      </b-table-column>
+
+
+      <b-table-column
         field="Edit"
         label="Edit"        
         v-slot="props"
@@ -360,10 +370,9 @@
             </div>
             
             <div v-if="model.staffRecordDocuments.length>0">
-              <div v-for="(documentName, index) in model.staffRecordDocuments" 
+              <div v-for="(documentName, index) in model.staffRecordDocuments" :key="index" 
                   class="is-flex is-flex-direction-row my-3">
-                <b-tag
-                  :key="index"
+                <b-tag                  
                   type="is-info"
                   >
                   <span>{{documentName}}</span>
@@ -642,6 +651,15 @@ export default {
       if(!this.endDate){
         this.$buefy.snackbar.open({
             message: 'Missing End Date!',
+            queue: false,
+            type: 'is-warning'
+          });
+        return;
+      }
+
+      if(!this.model.reason){
+        this.$buefy.snackbar.open({
+            message: 'Missing Reason!',
             queue: false,
             type: 'is-warning'
           });

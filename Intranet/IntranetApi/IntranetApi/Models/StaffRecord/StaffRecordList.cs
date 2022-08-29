@@ -25,5 +25,6 @@ namespace IntranetApi.Models
         public DateTime EndDate { get; set; }
         public string? Remarks { get; set; }
         public string? OtherDepartment { get; set; }
+        public string CreatorName { get; set; }
     }
 }

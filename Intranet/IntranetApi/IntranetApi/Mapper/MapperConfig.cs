@@ -15,6 +15,7 @@ namespace IntranetApi.Mapper
                             ;
 
             TypeAdapterConfig<EmployeeBulkInsert, User>.NewConfig()
+                            .Map(dest => dest.UserName, src => src.EmployeeCode)
                             .Map(dest => dest.Email, src => $"{src.EmployeeCode}@intranet.com")
                             .Map(dest => dest.BrandEmployees, src => src.BrandIds.Select(p=> new BrandEmployee { BrandId = p }).ToList())
                             ;

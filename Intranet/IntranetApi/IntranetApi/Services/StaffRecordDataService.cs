@@ -182,10 +182,14 @@ namespace IntranetApi.Services
                                        .Take(input.RowsPerPage)
                                        .ProjectToType<StaffRecordList>()
                                        .ToListAsync();
+                var creatorIds = items.Select(p => p.CreatorUserId);
+                var creators = await db.Users.Where(p => creatorIds.Contains(p.Id)).Select(p => new { p.Id, p.Name }).ToListAsync();
                 foreach (var item in items)
                 {
                     item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
                     item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name??item.OtherDepartment;
+                    item.CreatorName= creators.FirstOrDefault(p=>p.Id == item.CreatorUserId)?.Name;
+
                 }
                 return Results.Ok(new PagedResultDto<StaffRecordList>(totalCount, items));
             })

@@ -26,6 +26,7 @@ namespace IntranetApi.Mapper
                             .Map(dest => dest.Salary, src => src.SalaryStr)
                             .Map(dest => dest.BirthDate, src => src.BirthDateStr)
                             .Map(dest => dest.StartDate, src => src.StartDateStr)
+                            .Map(dest => dest.IntranetRole, src => src.Role)                             
                             ;
 
             TypeAdapterConfig<User, EmployeeExcelInput>.NewConfig()

@@ -86,18 +86,8 @@
         v-slot="props"
       >       
       {{ props.row.sumDaysOfPaidMCs}}
-      </b-table-column>
-
-      <b-table-column
-        field="sumDaysOfPaidMCs"
-        label="Paid MCs"
-        width="200px"
-        header-class="is-size-7"
-        v-slot="props"
-      >       
-      {{ props.row.sumDaysOfPaidMCs}}
-      </b-table-column>
-      
+      </b-table-column> 
+ 
       <b-table-column
         field="sumDaysOfPaidOffs"
         label="Paid Offs"
@@ -107,18 +97,7 @@
       >       
       {{ props.row.sumDaysOfPaidOffs}}
       </b-table-column>
-
-      <b-table-column
-        field="sumDaysOfPaidOffs"
-        label="Paid Offs"
-        width="200px"
-        header-class="is-size-7"
-        v-slot="props"
-      >       
-      {{ props.row.sumDaysOfPaidOffs}}
-      </b-table-column>
-
-
+ 
       <b-table-column
         field="sumHoursOfExtraPay"
         label="Rxtra OTs(hours)"

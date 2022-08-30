@@ -23,8 +23,14 @@ namespace IntranetApi.Services
         private static readonly IReadOnlyList<string> Valid_DateTime_Formats = new List<string>
         {
             "dd/MM/yyyy",
+            "d/MM/yyyy",
+            "dd/M/yyyy",
+            "d/M/yyyy",
             "dd/MM/yyyy hh:mm:ss",
             "dd-MM-yyyy",
+            "d-MM-yyyy",
+            "dd-M-yyyy",
+            "d-M-yyyy",
             "dd-MM-yyyy hh:mm:ss",
             "dd/MMM/yyyy",
             "dd-MMM-yyyy"
@@ -291,6 +297,7 @@ namespace IntranetApi.Services
                     memoryCache.Set(CacheKeys.GetRanksDropdown, ranks, cacheOptions);
                 }
                 var totalRows = 0;
+                var rowInputList = new List<EmployeeExcelInput>();
                 var shouldSendEmail = false;
                 var errorList = new List<EmployeeImportError>();
                 var formFile = request.Form.Files.FirstOrDefault();
@@ -303,7 +310,6 @@ namespace IntranetApi.Services
                     var brandEmployees = new List<BrandEmployee>();
                     var rowCount = 0;
                     var rowInput = new EmployeeExcelInput();
-                    //var rowInputList = new List<EmployeeExcelInput>();
                     //Process excel file
                     using (var stream = new MemoryStream())
                     {
@@ -321,7 +327,7 @@ namespace IntranetApi.Services
                             totalRows += rowCount - 1;
                             //read excel file data and add data
                             var now = DateTime.Now;
-                            var cells = new List<string>();
+                            var errorCells = new List<string>();
                             var errorDetails = new List<string>();
                             var brandNames = new List<string>();
                             EmployeeBulkInsert newEmployee;
@@ -345,27 +351,27 @@ namespace IntranetApi.Services
                                 rowInput.BackendUser = (worksheet.Cells[row, 14]?.Text ?? string.Empty).Trim();//N
                                 rowInput.BackendPass = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
                                 rowInput.Role = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//P
-                                //rowInput.IntranetUsername = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
                                 rowInput.IntranetPassword = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
                                 rowInput.Note = (worksheet.Cells[row, 18]?.Text ?? string.Empty).Trim();//R
 
-                                //i = 0;
+                                if (rowInput.Name.IsNullOrEmpty() && rowInput.EmployeeCode.IsNullOrEmpty() && rowInput.Rank.IsNullOrEmpty())
+                                    continue;
                                 //check error
                                 if (string.IsNullOrEmpty(rowInput.Name))//A
                                 {
-                                    cells.Add($"A{row}");
+                                    errorCells.Add($"A{row}");
                                     errorDetails.Add("Missing Name");
                                 }
 
                                 if (string.IsNullOrEmpty(rowInput.EmployeeCode))//B
                                 {
-                                    cells.Add($"B{row}");
+                                    errorCells.Add($"B{row}");
                                     errorDetails.Add("Missing Employee Code");
                                 }
 
                                 if (string.IsNullOrEmpty(rowInput.Rank))//C
                                 {
-                                    cells.Add($"C{row}");
+                                    errorCells.Add($"C{row}");
                                     errorDetails.Add("Missing Rank");
                                 }
                                 else
@@ -374,14 +380,14 @@ namespace IntranetApi.Services
                                     rowInput.RankId = ranks.FirstOrDefault(p => p.Name.Equals(rowInput.Rank, StringComparison.OrdinalIgnoreCase))?.Id;
                                     if (rowInput.RankId == null)
                                     {
-                                        cells.Add($"C{row}");
+                                        errorCells.Add($"C{row}");
                                         errorDetails.Add("Invalid Rank");
                                     }
                                 }
 
                                 if (string.IsNullOrEmpty(rowInput.Dept))//D
                                 {
-                                    cells.Add($"D{row}");
+                                    errorCells.Add($"D{row}");
                                     errorDetails.Add("Missing Dept");
                                 }
                                 else
@@ -391,14 +397,14 @@ namespace IntranetApi.Services
                                     Console.WriteLine($"rowInput.DeptId {rowInput.DeptId}");
                                     if (rowInput.DeptId == null)
                                     {
-                                        cells.Add($"D{row}");
+                                        errorCells.Add($"D{row}");
                                         errorDetails.Add("Invalid Dept");
                                     }
                                 }
 
                                 if (string.IsNullOrEmpty(rowInput.Brand))//F
                                 {
-                                    cells.Add($"F{row}");
+                                    errorCells.Add($"F{row}");
                                     errorDetails.Add("Missing Brand");
                                 }
                                 else
@@ -408,14 +414,14 @@ namespace IntranetApi.Services
 
                                     if (rowInput.BrandIds.Count == 0)
                                     {
-                                        cells.Add($"F{row}");
+                                        errorCells.Add($"F{row}");
                                         errorDetails.Add("Invalid Brand");
                                     }
                                 }
 
                                 if (string.IsNullOrEmpty(rowInput.BankName))//G
                                 {
-                                    cells.Add($"F{row}");
+                                    errorCells.Add($"F{row}");
                                     errorDetails.Add("Missing Bank");
                                 }
                                 else
@@ -423,35 +429,36 @@ namespace IntranetApi.Services
                                     rowInput.BankId = banks.FirstOrDefault(p => p.Name.Equals(rowInput.BankName, StringComparison.OrdinalIgnoreCase))?.Id;
                                     if (rowInput.BankId == null)
                                     {
-                                        cells.Add($"F{row}");
+                                        errorCells.Add($"F{row}");
                                         errorDetails.Add("Invalid Bank");
                                     }
                                 }
 
                                 if (string.IsNullOrEmpty(rowInput.BankAccountNumber))//H
                                 {
-                                    cells.Add($"H{row}");
+                                    errorCells.Add($"H{row}");
                                     errorDetails.Add("Missing BankAccountNumber");
                                 }
 
                                 if (string.IsNullOrEmpty(rowInput.StartDateStr)) //I
                                 {
-                                    cells.Add($"K{row}");
+                                    errorCells.Add($"I{row}");
                                     errorDetails.Add("Missing StartDate");
                                 }
                                 else
                                 {
                                     rowInput.StartDate = CheckValidDate(rowInput.StartDateStr);
+                                    //Console.WriteLine($"rowInput.StartDate {rowInput.StartDate.GetValueOrDefault().ToString("yyy-MM-dd")}");
                                     if (rowInput.StartDate == null)
                                     {
-                                        cells.Add($"K{row}");
+                                        errorCells.Add($"I{row}");
                                         errorDetails.Add("Invalid StartDate");
                                     }
                                 }
 
                                 if (string.IsNullOrEmpty(rowInput.SalaryStr)) //J
                                 {
-                                    cells.Add($"J{row}");
+                                    errorCells.Add($"J{row}");
                                     errorDetails.Add("Missing Salary");
                                 }
                                 else
@@ -459,7 +466,7 @@ namespace IntranetApi.Services
                                     var salary = 0;
                                     if (!int.TryParse(rowInput.SalaryStr, out salary))
                                     {
-                                        cells.Add($"K{row}");
+                                        errorCells.Add($"J{row}");
                                         errorDetails.Add("Invalid Salary");
                                     }
                                     else
@@ -470,40 +477,23 @@ namespace IntranetApi.Services
 
                                 if (string.IsNullOrEmpty(rowInput.BirthDateStr)) //K
                                 {
-                                    cells.Add($"K{row}");
+                                    errorCells.Add($"K{row}");
                                     errorDetails.Add("Missing BirthDate");
                                 }
                                 else
                                 {
                                     rowInput.BirthDate = CheckValidDate(rowInput.BirthDateStr);
+                                    //Console.WriteLine($"rowInput.BirthDate {rowInput.BirthDate.GetValueOrDefault().ToString("yyy-MM-dd")}");
                                     if (rowInput.BirthDate == null)
                                     {
-                                        cells.Add($"K{row}");
+                                        errorCells.Add($"K{row}");
                                         errorDetails.Add("Invalid BirthDate");
                                     }
                                 }
-
-                                if (string.IsNullOrEmpty(rowInput.IdNumber)) //L
-                                {
-                                    cells.Add($"F{row}");
-                                    errorDetails.Add("Missing ID Number");
-                                }
-
-                                //if (string.IsNullOrEmpty(rowInput.BackendUser))//M
-                                //{
-                                //    cells.Add($"M{row}");
-                                //    errorDetails.Add("Missing BackendUser");
-                                //}
-
-                                //if (string.IsNullOrEmpty(rowInput.BackendPass))//N
-                                //{
-                                //    cells.Add($"N{row}");
-                                //    errorDetails.Add("Missing BackendPass");
-                                //}
-
+                                
                                 if (string.IsNullOrEmpty(rowInput.Role)) //P
                                 {
-                                    cells.Add($"P{row}");
+                                    errorCells.Add($"P{row}");
                                     errorDetails.Add("Missing Role");
                                 }
                                 else
@@ -513,7 +503,7 @@ namespace IntranetApi.Services
                                     rowInput.RoleId = roles.FirstOrDefault(p => p.Name.Equals(rowInput.Role, StringComparison.OrdinalIgnoreCase))?.Id;
                                     if (rowInput.RoleId == null)
                                     {
-                                        cells.Add($"O{row}");
+                                        errorCells.Add($"P{row}");
                                         errorDetails.Add("Invalid Role");
                                     }
                                 }
@@ -526,11 +516,11 @@ namespace IntranetApi.Services
 
                                 if (string.IsNullOrEmpty(rowInput.IntranetPassword))//Q
                                 {
-                                    cells.Add($"R{row}");
+                                    errorCells.Add($"Q{row}");
                                     errorDetails.Add("Missing Intranet Password");
                                 }
 
-                                if (cells.Count == 0) // if no error , add new record
+                                if (errorCells.Count == 0) // if no error , add new record
                                 {
                                     newEmployee = rowInput.Adapt<EmployeeBulkInsert>();
                                     newEmployee.CreatorUserId = userId;
@@ -539,13 +529,13 @@ namespace IntranetApi.Services
                                 else //add error list
                                 {
                                     importError = rowInput.Adapt<EmployeeImportError>();
-                                    importError.Cells = string.Join(" - ", cells);
+                                    importError.Cells = string.Join(" - ", errorCells);
                                     importError.ErrorDetails = string.Join(" - ", errorDetails);
                                     errorList.Add(importError);
                                 }
-                                cells = new List<string>(); //reset after add
+                                errorCells = new List<string>(); //reset after add
                                 errorDetails = new List<string>(); //reset after add
-                                //rowInputList.Add(rowInput);
+                                rowInputList.Add(rowInput.Adapt<EmployeeExcelInput>());
                             }
                         }
                     }
@@ -560,18 +550,33 @@ namespace IntranetApi.Services
                     //Console.WriteLine($"employees.Count {employees.Count}");
                     //Console.WriteLine($"employees.0 {employees[0]?.EmployeeCode}");
                     //Console.WriteLine($"employees.1 {employees[1]?.EmployeeCode}");
+                    //Console.WriteLine($"rowInputList.Count {rowInputList.Count}");
+
+                    //Console.WriteLine($"employees.0 {rowInputList[0]?.EmployeeCode}");
+                    //Console.WriteLine($"employees.1 {rowInputList[1]?.EmployeeCode}");
+                    //Console.WriteLine($"employees.2 {rowInputList[2]?.EmployeeCode}");
                     foreach (var value in duplicateResult.EmployeeCodes)
                     {
-                        index = employees.FindIndex(p => p.EmployeeCode.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        Console.WriteLine($"index {index}");
-                        if (index > -1)
+                        Console.WriteLine($"value {value}");
+                        var item= rowInputList.FirstOrDefault(p=>p.EmployeeCode.Equals(value,StringComparison.OrdinalIgnoreCase));
+                        if(item != null)
                         {
                             Console.WriteLine($"duplicateResult.EmployeeCodes {value}");
-                            var employee = employees[index].Adapt<EmployeeImportError>();
+                            var employee = item.Adapt<EmployeeImportError>();
                             employee.Cells = $"B{index + 1}";
                             employee.ErrorDetails = "EmployeeCode existed";
                             errorList.Add(employee);
                         }
+                        //index = employees.FindIndex(p => p.EmployeeCode.Equals(value, StringComparison.OrdinalIgnoreCase));
+                        ////Console.WriteLine($"index {index}");
+                        //if (index > -1)
+                        //{
+                        //    //Console.WriteLine($"duplicateResult.EmployeeCodes {value}");
+                        //    var employee = employees[index].Adapt<EmployeeImportError>();
+                        //    employee.Cells = $"B{index + 1}";
+                        //    employee.ErrorDetails = "EmployeeCode existed";
+                        //    errorList.Add(employee);
+                        //}
                     }
                      
                     employees = employees.Where(
@@ -594,7 +599,7 @@ namespace IntranetApi.Services
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
                 }
-                return Results.Ok(new { totalRows, errorList, shouldSendEmail });
+                return Results.Ok(new { totalRows= rowInputList.Count, errorList, shouldSendEmail });
             })
             .RequireAuthorization(EmployeePermissions.Create)
             ;

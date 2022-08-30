@@ -153,7 +153,8 @@ namespace IntranetApi.Services
             [FromBody] RoleFilterDto input) =>
             {
                 ProcessFilterValues(ref input);                 
-                var query = db.Roles.AsNoTracking()
+                var query = db.Roles                             
+                           .AsNoTracking()
                            .Where(p => !p.IsDeleted)
                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword));
 
@@ -168,19 +169,31 @@ namespace IntranetApi.Services
                     var creatorUserIds = items.Select(p => p.CreatorUserId.GetValueOrDefault()).Distinct().ToList();
                     var lastModifierUserIds = items.Select(p => p.LastModifierUserId.GetValueOrDefault()).Distinct();
                     creatorUserIds.AddRange(lastModifierUserIds);
-                    var users = db.Users.AsNoTracking()
+                    var creators =await db.Users.AsNoTracking()
                                     .Where(p => creatorUserIds.Contains(p.Id))
                                     .Select(p => new BaseDropdown { Id = p.Id, Name = p.Email })
-                                    .ToList();
+                                    .ToListAsync();
+                    var roleIds = items.Select(p=>p.Id);
+                    var roleEmployees= await db.UserRoles.Include(p=>p.User)
+                                            .AsNoTracking()
+                                            .Where(p=>roleIds.Contains(p.RoleId))
+                                            .GroupBy(p=>p.RoleId)
+                                            .Select(p=>new RoleEmployeeList { RoleId= p.Key, EmployeeNames= p.Select(q=>q.User.Name).ToList()})
+                                            .ToListAsync();
                     foreach (var item in items)
                     {
                         if (item.CreatorUserId != null)
-                            item.CreatorUser = users.FirstOrDefault(p => p.Id == item.CreatorUserId.Value)?.Name;
+                            item.CreatorUser = creators.FirstOrDefault(p => p.Id == item.CreatorUserId.Value)?.Name;
 
                         if (item.LastModifierUserId != null)
-                            item.LastModifierUser = users.FirstOrDefault(p => p.Id == item.LastModifierUserId.Value)?.Name;
+                            item.LastModifierUser = creators.FirstOrDefault(p => p.Id == item.LastModifierUserId.Value)?.Name;
 
-                        item.Count = await db.UserRoles.Where(p => p.RoleId == item.Id).CountAsync();
+                        var roleEmployee= roleEmployees.FirstOrDefault(p=>p.RoleId== item.Id);
+                        if(roleEmployee != null)
+                        {
+                            item.Count= roleEmployee.EmployeeNames.Count;
+                            item.EmployeeNames = roleEmployee.EmployeeNames;
+                        }
                     }
                 }               
                 return Results.Ok(new PagedResultDto<RoleListItem>(totalCount, items));

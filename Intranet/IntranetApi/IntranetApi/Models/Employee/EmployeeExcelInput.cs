@@ -23,14 +23,13 @@ namespace IntranetApi.Models
         public DateTime? StartDate { get; set; }
         public string BirthDateStr { get; set; }
         public DateTime? BirthDate { get; set; }
-        public string IdNumber { get; set; }
-        public string BackendUser { get; set; }
-        public string BackendPass { get; set; }
-        public string StatusStr { get; set; }
+        public string? IdNumber { get; set; }
+        public string? BackendUser { get; set; }
+        public string? BackendPass { get; set; }
+        public string? StatusStr { get; set; }
         public string? Note { get; set; }
         public int? UserId { get; set; }
         public string LastModifierUser { get; set; }
-        //public string IntranetUsername { get; set; }
 
         public string IntranetPassword { get; set; }
         public string? Country { get; set; }

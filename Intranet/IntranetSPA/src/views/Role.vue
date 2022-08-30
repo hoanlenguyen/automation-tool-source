@@ -40,7 +40,18 @@
         width="150px"
         v-slot="props"
       >       
-      {{ props.row.count}}
+        <b-tooltip 
+          v-if="props.row.employeeNames &&props.row.employeeNames.length>0"
+              type="is-light"
+              position="is-right"
+              :triggers="['click']"
+              :auto-close="['outside', 'escape']">
+              <template v-slot:content>
+                  <p class="is-size-7" v-for="(name,index) in props.row.employeeNames" :key="index">{{name}}</p>
+              </template>
+          <a> {{ props.row.count}}</a>
+        </b-tooltip>
+        <span v-else>0</span>
       </b-table-column>
 
       <b-table-column

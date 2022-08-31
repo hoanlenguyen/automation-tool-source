@@ -66,7 +66,7 @@ namespace IntranetApi.Services
 
                 var checkExisted = await db.Roles.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
                 if(checkExisted)
-                    throw new Exception($"{input.Name} existed!");
+                    throw new Exception("Name already exists");
 
                 input.Name = input.Name.Trim();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -99,7 +99,7 @@ namespace IntranetApi.Services
                     throw new Exception("No valid name!");
 
                 if (await db.Roles.AnyAsync(p => p.Name == input.Name && p.Id != input.Id && !p.IsDeleted))
-                    throw new Exception($"{input.Name} existed!");
+                    throw new Exception("Name already exists");
 
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);

@@ -222,16 +222,6 @@
           </b-field>
 
           <b-field label="Select Extra/ Deduction/ Paid-Offs">
-            <!-- <div class="is-flex is-flex-direction-column">
-              <div v-for ="(item, index) in recordTypes" :key="index">
-                <b-radio v-model="model.recordType" 
-                  :native-value="item.id"
-                  type="is-info">
-                  {{item.name}}
-                </b-radio>
-              </div> 
-            </div> -->
-
             <div class="is-flex is-flex-direction-column">
               <div class="is-flex is-flex-direction-column mb-2">
                 <b-radio v-model="model.recordType" native-value="0" type="is-info">
@@ -258,15 +248,9 @@
                   Deduction (Late, Unpaid leave)
                 </b-radio>
 
-                <div class="ml-5 my-3 pl-3" v-if="model.recordType==1">
-                  <b-radio v-model="model.recordDetailType"
-                    type="is-info" class="mr-5" size="is-small"
-                    :native-value="recordDetailTypes.deductionUnpaidLeave">
-                    Unpaid leave
-                  </b-radio>
-                </div>
+                
 
-                <div class="ml-5 mb-3  pl-3 is-flex is-flex-direction-row" v-if="model.recordType==1">
+                <div class="ml-5 my-3 pl-3 is-flex is-flex-direction-row" v-if="model.recordType==1">
                   <b-radio v-model="model.recordDetailType"
                     type="is-info" size="is-small"
                     :native-value="recordDetailTypes.deductionLate">
@@ -279,6 +263,14 @@
                       v-model="model.lateAmount">
                     </b-input>
                   </b-field>
+                </div>
+
+                <div class="ml-5 my-3 pl-3" v-if="model.recordType==1">
+                  <b-radio v-model="model.recordDetailType"
+                    type="is-info" class="mr-5" size="is-small"
+                    :native-value="recordDetailTypes.deductionUnpaidLeave">
+                    Unpaid leave
+                  </b-radio>
                 </div>
               </div>
 
@@ -415,6 +407,7 @@ import { saveAs } from 'file-saver';
 import { getDetail, getList, createOrUpdate, deleteData , getEmployeeByBrand } from "@/api/staffRecord";
 import { getDropdown as getDepartmentDropdown } from "@/api/department";
 import { uploadFiles  } from "@/api/fileService";
+import { RecordTypes,RecordDetailTypes  } from "@/utils/enum";
 export default {
   name:"staffRecord",
   created() {
@@ -500,29 +493,39 @@ export default {
         {id:2,name:'Paid-Offs'},
         {id:3,name:'Paid-MCs'},
       ],
-      recordTypes:{
-        extraPay:0,
-        deduction:1,
-        paidOff:2,
-        paidMCs:3
-      },
-      recordDetailTypes:
-      {
-        extraPayOTs:0,
-        extraPayCoverShift:2,
-        deductionLate:4,
-        deductionUnpaidLeave:8,
-        paidOffs:16,
-        paidMCs:32
-      },
+      recordTypes:RecordTypes,
+      recordDetailTypes:RecordDetailTypes
     };
   },
   watch: {
     "model.recordType"(value){
-      if(value==2)
-        this.model.recordDetailType= this.recordDetailTypes.paidOffs;
-      else if(value==3)
-        this.model.recordDetailType= this.recordDetailTypes.paidMCs;
+      // console.log(value);
+      // console.log(this.model.recordDetailType != this.recordDetailTypes.extraPayOTs 
+      //       && this.model.recordDetailType != this.recordDetailTypes.extraPayCoverShift);
+      const parsed = parseInt(value);
+      switch (parsed){
+        case(this.recordTypes.extraPay):{
+          if(this.model.recordDetailType != this.recordDetailTypes.extraPayOTs 
+            && this.model.recordDetailType != this.recordDetailTypes.extraPayCoverShift)
+            this.model.recordDetailType = this.recordDetailTypes.extraPayOTs;
+          break;
+        }
+        case(this.recordTypes.deduction):{
+          if(this.model.recordDetailType != this.recordDetailTypes.deductionLate 
+            && this.model.recordDetailType != this.recordDetailTypes.deductionUnpaidLeave)
+          this.model.recordDetailType = this.recordDetailTypes.deductionLate;
+          break;
+        }
+        case(this.recordTypes.paidOff):{
+          this.model.recordDetailType = this.recordDetailTypes.paidOffs;
+          break;
+        }
+        case(this.recordTypes.paidMCs):{
+          this.model.recordDetailType = this.recordDetailTypes.paidMCs;
+          break;
+        }
+        default: break;
+      }
     }
   },
   computed: {
@@ -679,15 +682,14 @@ export default {
               message: `${this.model.id==0?'Create':'Update'} successfully!`,
               queue: false,
             });
+          this.closeModalDialog();
+          this.getList();
           }
         })
       .catch((error) => {
           this.notifyErrorMessage(error)
         })
-      .finally(() => {
-        this.closeModalDialog();
-        this.getList();
-      });
+      .finally(() => {});
     },
     getAsyncData(){
       let searchEmployee= this.searchEmployee.toLowerCase();         

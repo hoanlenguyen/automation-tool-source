@@ -100,7 +100,7 @@
  
       <b-table-column
         field="sumHoursOfExtraPay"
-        label="Rxtra OTs(hours)"
+        label="Extra OTs(hours)"
         width="200px"
         header-class="is-size-7"
         v-slot="props"
@@ -232,7 +232,7 @@
               </b-field>                 
             </section>
             <footer class="modal-card-foot">
-                <b-button label="Cancel" @click="cancelCreateOrUpdate" />
+                <b-button label="Close" @click="cancelCreateOrUpdate" />
                 <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
             </footer>
         </div>

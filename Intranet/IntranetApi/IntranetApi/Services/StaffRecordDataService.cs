@@ -23,6 +23,7 @@ namespace IntranetApi.Services
 
             if (string.IsNullOrEmpty(input.SortBy))
                 input.SortBy = nameof(BaseEntity.Id);
+
             if (string.IsNullOrEmpty(input.SortDirection))
                 input.SortDirection = SortDirection.DESC;
         }
@@ -41,7 +42,7 @@ namespace IntranetApi.Services
             int id) =>
             {
                 var entity = db.StaffRecords
-                            .Include(p=>p.StaffRecordDocuments)
+                            .Include(p => p.StaffRecordDocuments)
                             .AsNoTracking()
                             .FirstOrDefault(x => x.Id == id);
                 if (entity == null)
@@ -55,31 +56,51 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
-            [FromServices] IFileStorageService fileService,
             [FromBody] StaffRecordCreateOrEdit input
-            //,HttpRequest request
             ) =>
             {
-                //if (request.Form.Files.Any())
-                //{
-                //    foreach (var file in request.Form.Files)
-                //    {
-                //        if (file is null || file.Length == 0)
-                //            continue;
-
-                //        using var fileStream = file.OpenReadStream();
-                //        byte[] bytes = new byte[file.Length];
-                //        fileStream.Read(bytes, 0, (int)file.Length);
-                //        input.StaffRecordDocuments.Add(await fileService.SaveAndGetShortUrl(bytes, file.FileName, "StaffRecord", isAddAppfix: true));
-                //    }
-                //}
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<StaffRecord>();
-                if (entity.RecordType == StaffRecordType.PaidOffs || entity.RecordType == StaffRecordType.PaidMCs)
-                    entity.NumberOfDays = (entity.EndDate - entity.StartDate).Days + 1;
-                else
-                    entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
+                var workingHours = await db.Departments
+                                        .Where(p => p.Id == entity.DepartmentId)
+                                        .Select(p => p.WorkingHours)
+                                        .FirstOrDefaultAsync();
+                var salary = await db.Users.Where(p => p.Id == entity.EmployeeId)
+                                         .Select(p => p.Salary)
+                                         .FirstOrDefaultAsync();
+                switch (entity.RecordDetailType)
+                {
+                    case StaffRecordDetailType.PaidMCs:
+                    case StaffRecordDetailType.PaidOffs:
+                    case StaffRecordDetailType.ExtraPayCoverShift:
+                    case StaffRecordDetailType.DeductionUnpaidLeave:
+                        {
+                            entity.NumberOfDays = (entity.EndDate - entity.StartDate).Days + 1;
+                            if(entity.RecordDetailType== StaffRecordDetailType.ExtraPayCoverShift)
+                            {
+                                entity.CalculationAmount = entity.NumberOfDays * (salary / 365);
+                            }
+
+                            if (entity.RecordDetailType == StaffRecordDetailType.DeductionUnpaidLeave)
+                            {
+                                entity.CalculationAmount = - entity.NumberOfDays * (salary / 365);
+                            }
+                            break;
+                        }
+                    case StaffRecordDetailType.ExtraPayOTs:
+                    case StaffRecordDetailType.DeductionLate:
+                        {
+                            entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
+                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayOTs && workingHours>0)
+                            {
+                                entity.CalculationAmount = entity.NumberOfHours * (salary /(365*workingHours));
+                            }
+                            break;
+                        }
+                    default: break;
+                }
+
                 entity.CreatorUserId = userId;
                 db.StaffRecords.Add(entity);
                 db.SaveChanges();
@@ -92,25 +113,61 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
-            [FromServices] IFileStorageService fileService,
             [FromBody] StaffRecordCreateOrEdit input
-            //,HttpRequest request
             ) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                
                 int.TryParse(userIdStr, out var userId);
+
                 var entity = db.StaffRecords.Include(p => p.StaffRecordDocuments).FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
- 
+
                 entity.StaffRecordDocuments.Clear();
                 input.Adapt(entity);
+                entity.NumberOfDays = 0;
+                entity.NumberOfHours = 0;
+                entity.CalculationAmount = 0;
+                var workingHours = await db.Departments
+                                        .Where(p => p.Id == entity.DepartmentId)
+                                        .Select(p => p.WorkingHours)
+                                        .FirstOrDefaultAsync();
 
-                if (entity.RecordType == StaffRecordType.PaidOffs || entity.RecordType == StaffRecordType.PaidMCs)
-                    entity.NumberOfDays = (entity.EndDate - entity.StartDate).Days + 1;
-                else
-                    entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
+                var salary = await db.Users.Where(p => p.Id == entity.EmployeeId)
+                                         .Select(p => p.Salary)
+                                         .FirstOrDefaultAsync();
+
+                switch (entity.RecordDetailType)
+                {
+                    case StaffRecordDetailType.PaidMCs:
+                    case StaffRecordDetailType.PaidOffs:
+                    case StaffRecordDetailType.ExtraPayCoverShift:
+                    case StaffRecordDetailType.DeductionUnpaidLeave:
+                        {
+                            entity.NumberOfDays = (entity.EndDate - entity.StartDate).Days + 1;
+                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayCoverShift)
+                            {
+                                entity.CalculationAmount = entity.NumberOfDays * (salary / 365);
+                            }
+
+                            if (entity.RecordDetailType == StaffRecordDetailType.DeductionUnpaidLeave)
+                            {
+                                entity.CalculationAmount = -entity.NumberOfDays * (salary / 365);
+                            }
+                            break;
+                        }
+                    case StaffRecordDetailType.ExtraPayOTs:
+                    case StaffRecordDetailType.DeductionLate:
+                        {
+                            entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
+                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayOTs && workingHours > 0)
+                            {
+                                entity.CalculationAmount = entity.NumberOfHours * (salary / (365 * workingHours));
+                            }
+                            break;
+                        }
+                    default: break;
+                }
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
@@ -144,7 +201,7 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
-            [FromBody] StaffRecordFilter input            
+            [FromBody] StaffRecordFilter input
             ) =>
             {
                 List<BaseDropdown> brands = null;
@@ -171,10 +228,10 @@ namespace IntranetApi.Services
                 }
                 ProcessFilterValues(ref input);
                 var query = db.StaffRecords
-                            .Include(p=>p.Employee)
+                            .Include(p => p.Employee)
                             .AsNoTracking()
                             .Where(p => !p.IsDeleted)
-                            //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
+                             //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                              ;
                 var totalCount = await query.CountAsync();
                 var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
@@ -187,8 +244,8 @@ namespace IntranetApi.Services
                 foreach (var item in items)
                 {
                     item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
-                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name??item.OtherDepartment;
-                    item.CreatorName= creators.FirstOrDefault(p=>p.Id == item.CreatorUserId)?.Name;
+                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name ?? item.OtherDepartment;
+                    item.CreatorName = creators.FirstOrDefault(p => p.Id == item.CreatorUserId)?.Name;
                 }
                 return Results.Ok(new PagedResultDto<StaffRecordList>(totalCount, items));
             })
@@ -203,13 +260,13 @@ namespace IntranetApi.Services
                 var result = new List<EmployeeDropdown>();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var brandIds= db.BrandEmployees.Where(p=>p.EmployeeId== userId).Select(p => p.BrandId).Distinct(); 
+                var brandIds = db.BrandEmployees.Where(p => p.EmployeeId == userId).Select(p => p.BrandId).Distinct();
 
                 var query = from be in db.BrandEmployees
                             join u in db.Users on be.EmployeeId equals u.Id
                             where brandIds.Contains(be.BrandId) && u.UserType == UserType.Employee
-                            select new {u.Id, u.EmployeeCode, u.Name, FullName=$"{u.EmployeeCode} - {u.Name}"};
- 
+                            select new { u.Id, u.EmployeeCode, u.Name, FullName = $"{u.EmployeeCode} - {u.Name}" };
+
                 return Results.Ok(query.ToList().DistinctBy(p => p.Id));
             })
             .RequireAuthorization(StaffRecordPermissions.View)
@@ -282,15 +339,15 @@ namespace IntranetApi.Services
                                 LateAmount = p.Sum(p => p.LateAmount),
                                 Fines = p.Sum(p => p.Fine)
                             });
-                             //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
-                             ;
+                //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
+                ;
                 var items = /*await*/ query/*.OrderByDynamic(input.SortBy, input.SortDirection)*/
                                        .Skip(input.SkipCount)
                                        .Take(input.RowsPerPage)
                                        .ToList();
-                                       //.ProjectToType<LeaveHistoryList>()
-                                       //.ToListAsync()
-                                       ;
+                //.ProjectToType<LeaveHistoryList>()
+                //.ToListAsync()
+                ;
 
                 foreach (var item in items)
                 {

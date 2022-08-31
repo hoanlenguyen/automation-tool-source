@@ -58,7 +58,7 @@ namespace IntranetApi.Services
 
                 var checkExisted = await db.Banks.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
                 if (checkExisted)
-                    throw new Exception($"{input.Name} existed!");
+                    throw new Exception("Name already exists");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = new Bank { Name = input.Name, CreatorUserId = userId };
@@ -82,7 +82,7 @@ namespace IntranetApi.Services
 
                 var checkExisted = await db.Banks.AnyAsync(p => p.Name == input.Name && input.Id != p.Id && !p.IsDeleted);
                 if (checkExisted)
-                    throw new Exception($"{input.Name} existed!");
+                    throw new Exception("Name already exists");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = db.Banks.FirstOrDefault(x => x.Id == input.Id);

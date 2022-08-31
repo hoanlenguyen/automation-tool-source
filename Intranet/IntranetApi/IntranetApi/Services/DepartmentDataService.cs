@@ -29,7 +29,7 @@ namespace IntranetApi.Services
             using var connection = new MySqlConnection(sqlConnectionStr);
             return connection.Query<BaseDropdown>("select Id, Name from Departments where IsDeleted = 0").ToList();
         }
-        
+
         public static void AddDepartmentDataService(this WebApplication app, string sqlConnectionStr)
         {
             app.MapGet("Department/{id:int}", [AllowAnonymous]
@@ -55,12 +55,15 @@ namespace IntranetApi.Services
                 if (string.IsNullOrEmpty(input.Name))
                     throw new Exception("No valid name!");
 
+                if (input.WorkingHours < 0)
+                    throw new Exception("No valid Working hours!");
+
                 var checkExisted = await db.Departments.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
                 if (checkExisted)
-                    throw new Exception($"{input.Name} existed!");
+                    throw new Exception("Name already exists");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = new Department { Name = input.Name, CreatorUserId = userId };
+                var entity = new Department { Name = input.Name, CreatorUserId = userId, WorkingHours = input.WorkingHours };
                 db.Add(entity);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetDepartmentsDropdown);
@@ -79,9 +82,12 @@ namespace IntranetApi.Services
                 if (string.IsNullOrEmpty(input.Name))
                     throw new Exception("No valid name!");
 
+                if (input.WorkingHours < 0)
+                    throw new Exception("No valid Working hours!");
+
                 var checkExisted = await db.Departments.AnyAsync(p => p.Name == input.Name && input.Id != p.Id && !p.IsDeleted);
                 if (checkExisted)
-                    throw new Exception($"{input.Name} existed!");
+                    throw new Exception("Name already exists");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = db.Departments.FirstOrDefault(x => x.Id == input.Id);
@@ -90,6 +96,7 @@ namespace IntranetApi.Services
 
                 entity.Name = input.Name;
                 entity.Status = input.Status;
+                entity.WorkingHours = input.WorkingHours;
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
@@ -137,9 +144,9 @@ namespace IntranetApi.Services
                 var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
                                 .Skip(input.SkipCount)
                                 .Take(input.RowsPerPage)
-                                .ProjectToType<DepartmentCreateOrEdit>()
+                                .ProjectToType<DepartmentList>()
                                 .ToListAsync();
-                return Results.Ok(new PagedResultDto<DepartmentCreateOrEdit>(totalCount, items));
+                return Results.Ok(new PagedResultDto<DepartmentList>(totalCount, items));
             })
             .RequireAuthorization(DepartmentPermissions.View)
             ;

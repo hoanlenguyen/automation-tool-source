@@ -131,7 +131,7 @@ namespace IntranetApi.Services
 
                 var checkExisted = await db.Users.AnyAsync(p => p.EmployeeCode == input.EmployeeCode && p.Id != input.Id && !p.IsDeleted);
                 if (checkExisted)
-                    throw new Exception($"{input.EmployeeCode} existed!");
+                    throw new Exception($"Employee code already exists");
 
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);

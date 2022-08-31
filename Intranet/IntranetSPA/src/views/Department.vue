@@ -35,6 +35,16 @@
       </b-table-column>
 
       <b-table-column
+        field="WorkingHours"
+        label="Working hours"
+        sortable        
+        width="300px"
+        v-slot="props"
+      >       
+      {{ props.row.workingHours}}
+      </b-table-column>
+
+      <b-table-column
         field="Status"
         label="Status"
         sortable
@@ -151,10 +161,18 @@
                     placeholder="Name...."
                     required>
                   </b-input>
-              </b-field>                 
+              </b-field>
+              <b-field label="Working hours">
+                <b-input
+                  type="number"
+                  :min="0"
+                  v-model="model.workingHours"
+                  required>
+                </b-input>
+            </b-field>                 
             </section>
             <footer class="modal-card-foot">
-                <b-button label="Cancel" @click="cancelCreateOrUpdate" />
+                <b-button label="Close" @click="cancelCreateOrUpdate" />
                 <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
             </footer>
         </div>
@@ -309,16 +327,15 @@ export default {
           this.$buefy.snackbar.open({
               message: `${this.model.id==0?'Create':'Update'} successfully!`,
               queue: false,
-            });
+          });
+          this.closeModalDialog();
+          this.getList();
           }
         })
       .catch((error) => {
           this.notifyErrorMessage(error);  
         })
-      .finally(() => {
-        this.closeModalDialog();
-        this.getList();
-      });
+      .finally(() => { });
     },
     editModel(input){
       this.model= {...input};

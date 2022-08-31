@@ -24,7 +24,7 @@ namespace IntranetApi.Models
         public int NumberOfDays { get; set; }
         public int NumberOfHours { get; set; }
         public decimal Fine { get; set; }
-
+        public decimal CalculationAmount { get; set; }
         [MaxLength(200)]
         public string? Remarks { get; set; }
 

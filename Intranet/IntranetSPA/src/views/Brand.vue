@@ -154,7 +154,7 @@
               </b-field>                 
             </section>
             <footer class="modal-card-foot">
-                <b-button label="Cancel" @click="cancelCreateOrUpdate" />
+                <b-button label="Close" @click="cancelCreateOrUpdate" />
                 <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
             </footer>
         </div>
@@ -311,14 +311,11 @@ export default {
               queue: false,
             });
           }
+          this.closeModalDialog();
+          this.getList();
         })
-      .catch((error) => {
-          this.notifyErrorMessage(error);  
-        })
-      .finally(() => {
-        this.closeModalDialog();
-        this.getList();
-      });
+      .catch((error) => { this.notifyErrorMessage(error); })
+      .finally(() => { });
     },
     editModel(input){
       this.model= {...input};

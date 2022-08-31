@@ -111,7 +111,7 @@ export default {
         items.push({
         to: '/leave-history',
         label: 'Leave history',
-        icon: 'clock-outline'
+        icon: 'format-list-bulleted'
       });
 
        return [items];

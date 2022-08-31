@@ -37,6 +37,7 @@ namespace IntranetApi.DbContext
 
             modelBuilder.Entity<User>().HasIndex(p => p.EmployeeCode).IsUnique();
             modelBuilder.Entity<StaffRecord>().Property(p=>p.Fine).HasPrecision(18, 2);
+            modelBuilder.Entity<StaffRecord>().Property(p=>p.CalculationAmount).HasPrecision(18, 2);
             modelBuilder.Entity<BrandEmployee>().HasKey(p => new { p.BrandId, p.EmployeeId });
 
             modelBuilder.Entity<StaffRecordDocument>()

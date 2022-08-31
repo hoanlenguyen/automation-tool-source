@@ -714,12 +714,11 @@ export default {
               queue: false,
             });
           }
+          this.closeModalDialog();
+          this.getList();
         })
       .catch((error) => {this.notifyErrorMessage(error)})
-      .finally(() => {
-        this.closeModalDialog();
-        this.getList();
-      });
+      .finally(() => { });
     },
     editModel(input){
       this.model= {...input};
@@ -729,7 +728,6 @@ export default {
       if(this.model.brandIds){
         this.selectBrands= this.brands.filter(p=> this.model.brandIds.includes(p.id));
       }
-
       this.isModalActive= true;
     },
     deleteData(){

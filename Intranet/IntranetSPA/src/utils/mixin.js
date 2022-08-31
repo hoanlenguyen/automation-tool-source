@@ -51,7 +51,7 @@ var myMixin = {
         notifyErrorMessage(error){
             if(!error.response)
                 return;
-            console.log(error.response);
+            //console.log(error.response);
             let code= error.response.status;
             if(code==401){
                 setToken('');

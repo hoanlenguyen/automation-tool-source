@@ -56,6 +56,13 @@ namespace IntranetApi.Services
             [FromBody] RankCreateOrEdit input
             ) =>
             {
+                if (string.IsNullOrEmpty(input.Name))
+                    throw new Exception("No valid name!");
+
+                var checkExisted = await db.Ranks.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
+                if (checkExisted)
+                    throw new Exception($"{input.Name} existed!");
+
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<Rank>();
@@ -76,6 +83,13 @@ namespace IntranetApi.Services
             [FromServices] IMemoryCache memoryCache,
             [FromBody] RankCreateOrEdit input) =>
             {
+                if (string.IsNullOrEmpty(input.Name))
+                    throw new Exception("No valid name!");
+
+                var checkExisted = await db.Ranks.AnyAsync(p => p.Name == input.Name && input.Id != p.Id && !p.IsDeleted);
+                if (checkExisted)
+                    throw new Exception($"{input.Name} existed!");
+
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = db.Ranks.FirstOrDefault(x => x.Id == input.Id);

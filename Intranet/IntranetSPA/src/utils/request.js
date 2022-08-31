@@ -1,7 +1,6 @@
 import axios from 'axios'
 //import store from '@/store'
 import { getToken, setToken } from '@/utils/auth'
-import { SnackbarProgrammatic as Snackbar } from 'buefy';
 // create an axios instance
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
@@ -77,7 +76,8 @@ service.interceptors.response.use(
 
     return res
   },
-  error => {  
+  error => { 
+    //console.log(error.response);
     return Promise.reject(error)
   }
 )

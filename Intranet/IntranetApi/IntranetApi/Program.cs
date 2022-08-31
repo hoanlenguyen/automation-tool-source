@@ -175,7 +175,7 @@ app.UseExceptionHandler(c => c.Run(async context =>
     if (exception is not null)
     {
         var response = new { error = exception.Message };
-        context.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+        //context.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
         await context.Response.WriteAsJsonAsync(response);
     }
 }));

@@ -42,8 +42,8 @@ namespace IntranetApi.Services
                 if (entity == null)
                     return Results.NotFound();
                 var result = entity.Adapt<RoleCreateOrEdit>();
-                result.Permissions =await db.RoleClaims
-                                        .AsNoTracking()     
+                result.Permissions = await db.RoleClaims
+                                        .AsNoTracking()
                                         .Where(p => p.RoleId == id)
                                         .Select(p => p.ClaimValue)
                                         .ToListAsync();
@@ -51,7 +51,7 @@ namespace IntranetApi.Services
                 return Results.Ok(result);
             })
             .RequireAuthorization(RolePermissions.View)
-            ; 
+            ;
 
             app.MapPost("Role", [AllowAnonymous]
             async Task<IResult> (
@@ -64,15 +64,16 @@ namespace IntranetApi.Services
                 if (string.IsNullOrEmpty(input.Name))
                     throw new Exception("No valid role name!");
 
-                if (await roleManager.RoleExistsAsync(input.Name))
-                    throw new Exception("Role existed!");
+                var checkExisted = await db.Roles.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
+                if(checkExisted)
+                    throw new Exception($"{input.Name} existed!");
 
                 input.Name = input.Name.Trim();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = new Role { Name = input.Name, CreatorUserId = userId, NormalizedName = input.Name.ToUpper() };
                 await roleManager.CreateAsync(entity);
- 
+
                 Console.WriteLine($"RoleId {entity.Id}");
                 if (input.Permissions.Any())
                 {
@@ -94,8 +95,11 @@ namespace IntranetApi.Services
             [FromServices] IMemoryCache memoryCache,
             [FromBody] RoleCreateOrEdit input) =>
             {
-                if(await db.Roles.AnyAsync(p=>p.Name == input.Name && p.Id != input.Id))
-                    throw new Exception("Role existed!");
+                if (string.IsNullOrEmpty(input.Name))
+                    throw new Exception("No valid name!");
+
+                if (await db.Roles.AnyAsync(p => p.Name == input.Name && p.Id != input.Id && !p.IsDeleted))
+                    throw new Exception($"{input.Name} existed!");
 
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
@@ -109,7 +113,7 @@ namespace IntranetApi.Services
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 var existedRoleClaims = await db.RoleClaims.Where(p => p.RoleId == entity.Id).ToListAsync();
-                if(existedRoleClaims.Any())
+                if (existedRoleClaims.Any())
                     db.RoleClaims.RemoveRange(existedRoleClaims);
 
                 if (input.Permissions.Any())
@@ -152,8 +156,8 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             [FromBody] RoleFilterDto input) =>
             {
-                ProcessFilterValues(ref input);                 
-                var query = db.Roles                             
+                ProcessFilterValues(ref input);
+                var query = db.Roles
                            .AsNoTracking()
                            .Where(p => !p.IsDeleted)
                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword));
@@ -169,16 +173,16 @@ namespace IntranetApi.Services
                     var creatorUserIds = items.Select(p => p.CreatorUserId.GetValueOrDefault()).Distinct().ToList();
                     var lastModifierUserIds = items.Select(p => p.LastModifierUserId.GetValueOrDefault()).Distinct();
                     creatorUserIds.AddRange(lastModifierUserIds);
-                    var creators =await db.Users.AsNoTracking()
+                    var creators = await db.Users.AsNoTracking()
                                     .Where(p => creatorUserIds.Contains(p.Id))
                                     .Select(p => new BaseDropdown { Id = p.Id, Name = p.Email })
                                     .ToListAsync();
-                    var roleIds = items.Select(p=>p.Id);
-                    var roleEmployees= await db.UserRoles.Include(p=>p.User)
+                    var roleIds = items.Select(p => p.Id);
+                    var roleEmployees = await db.UserRoles.Include(p => p.User)
                                             .AsNoTracking()
-                                            .Where(p=>roleIds.Contains(p.RoleId))
-                                            .GroupBy(p=>p.RoleId)
-                                            .Select(p=>new RoleEmployeeList { RoleId= p.Key, EmployeeNames= p.Select(q=>q.User.Name).ToList()})
+                                            .Where(p => roleIds.Contains(p.RoleId))
+                                            .GroupBy(p => p.RoleId)
+                                            .Select(p => new RoleEmployeeList { RoleId = p.Key, EmployeeNames = p.Select(q => q.User.Name).ToList() })
                                             .ToListAsync();
                     foreach (var item in items)
                     {
@@ -188,14 +192,14 @@ namespace IntranetApi.Services
                         if (item.LastModifierUserId != null)
                             item.LastModifierUser = creators.FirstOrDefault(p => p.Id == item.LastModifierUserId.Value)?.Name;
 
-                        var roleEmployee= roleEmployees.FirstOrDefault(p=>p.RoleId== item.Id);
-                        if(roleEmployee != null)
+                        var roleEmployee = roleEmployees.FirstOrDefault(p => p.RoleId == item.Id);
+                        if (roleEmployee != null)
                         {
-                            item.Count= roleEmployee.EmployeeNames.Count;
+                            item.Count = roleEmployee.EmployeeNames.Count;
                             item.EmployeeNames = roleEmployee.EmployeeNames;
                         }
                     }
-                }               
+                }
                 return Results.Ok(new PagedResultDto<RoleListItem>(totalCount, items));
             })
             .RequireAuthorization(RolePermissions.View)

@@ -50,6 +50,12 @@ namespace IntranetApi.Services
             [FromServices] IMemoryCache memoryCache,
             [FromBody] BrandCreateOrEdit input) =>
             {
+                if (string.IsNullOrEmpty(input.Name))
+                    throw new Exception("No valid name!");
+
+                var checkExisted = await db.Brands.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
+                if (checkExisted)
+                    throw new Exception($"{input.Name} existed!");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = new Brand { Name = input.Name, CreatorUserId = userId };
@@ -68,6 +74,12 @@ namespace IntranetApi.Services
             [FromServices] IMemoryCache memoryCache,
             [FromBody] BrandCreateOrEdit input) =>
             {
+                if (string.IsNullOrEmpty(input.Name))
+                    throw new Exception("No valid name!");
+
+                var checkExisted = await db.Brands.AnyAsync(p => p.Name == input.Name && input.Id != p.Id && !p.IsDeleted);
+                if (checkExisted)
+                    throw new Exception($"{input.Name} existed!");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = db.Brands.FirstOrDefault(x => x.Id == input.Id);

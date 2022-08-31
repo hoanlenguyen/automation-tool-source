@@ -147,7 +147,7 @@
               <b-field label="Name">
                   <b-input
                     type="Text"
-                    v-model="model.name"
+                    v-model.trim="model.name"
                     placeholder="Name...."
                     required>
                   </b-input>
@@ -246,7 +246,7 @@ export default {
     canUpdate() {
       return (
         this.$store.state.userPermissions &&
-        this.$store.state.userincludes(
+        this.$store.state.userPermissions.includes(
           "Bank.Update"
         )
       );
@@ -254,7 +254,7 @@ export default {
     canDelete() {
       return (
         this.$store.state.userPermissions &&
-        this.$store.state.userincludes(
+        this.$store.state.userPermissions.includes(
           "Bank.Delete"
         )
       );
@@ -313,7 +313,7 @@ export default {
           }
         })
       .catch((error) => {
-          this.openErrorMessage(error.response.status); 
+          this.notifyErrorMessage(error); 
         })
       .finally(() => {
         this.closeModalDialog();
@@ -335,7 +335,7 @@ export default {
           }
         })
       .catch((error) => {
-          this.openErrorMessage(error.response.status); 
+          this.notifyErrorMessage(error); 
         })
       .finally(() => {
         this.isDeleteModalActive=false;

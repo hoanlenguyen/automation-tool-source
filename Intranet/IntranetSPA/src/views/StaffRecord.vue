@@ -595,7 +595,7 @@ export default {
           }
         })
         .catch((error) => {
-          this.openErrorMessage(error.response.status); 
+          this.notifyErrorMessage(error) 
         })
         .finally(() => {
           this.isLoading = false;
@@ -682,7 +682,7 @@ export default {
           }
         })
       .catch((error) => {
-          this.openErrorMessage(error.response.status); 
+          this.notifyErrorMessage(error)
         })
       .finally(() => {
         this.closeModalDialog();
@@ -722,7 +722,7 @@ export default {
           }
         })
       .catch((error) => {
-          this.openErrorMessage(error.response.status); 
+          this.notifyErrorMessage(error)
         })
       .finally(() => {
         this.isDeleteModalActive=false;
@@ -745,7 +745,7 @@ export default {
           }
         })
       .catch((error) => {
-          this.openErrorMessage(error.response.status); 
+          this.notifyErrorMessage(error)
         })
       .finally(() => {});
     },
@@ -758,7 +758,7 @@ export default {
           } 
         })
         .catch((error) => {
-          console.log(error);
+          this.notifyErrorMessage(error)
         })
         .finally(() => {
         });
@@ -793,13 +793,7 @@ export default {
           if (response.status == 200) {
             this.model.staffRecordDocuments =[...this.model.staffRecordDocuments,...response.data];
         }})
-        .catch((error) => {
-          // this.$buefy.snackbar.open({
-          //   message: error,
-          //   queue: false,
-          //   type: 'is-warning'
-          // });
-        })
+        .catch((error) => { this.notifyErrorMessage(error)})
         .finally(() => {
           this.isLoadingFiles = false;
         });

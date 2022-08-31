@@ -289,7 +289,7 @@
             <b-field label="Name" class="column is-3">
               <b-input
                 type="Text"
-                v-model="model.name"
+                v-model.trim="model.name"
                 required>
               </b-input>
             </b-field>
@@ -681,7 +681,7 @@ export default {
           }
         })
         .catch((error) => {
-          console.log(error);
+          this.notifyErrorMessage(error)
         })
         .finally(() => {
           this.isLoading = false;
@@ -715,7 +715,7 @@ export default {
             });
           }
         })
-      .catch((error) => {})
+      .catch((error) => {this.notifyErrorMessage(error)})
       .finally(() => {
         this.closeModalDialog();
         this.getList();
@@ -742,7 +742,7 @@ export default {
             });
           }
         })
-      .catch((error) => {})
+      .catch((error) => {this.notifyErrorMessage(error)})
       .finally(() => {
         this.isDeleteModalActive=false;
         this.selectedId= null;
@@ -788,11 +788,7 @@ export default {
           }
         })
         .catch((error) => {
-          // this.$buefy.snackbar.open({
-          //   message: error,
-          //   queue: false,
-          //   type: 'is-warning'
-          // });
+          this.notifyErrorMessage(error)
         })
         .finally(() => {
           this.isImportLoading = false;
@@ -825,7 +821,7 @@ export default {
           } 
         })
         .catch((error) => {
-          console.log(error);
+          this.notifyErrorMessage(error)
         })
         .finally(() => {
         });
@@ -838,7 +834,7 @@ export default {
           } 
         })
         .catch((error) => {
-          console.log(error);
+          this.notifyErrorMessage(error)
         })
         .finally(() => {
         });
@@ -851,7 +847,7 @@ export default {
           } 
         })
         .catch((error) => {
-          console.log(error);
+          this.notifyErrorMessage(error)
         })
         .finally(() => {
         });
@@ -864,7 +860,7 @@ export default {
           } 
         })
         .catch((error) => {
-          console.log(error);
+          this.notifyErrorMessage(error)
         })
         .finally(() => {
         });

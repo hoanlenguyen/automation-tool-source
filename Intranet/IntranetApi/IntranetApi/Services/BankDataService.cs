@@ -23,7 +23,7 @@ namespace IntranetApi.Services
             if (string.IsNullOrEmpty(input.SortDirection))
                 input.SortDirection = "desc";
         }
-         
+
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
             using var connection = new MySqlConnection(sqlConnectionStr);
@@ -37,7 +37,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity =await db.Banks.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+                var entity = await db.Banks.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
                 return Results.Ok(entity);
@@ -53,10 +53,16 @@ namespace IntranetApi.Services
             [FromBody] BankCreateOrEdit input
             ) =>
             {
+                if (string.IsNullOrEmpty(input.Name))
+                    throw new Exception("No valid name!");
+
+                var checkExisted = await db.Banks.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
+                if (checkExisted)
+                    throw new Exception($"{input.Name} existed!");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = new Bank { Name = input.Name, CreatorUserId = userId };
-                db.Add(entity);
+                db.Banks.Add(entity);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 return Results.Ok();
@@ -71,6 +77,12 @@ namespace IntranetApi.Services
             [FromServices] IMemoryCache memoryCache,
             [FromBody] BankCreateOrEdit input) =>
             {
+                if (string.IsNullOrEmpty(input.Name))
+                    throw new Exception("No valid name!");
+
+                var checkExisted = await db.Banks.AnyAsync(p => p.Name == input.Name && input.Id != p.Id && !p.IsDeleted);
+                if (checkExisted)
+                    throw new Exception($"{input.Name} existed!");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = db.Banks.FirstOrDefault(x => x.Id == input.Id);
@@ -109,7 +121,7 @@ namespace IntranetApi.Services
                 return Results.Ok();
             })
             .RequireAuthorization(BankPermissions.Delete)
-            ; 
+            ;
 
             app.MapPost("bank/list", [Authorize]
             async Task<IResult> (
@@ -128,7 +140,7 @@ namespace IntranetApi.Services
                                 .Take(input.RowsPerPage)
                                 .ProjectToType<BankCreateOrEdit>()
                                 .ToListAsync();
-                return Results.Ok(new PagedResultDto<BankCreateOrEdit>(totalCount, items));                
+                return Results.Ok(new PagedResultDto<BankCreateOrEdit>(totalCount, items));
             })
             .RequireAuthorization(BankPermissions.View)
             ;

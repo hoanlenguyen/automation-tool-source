@@ -147,7 +147,7 @@
               <b-field label="Name">
                   <b-input
                     type="Text"
-                    v-model="model.name"
+                    v-model.trim="model.name"
                     placeholder="Name...."
                     required>
                   </b-input>
@@ -155,7 +155,7 @@
             </section>
             <footer class="modal-card-foot">
                 <b-button label="Cancel" @click="cancelCreateOrUpdate" />
-                <b-button :label="model.id==0?'Create':'Update'"type="is-primary" @click="createOrUpdateModel"/>
+                <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
             </footer>
         </div>
       </form>
@@ -289,7 +289,7 @@ export default {
           }
         })
         .catch((error) => {
-          this.openErrorMessage(error.response.status); 
+          this.notifyErrorMessage(error) 
         })
         .finally(() => {
           this.isLoading = false;
@@ -313,7 +313,7 @@ export default {
           }
         })
       .catch((error) => {
-          this.openErrorMessage(error.response.status); 
+          this.notifyErrorMessage(error)
         })
       .finally(() => {
         this.closeModalDialog();
@@ -335,7 +335,7 @@ export default {
           }
         })
       .catch((error) => {
-          this.openErrorMessage(error.response.status); 
+          this.notifyErrorMessage(error) 
         })
       .finally(() => {
         this.isDeleteModalActive=false;

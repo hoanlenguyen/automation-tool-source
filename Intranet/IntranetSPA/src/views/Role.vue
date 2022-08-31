@@ -29,6 +29,7 @@
         label="Name"
         sortable        
         width="350px"
+        header-class="is-size-7"
         v-slot="props"
       >       
       {{ props.row.name}}
@@ -38,6 +39,7 @@
         field="Count"
         label="Count"
         width="150px"
+        header-class="is-size-7"
         v-slot="props"
       >       
         <b-tooltip 
@@ -58,6 +60,7 @@
         field="CreationTime"
         label="CreationTime"
         sortable
+        header-class="is-size-7"
         v-slot="props"
         width="300px">
        {{ props.row.creationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
@@ -68,6 +71,7 @@
         label="Created By"
         width="200px"
         sortable
+        header-class="is-size-7"
         v-slot="props"
       >       
       {{ props.row.creatorUser}}
@@ -77,6 +81,7 @@
         field="LastModificationTime"
         label="Updated On"
         sortable
+        header-class="is-size-7"
         v-slot="props"
         width="300px">
        {{ props.row.lastModificationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
@@ -87,6 +92,7 @@
         field="LastModifierUserId"
         width="200px"
         sortable
+        header-class="is-size-7"
         v-slot="props"
       >       
       {{ props.row.lastModifierUser}}
@@ -96,6 +102,7 @@
         field="Status"
         label="Status"
         sortable
+        header-class="is-size-7"
         v-slot="props"
         width="300px">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Disabled' }}</span>        
@@ -103,7 +110,8 @@
 
       <b-table-column
         field="Edit"
-        label="Edit"        
+        label="Edit"
+        header-class="is-size-7"        
         v-slot="props"
         width="100px">        
         <b-button 
@@ -196,7 +204,7 @@
               <b-field label="Name">
                   <b-input
                     type="Text"
-                    v-model="model.name"
+                    v-model.trim="model.name"
                     placeholder="Name...."
                     required>
                   </b-input>
@@ -219,7 +227,7 @@
             </section>
             <footer class="modal-card-foot">
                 <b-button label="Cancel" @click="cancelCreateOrUpdate" />
-                <b-button :label="model.id==0?'Create':'Update'"type="is-primary" @click="createOrUpdateModel"/>
+                <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
             </footer>
         </div>
     </b-modal>
@@ -361,7 +369,7 @@ export default {
           }
         })
         .catch((error) => {
-          console.log(error);
+          this.notifyErrorMessage(error)
         })
         .finally(() => {
           this.isLoading = false;
@@ -404,7 +412,7 @@ export default {
             });
           }
         })
-      .catch((error) => {})
+      .catch((error) => {this.notifyErrorMessage(error)})
       .finally(() => {
         this.isDeleteModalActive=false;
         this.selectedId= null;

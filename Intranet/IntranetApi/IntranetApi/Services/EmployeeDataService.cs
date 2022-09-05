@@ -108,6 +108,7 @@ namespace IntranetApi.Services
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<User>();
                 entity.CreatorUserId = userId;
+                entity.IsFirstTimeLogin=true;
                 var result = await userManager.CreateAsync(entity, entity.IntranetPassword);
                 Console.WriteLine($"UserId: {entity.Id}");
                 //await db.UserRoles.AddAsync(new UserRole { UserId = entity.Id, RoleId = entity.RoleId });
@@ -606,6 +607,7 @@ namespace IntranetApi.Services
                     foreach (var item in employees)
                     {
                         var user = item.Adapt<User>();
+                        user.IsFirstTimeLogin = true;
                         var result = await userManager.CreateAsync(user, item.IntranetPassword);
                         item.UserId = user.Id;
                         userRoles.Add(new UserRole { RoleId = item.RoleId, UserId = user.Id });

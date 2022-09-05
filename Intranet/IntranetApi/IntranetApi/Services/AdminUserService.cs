@@ -26,7 +26,7 @@ namespace IntranetApi.Services
                     IsFirstTimeLogin = true,
                     UserType= UserType.SuperAdmin,
                     EmployeeCode= input.UserName,
-                    //IntranetPassword= input.Password
+                    IntranetPassword= input.Password
                 };
 
                 var result = await userManager.CreateAsync(user, input.Password);
@@ -120,11 +120,12 @@ namespace IntranetApi.Services
 
             app.MapGet("auth/getProfile", [Authorize] async (IHttpContextAccessor httpContextAccessor, UserManager<User> userManager) =>
             {
-                var email = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-                if (string.IsNullOrEmpty(email))
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdStr))
                     return Results.Unauthorized();
 
-                var user = await userManager.FindByEmailAsync(email);
+                var user = await userManager.FindByIdAsync(userIdStr);
+
                 if (user is null)
                     return Results.Unauthorized();
 
@@ -137,11 +138,11 @@ namespace IntranetApi.Services
 
             app.MapPost("auth/changePassword", [Authorize] async ([FromServices] IHttpContextAccessor httpContextAccessor, [FromServices] UserManager<User> userManager, [FromBody] UserChangePassword input) =>
             {
-                var email = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-                if (string.IsNullOrEmpty(email))
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdStr))
                     return Results.Unauthorized();
 
-                var user = await userManager.FindByEmailAsync(email);
+                var user = await userManager.FindByIdAsync(userIdStr);
                 if (user is null)
                     return Results.Unauthorized();
 
@@ -151,12 +152,14 @@ namespace IntranetApi.Services
                     if (result.Succeeded)
                     {
                         user.IsFirstTimeLogin = false;
+                        user.IntranetPassword = input.NewPassword;
+                        await userManager.UpdateAsync(user);
                         return Results.Ok();
                     }
-                    return Results.BadRequest("Can not change this password!");
+                    return Results.BadRequest("Can not change this password");
                 }
 
-                return Results.Unauthorized();
+                return Results.BadRequest("The current password is incorrect");
             });
         }
     }

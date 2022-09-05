@@ -80,6 +80,27 @@ var myMixin = {
         convertDateToString(dateTime){
           return `${dateTime.getFullYear()}-${('0' + (dateTime.getMonth()+1)).slice(-2)}-${('0' + dateTime.getDate()).slice(-2)}`
                 +`T${('0' + (dateTime.getHours()+1)).slice(-2)}:${('0' + (dateTime.getMinutes()+1)).slice(-2)}:${('0' + (dateTime.getSeconds()+1)).slice(-2)}`;
+        },
+        checkValidPassword(value){
+          let validMessages=[];
+          let has_minimum_lenth = (value.length > 8);
+          let has_number    = /\d/.test(value);
+          let has_lowercase = /[a-z]/.test(value);
+          let has_uppercase = /[A-Z]/.test(value);
+          let has_special   = /[!@#\$%\^\&*\)\(+=._-]/.test(value);
+          if(!has_minimum_lenth)
+            validMessages.push("Password must have at least 8 characters");
+
+          if(!has_number)
+            validMessages.push("Password must have at least 1 number");
+
+          if(!has_uppercase)
+            validMessages.push("Password must have at least 1 uppercase letter");
+
+          if(!has_lowercase)
+            validMessages.push("Password must have at least 1 lowercase letter");
+          
+          return validMessages;
         }
     }
 }

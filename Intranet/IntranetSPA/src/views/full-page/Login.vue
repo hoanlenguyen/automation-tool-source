@@ -91,7 +91,6 @@ export default {
         .then((response) => {
           if (response.status==200) {
             let userInfo = response.data;
-            //console.log(userInfo);
             setToken(userInfo.accessToken);
             this.$store.commit('user', {
               name: userInfo.name,
@@ -100,10 +99,9 @@ export default {
               roleName:userInfo.roleName,
               permissions:userInfo.permissions
               });
-            console.log(this.$store.state);
 
             if(userInfo.isFirstTimeLogin)
-              this.$router.push({ name: 'dashboard' });
+              this.$router.push({ name: 'change-password' });
             else
               this.$router.push({ name: 'dashboard' });
 

@@ -87,7 +87,7 @@ var myMixin = {
           let has_number    = /\d/.test(value);
           let has_lowercase = /[a-z]/.test(value);
           let has_uppercase = /[A-Z]/.test(value);
-          let has_special   = /[!@#\$%\^\&*\)\(+=._-]/.test(value);
+          let has_special   = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(value);
           if(!has_minimum_lenth)
             validMessages.push("Password must have at least 8 characters");
 
@@ -99,6 +99,9 @@ var myMixin = {
 
           if(!has_lowercase)
             validMessages.push("Password must have at least 1 lowercase letter");
+
+          if(!has_special)
+            validMessages.push("Password must have at least 1 special letter");
           
           return validMessages;
         }

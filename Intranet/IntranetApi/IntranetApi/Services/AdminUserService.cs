@@ -146,20 +146,17 @@ namespace IntranetApi.Services
                 if (user is null)
                     return Results.Unauthorized();
 
-                if (await userManager.CheckPasswordAsync(user, input.CurrentPassword))
-                {
-                    var result = await userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
-                    if (result.Succeeded)
-                    {
-                        user.IsFirstTimeLogin = false;
-                        user.IntranetPassword = input.NewPassword;
-                        await userManager.UpdateAsync(user);
-                        return Results.Ok();
-                    }
-                    return Results.BadRequest("Can not change this password");
-                }
+                if (!await userManager.CheckPasswordAsync(user, input.CurrentPassword))
+                    throw new Exception("The current password is incorrect");
 
-                return Results.BadRequest("The current password is incorrect");
+                var result = await userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
+                if (!result.Succeeded)
+                    throw new Exception("Can not change this password");
+
+                user.IsFirstTimeLogin = false;
+                user.IntranetPassword = input.NewPassword;
+                await userManager.UpdateAsync(user);
+                return Results.Ok();
             });
         }
     }

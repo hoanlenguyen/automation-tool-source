@@ -38,6 +38,7 @@
                     <ul class="is-size-7">
                       <li>A <b>lowercase</b> letter</li>
                       <li>A <b>capital (uppercase)</b> letter</li>
+                      <li>A <b>special</b> letter (!@#$%^...)</li>
                       <li>A <b>number</b></li>
                       <li>Minimum <b>8 characters</b></li>
                     </ul>              

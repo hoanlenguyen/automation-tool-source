@@ -1,5 +1,19 @@
 <template>
   <section class="section is-main-section">
+    <vue-good-table
+      :columns="columns"
+      :rows="data"
+      :fixed-header="true"
+      :row-style-class="'red'"
+      >
+    </vue-good-table>
+
+    <vuetable ref="vuetable"
+    :fields="['name', 'status', 'creationTime', 'edit']"
+    :per-page="3"
+    :api-mode="false"
+    :data="data"
+    ></vuetable>
     <b-table
       :data="data"
       :loading="isLoading"
@@ -176,13 +190,37 @@
 </template>
 <script>
 import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/bank";
+import Vuetable from "vuetable-2";
+import VuetableRowHeader from 'vuetable-2/src/components/VuetableRowHeader.vue';
+
 export default {
   name:"bank",
+  components: {
+    Vuetable
+  },
   created() {
     this.getList();
   },
   data() {
     return {
+      columns: [
+        {
+          label: 'Name',
+          field: 'name',
+        },
+        {
+          label: 'Status',
+          field: 'status',
+        },
+        {
+          label: 'Creation time',
+          field: 'creationTime',
+        },
+        {
+          label: 'Edit',
+          field: 'edit',
+        }
+        ],
       data: [],
       totalItems:0,
       isLoading:false,

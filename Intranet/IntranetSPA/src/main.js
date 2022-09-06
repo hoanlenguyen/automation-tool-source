@@ -25,6 +25,11 @@ import VueSignalR from '@latelier/vue-signalr'
 /* Fetch sample data */
 //store.dispatch('fetch', 'clients')
 
+import VueGoodTablePlugin from 'vue-good-table';
+
+// import the styles
+import 'vue-good-table/dist/vue-good-table.css'
+
 /* Default title tag */
 const defaultDocumentTitle = 'Intranet'
 
@@ -55,7 +60,7 @@ Vue.mixin(mixin)
 Vue.config.productionTip = false
 Vue.config.devtools = process.env.NODE_ENV === 'development'
 Vue.use(VueSignalR, `${process.env.VUE_APP_BASE_API}/hubClient`)
-
+Vue.use(VueGoodTablePlugin);
 Vue.use(Buefy)
 new Vue({
   router,

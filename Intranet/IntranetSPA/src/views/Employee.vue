@@ -12,6 +12,9 @@
     @sort="onSort"
     :debounce-page-input="200"
     mobile-cards
+    narrowed
+    hoverable
+    class="customTable"
     >
       <b-table-column
         field="Name"
@@ -31,7 +34,7 @@
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
         sortable        
-        width="100"
+        width="250"
         v-slot="props"
       >       
       {{props.row.employeeCode}}
@@ -62,12 +65,12 @@
        <b-table-column
         field="dept"
         label="Brand"
-        width="200px"
+        width="150"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"        
         v-slot="props"
       >       
-      {{props.row.brand}}
+        <p v-for="(brandName,index) in props.row.brands" :index="index">{{brandName}}</p> 
       </b-table-column>
 
       <b-table-column
@@ -189,10 +192,11 @@
         field="Edit"
         label="Edit"        
         v-slot="props"
-        width="100"
+        width="120"
         centered
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
+        sticky
         >
         <a 
           v-if="canUpdate"
@@ -716,7 +720,7 @@ export default {
       this.model= {...input};
       this.birthDate= moment(this.model.birthDate,'YYYY-MM-DD').toDate();
       this.startDate= moment(this.model.startDate,'YYYY-MM-DD').toDate();
-      console.log('brandIds '+this.model.brandIds);
+      //console.log('brandIds '+this.model.brandIds);
       if(this.model.brandIds){
         this.selectBrands= this.brands.filter(p=> this.model.brandIds.includes(p.id));
       }
@@ -868,3 +872,42 @@ export default {
 </script>
  
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+<style>
+  .customTable {
+  display: block;
+  max-width: -moz-fit-content !important;
+  max-width: fit-content !important;
+  margin: 0 auto;
+  overflow-x: auto;
+  }
+
+  .customTable table {
+  display: block;
+  max-width: -moz-fit-content;
+  max-width: fit-content;
+  margin: 0 auto;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.customTableBorderHeader{
+    border: 0.5px solid #dcdfe6 !important;
+    border-collapse: collapse !important;
+    padding: 0.75em 1.5em 0.75em 0.75em !important;
+    color: #606266;
+    vertical-align: bottom;
+    background: linear-gradient(#f4f5f8,#f1f3f6);
+  }
+  .customTableCell{
+    border: 1px solid #dcdfe6 !important;
+    border-collapse: collapse !important;
+  }
+
+  .b-table .table {
+    border-collapse: collapse !important;
+  }
+
+  .table-footer{
+    border: 1px solid #dcdfe6 !important;
+  }
+</style>

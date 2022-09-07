@@ -10,6 +10,7 @@
         public int RankId { get; set; }
         public string Rank { get; set; }
         public string Brand { get; set; }
+        public IEnumerable<string> Brands { get; set; } = new HashSet<string>();
         public IEnumerable<int> BrandEmployees { get; set; } = new HashSet<int>();
         public int SumDaysOfExtraPay { get; set; }
         public int SumHoursOfExtraPay { get; set; }

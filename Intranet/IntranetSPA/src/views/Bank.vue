@@ -11,7 +11,9 @@
       :sort-icon-size="sortIconSize"
       @sort="onSort"
       :debounce-page-input="200"
-      mobile-cards      
+      mobile-cards
+      hoverable
+      sticky-header      
     >
       <b-table-column
         field="Name"
@@ -21,6 +23,7 @@
         v-slot="props"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
+        sticky
       >       
       {{ props.row.name}}
       </b-table-column>
@@ -389,4 +392,5 @@ export default {
   .table-footer{
     border: 1px solid #dcdfe6 !important;
   }
+ 
 </style>

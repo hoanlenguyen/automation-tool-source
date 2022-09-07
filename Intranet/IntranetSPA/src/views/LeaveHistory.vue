@@ -12,6 +12,7 @@
       @sort="onSort"
       :debounce-page-input="200"
       mobile-cards
+      narrowed
     >
       <b-table-column
         field="departmentId"
@@ -69,7 +70,7 @@
         cell-class="customTableCell"
         v-slot="props"
       >       
-      {{ props.row.brand}}
+      <p v-for="(brandName,index) in props.row.brands" :index="index">{{brandName}}</p> 
       </b-table-column>
 
       <b-table-column

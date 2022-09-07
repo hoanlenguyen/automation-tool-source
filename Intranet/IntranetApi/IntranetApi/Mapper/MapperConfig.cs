@@ -32,6 +32,7 @@ namespace IntranetApi.Mapper
             TypeAdapterConfig<User, EmployeeExcelInput>.NewConfig()
                             .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p=>p.BrandId).ToList())
                             .Map(dest => dest.Brand, src => string.Join(',', src.BrandEmployees.Select(q=>q.Brand.Name)))
+                            .Map(dest => dest.Brands, src => src.BrandEmployees.Select(q => q.Brand.Name))
                             ;
 
             TypeAdapterConfig<EmployeeExcelInput, User>.NewConfig()

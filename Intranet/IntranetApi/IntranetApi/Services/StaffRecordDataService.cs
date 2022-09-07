@@ -354,6 +354,7 @@ namespace IntranetApi.Services
                     item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
                     item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
                     item.Brand = string.Join(',', brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name));
+                    item.Brands = brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name);
                 }
                 return Results.Ok(new PagedResultDto<LeaveHistoryList>(totalCount, items));
             })

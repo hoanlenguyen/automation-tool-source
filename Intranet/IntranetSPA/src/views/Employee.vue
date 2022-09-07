@@ -20,7 +20,7 @@
         field="Name"
         label="Name"
         sortable        
-        width="300"
+        width="350"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"        
         v-slot="props"
@@ -34,7 +34,7 @@
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
         sortable        
-        width="250"
+        width="300"
         v-slot="props"
       >       
       {{props.row.employeeCode}}
@@ -73,7 +73,7 @@
         <p v-for="(brandName,index) in props.row.brands" :index="index">{{brandName}}</p> 
       </b-table-column>
 
-      <b-table-column
+      <!-- <b-table-column
         field="Bank.Name"
         label="Bank Name"
         width="200px"
@@ -92,9 +92,9 @@
         cell-class="customTableCell"              
         v-slot="props">       
         {{props.row.bankAccountNumber}}
-      </b-table-column>
+      </b-table-column> -->
 
-      <b-table-column
+      <!-- <b-table-column
         field="idNumber"
         label="Id Number"
         width="150"
@@ -102,7 +102,7 @@
         cell-class="customTableCell"              
         v-slot="props">       
         {{props.row.idNumber}}
-      </b-table-column>
+      </b-table-column> -->
 
       <b-table-column
         field="Country"
@@ -143,10 +143,10 @@
         width="150"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">
-        <span class="is-size-7">{{ props.row.startDate | dateTime('DD-MM-YYYY') }} </span>       
+        {{ props.row.startDate | dateTime('DD-MM-YYYY') }}       
       </b-table-column>
 
-      <b-table-column
+      <!-- <b-table-column
         field="birthDate"
         label="Birth Date"
         sortable
@@ -155,7 +155,7 @@
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">
         <span class="is-size-7">{{ props.row.birthDate | dateTime('DD-MM-YYYY') }} </span>
-      </b-table-column>
+      </b-table-column> -->
 
       <b-table-column
         field="CreationTime"
@@ -165,27 +165,27 @@
         width="150"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">
-        <span class="is-size-7">{{ props.row.creationTime | dateTime }}</span>        
+        {{ props.row.creationTime | dateTime }}        
       </b-table-column>
 
       <b-table-column
         field="LastModificationTime"
         label="Last Update Time"
         v-slot="props"
-        width="100"
+        width="200"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">
-        <span class="is-size-7"> {{ props.row.lastModificationTime | dateTime }} </span>
+        {{ props.row.lastModificationTime | dateTime }}
       </b-table-column>
 
       <b-table-column
         field="lastModifierUser"
         label="Last Update By"
         v-slot="props"
-        width="200px"
+        width="200"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">
-        <span class="is-size-7"> {{ props.row.lastModifierUser }} </span>
+        {{ props.row.lastModifierUser }}
       </b-table-column>
 
       <b-table-column
@@ -196,7 +196,6 @@
         centered
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
-        sticky
         >
         <a 
           v-if="canUpdate"

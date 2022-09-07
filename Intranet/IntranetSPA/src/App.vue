@@ -75,7 +75,7 @@ export default {
         items.push({
           to: '/rank',
           label: 'Ranks',
-          icon: 'shield-account'
+          icon: 'account-supervisor'
         });
 
       if(this.$store.state.userPermissions.includes(

@@ -18,7 +18,7 @@ export default [
     {
       to: '/rank',
       label: 'Ranks',
-      icon: 'shield-account'
+      icon: 'account-supervisor'
     },
     {
       to: '/role',

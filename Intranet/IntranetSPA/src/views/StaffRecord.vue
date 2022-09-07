@@ -13,6 +13,7 @@
     :debounce-page-input="200"
     mobile-cards
     narrowed
+    
     >
       <b-table-column
         field="DepartmentId"

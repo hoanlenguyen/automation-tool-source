@@ -2,35 +2,25 @@
   <section class="section is-main-section">
     <b-table
       :data="data"
-      :loading="isLoading"
-      
+      :loading="isLoading"      
       backend-pagination
-      :total="totalItems"
-      :per-page="filter.rowsPerPage"      
-      :pagination-simple="false"
-      pagination-position="bottom"
-      
       backend-sorting
       :default-sort="filter.sortBy"
       :default-sort-direction="filter.sortDirection"
       :sort-icon="sortIcon"
       :sort-icon-size="sortIconSize"
       @sort="onSort"
-
-      aria-next-label="Next page"
-      aria-previous-label="Previous page"
-      aria-page-label="Page"
-      aria-current-label="Current page"           
-      :pagination-order="paginationOrder"   
       :debounce-page-input="200"
+      mobile-cards
     >
       <b-table-column
         field="Name"
         label="Name"
         sortable        
-        width="350px"
-        header-class="is-size-7"
+        width="350"
         v-slot="props"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
       >       
       {{ props.row.name}}
       </b-table-column>
@@ -38,8 +28,9 @@
       <b-table-column
         field="Count"
         label="Count"
-        width="150px"
-        header-class="is-size-7"
+        width="120"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
         <b-tooltip 
@@ -58,11 +49,12 @@
 
       <b-table-column
         field="CreationTime"
-        label="CreationTime"
+        label="Creation Time"
         sortable
-        header-class="is-size-7"
         v-slot="props"
-        width="300px">
+        width="300px"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">
        {{ props.row.creationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
       </b-table-column>
 
@@ -71,7 +63,8 @@
         label="Created By"
         width="200px"
         sortable
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.creatorUser}}
@@ -81,7 +74,8 @@
         field="LastModificationTime"
         label="Updated On"
         sortable
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
         width="300px">
        {{ props.row.lastModificationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
@@ -92,7 +86,8 @@
         field="LastModifierUserId"
         width="200px"
         sortable
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.lastModifierUser}}
@@ -102,7 +97,8 @@
         field="Status"
         label="Status"
         sortable
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
         width="300px">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Disabled' }}</span>        
@@ -111,40 +107,36 @@
       <b-table-column
         field="Edit"
         label="Edit"
-        header-class="is-size-7"        
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"       
         v-slot="props"
-        width="100px">        
-        <b-button 
+        centered
+        width="120px">        
+        <a 
           v-if="canUpdate"
           title="edit"          
-          class="button mr-5"
-          @click="getDetail(props.row.id)" 
-          style="padding: 0; border: none; background: none;">
+          @click="getDetail(props.row.id)">
           <b-icon
             icon="pencil"
             type="is-info">
           </b-icon>
-        </b-button> 
-        <b-button 
+        </a> 
+
+        <a 
           v-if="canDelete"
           title="delete"          
-          class="button has-text-grey"
-          @click="deleteSelectedModel(props.row.id)" 
-          style="padding: 0; border: none; background: none;">
+          class="ml-3 has-text-grey"
+          @click="deleteSelectedModel(props.row.id)">
           <b-icon
             icon="delete">
           </b-icon>
-        </b-button>       
+        </a>       
       </b-table-column>
 
       <template #empty>
         <div class="has-text-centered">No records</div>
       </template>
-      <div slot="subheading" class="is-flex 
-        is-flex-direction-row
-        is-align-items-center
-        is-flex-wrap-wrap">header
-      </div>
+      
       <div slot="footer" class="is-flex 
         is-flex-direction-row
         is-align-items-center

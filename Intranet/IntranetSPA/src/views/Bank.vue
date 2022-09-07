@@ -1,42 +1,17 @@
 <template>
   <section class="section is-main-section">
-    <vue-good-table
-      :columns="columns"
-      :rows="data"
-      :fixed-header="true"
-      :row-style-class="'red'"
-      >
-    </vue-good-table>
-
-    <vuetable ref="vuetable"
-    :fields="['name', 'status', 'creationTime', 'edit']"
-    :per-page="3"
-    :api-mode="false"
-    :data="data"
-    ></vuetable>
     <b-table
       :data="data"
-      :loading="isLoading"
-      
+      :loading="isLoading"      
       backend-pagination
-      :total="totalItems"
-      :per-page="filter.rowsPerPage"      
-      :pagination-simple="false"
-      pagination-position="bottom"
-      
       backend-sorting
       :default-sort="filter.sortBy"
       :default-sort-direction="filter.sortDirection"
       :sort-icon="sortIcon"
       :sort-icon-size="sortIconSize"
       @sort="onSort"
-
-      aria-next-label="Next page"
-      aria-previous-label="Previous page"
-      aria-page-label="Page"
-      aria-current-label="Current page"           
-      :pagination-order="paginationOrder"   
       :debounce-page-input="200"
+      mobile-cards      
     >
       <b-table-column
         field="Name"
@@ -44,6 +19,8 @@
         sortable        
         width="350px"
         v-slot="props"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
       >       
       {{ props.row.name}}
       </b-table-column>
@@ -53,16 +30,20 @@
         label="Status"
         sortable
         v-slot="props"
-        width="300px">        
+        width="250"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
       </b-table-column>
 
       <b-table-column
         field="CreationTime"
-        label="CreationTime"
+        label="Creation Time"
         sortable
         v-slot="props"
-        width="300px">
+        width="300"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">
        {{ props.row.creationTime | dateTime }} 
       </b-table-column>
 
@@ -70,38 +51,29 @@
         field="Edit"
         label="Edit"        
         v-slot="props"
-        width="100px">
-        <b-button 
+        width="100"
+        centered
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
+        >
+        <a 
           v-if="canUpdate"
-          title="edit"          
-          class="button mr-5"
-          @click="editModel(props.row)" 
-          style="padding: 0; border: none; background: none;">
-          <b-icon
-            icon="pencil"
-            type="is-info">
-          </b-icon>
-        </b-button> 
-        <b-button 
+          title="edit"
+          @click="editModel(props.row)">
+            <b-icon icon="pencil" type="is-info"></b-icon>
+        </a> 
+        <a 
           v-if="canDelete"
           title="delete"          
-          class="button has-text-grey"
-          @click="deleteSelectedModel(props.row.id)" 
-          style="padding: 0; border: none; background: none;">
-          <b-icon
-            icon="delete">
-          </b-icon>
-        </b-button>       
+          class="ml-3 has-text-grey"
+          @click="deleteSelectedModel(props.row.id)">
+            <b-icon icon="delete"></b-icon>
+        </a> 
       </b-table-column>
 
       <template #empty>
         <div class="has-text-centered">No records</div>
-      </template>
-      <div slot="subheading" class="is-flex 
-        is-flex-direction-row
-        is-align-items-center
-        is-flex-wrap-wrap">header
-      </div>
+      </template> 
       <div slot="footer" class="is-flex 
         is-flex-direction-row
         is-align-items-center
@@ -190,14 +162,9 @@
 </template>
 <script>
 import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/bank";
-import Vuetable from "vuetable-2";
-import VuetableRowHeader from 'vuetable-2/src/components/VuetableRowHeader.vue';
-
 export default {
   name:"bank",
-  components: {
-    Vuetable
-  },
+  components: { },
   created() {
     this.getList();
   },
@@ -207,18 +174,20 @@ export default {
         {
           label: 'Name',
           field: 'name',
+          width: '200',
         },
         {
           label: 'Status',
           field: 'status',
         },
         {
-          label: 'Creation time',
+          label: 'Creation Time',
           field: 'creationTime',
         },
         {
           label: 'Edit',
           field: 'edit',
+          width: '120',
         }
         ],
       data: [],
@@ -299,6 +268,14 @@ export default {
     }
    },
   methods: {
+    onRowDoubleClick(params){
+      if(this.canUpdate)
+        this.editModel(params.row);
+    },
+    onSortChange(params){
+      console.log(params[0].sortType);
+      console.log(params[0].columnIndex );
+    },
     resetFilter() {
       this.filter = { ...this.defaultFilter };       
       this.getList();
@@ -391,3 +368,25 @@ export default {
   }
 };
 </script>
+<style>
+  .customTableBorderHeader{
+    border: 0.5px solid #dcdfe6 !important;
+    border-collapse: collapse !important;
+    padding: 0.75em 1.5em 0.75em 0.75em !important;
+    color: #606266;
+    vertical-align: bottom;
+    background: linear-gradient(#f4f5f8,#f1f3f6);
+  }
+  .customTableCell{
+    border: 1px solid #dcdfe6 !important;
+    border-collapse: collapse !important;
+  }
+
+  .b-table .table {
+    border-collapse: collapse !important;
+  }
+
+  .table-footer{
+    border: 1px solid #dcdfe6 !important;
+  }
+</style>

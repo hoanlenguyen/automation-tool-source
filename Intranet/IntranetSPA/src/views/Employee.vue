@@ -1,36 +1,25 @@
 <template>
   <section class="section is-main-section">
     <b-table
-      :data="data"
-      :loading="isLoading"
-      mobile-cards
-      scrollable
-      backend-pagination
-      :total="totalItems"
-      :per-page="filter.rowsPerPage"      
-      :pagination-simple="false"
-      pagination-position="bottom"
-      
-      backend-sorting
-      :default-sort="filter.sortBy"
-      :default-sort-direction="filter.sortDirection"
-      :sort-icon="sortIcon"
-      :sort-icon-size="sortIconSize"
-      @sort="onSort"
-
-      aria-next-label="Next page"
-      aria-previous-label="Previous page"
-      aria-page-label="Page"
-      aria-current-label="Current page"           
-      :pagination-order="paginationOrder"   
-      :debounce-page-input="200"
+    :data="data"
+    :loading="isLoading"      
+    backend-pagination
+    backend-sorting
+    :default-sort="filter.sortBy"
+    :default-sort-direction="filter.sortDirection"
+    :sort-icon="sortIcon"
+    :sort-icon-size="sortIconSize"
+    @sort="onSort"
+    :debounce-page-input="200"
+    mobile-cards
     >
       <b-table-column
         field="Name"
         label="Name"
         sortable        
         width="300"
-        header-class="is-size-7"        
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"        
         v-slot="props"
       >       
       {{props.row.name}}
@@ -39,7 +28,8 @@
       <b-table-column
         field="employeeCode"
         label="Employee code"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         sortable        
         width="100"
         v-slot="props"
@@ -51,7 +41,8 @@
         field="rankId"
         label="Rank"
         width="150"
-        header-class="is-size-7"       
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"      
         v-slot="props"
       >       
       {{props.row.rank}}
@@ -61,7 +52,8 @@
         field="dept"
         label="Department"
         width="150"
-        header-class="is-size-7"         
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"        
         v-slot="props"
       >       
       {{props.row.dept}}
@@ -71,18 +63,19 @@
         field="dept"
         label="Brand"
         width="200px"
-        header-class="is-size-7"         
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"        
         v-slot="props"
       >       
       {{props.row.brand}}
       </b-table-column>
 
-
       <b-table-column
-        field="bankName"
-        label="BankName"
+        field="Bank.Name"
+        label="Bank Name"
         width="200px"
-        header-class="is-size-7"         
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"     
         v-slot="props"
       >       
       {{props.row.bankName}}
@@ -92,7 +85,8 @@
         field="bankAccountNumber"
         label="Bank Account Number"
         width="150"
-        header-class="is-size-7"         
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"              
         v-slot="props">       
         {{props.row.bankAccountNumber}}
       </b-table-column>
@@ -101,7 +95,8 @@
         field="idNumber"
         label="Id Number"
         width="150"
-        header-class="is-size-7"         
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"              
         v-slot="props">       
         {{props.row.idNumber}}
       </b-table-column>
@@ -110,7 +105,8 @@
         field="Country"
         label="Country"
         width="150"
-        header-class="is-size-7"         
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"          
         v-slot="props">       
         {{props.row.country}}
       </b-table-column>
@@ -119,7 +115,8 @@
         field="salary"
         label="Salary"
         width="150" 
-        header-class="is-size-7"        
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"         
         v-slot="props">       
         {{props.row.salary|formattedNumber}}
       </b-table-column>
@@ -128,7 +125,8 @@
         field="Status"
         label="Status"
         width="100"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell" 
         sortable
         v-slot="props">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
@@ -140,7 +138,8 @@
         sortable
         v-slot="props"
         width="150"
-        header-class="is-size-7">
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">
         <span class="is-size-7">{{ props.row.startDate | dateTime('DD-MM-YYYY') }} </span>       
       </b-table-column>
 
@@ -150,7 +149,8 @@
         sortable
         v-slot="props"
         width="150"
-        header-class="is-size-7">
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">
         <span class="is-size-7">{{ props.row.birthDate | dateTime('DD-MM-YYYY') }} </span>
       </b-table-column>
 
@@ -160,7 +160,8 @@
         sortable
         v-slot="props"
         width="150"
-        header-class="is-size-7">
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">
         <span class="is-size-7">{{ props.row.creationTime | dateTime }}</span>        
       </b-table-column>
 
@@ -169,7 +170,8 @@
         label="Last Update Time"
         v-slot="props"
         width="100"
-        header-class="is-size-7">
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">
         <span class="is-size-7"> {{ props.row.lastModificationTime | dateTime }} </span>
       </b-table-column>
 
@@ -178,49 +180,39 @@
         label="Last Update By"
         v-slot="props"
         width="200px"
-        header-class="is-size-7">
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">
         <span class="is-size-7"> {{ props.row.lastModifierUser }} </span>
       </b-table-column>
+
       <b-table-column
         field="Edit"
         label="Edit"        
         v-slot="props"
-        width="150"
-        header-class="is-size-7">        
-        <b-button 
+        width="100"
+        centered
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
+        >
+        <a 
           v-if="canUpdate"
-          title="edit"          
-          class="button mr-5"
-
-          @click="editModel(props.row)" 
-          style="padding: 0; border: none; background: none;">
-          <b-icon
-          size="is-small"
-            icon="pencil"
-            type="is-info">
-          </b-icon>
-        </b-button> 
-        <b-button
-          v-if="canDelete" 
+          title="edit"
+          @click="editModel(props.row)">
+            <b-icon icon="pencil" type="is-info"></b-icon>
+        </a> 
+        <a 
+          v-if="canDelete"
           title="delete"          
-          class="button has-text-grey"
-          @click="deleteSelectedModel(props.row.id)" 
-          style="padding: 0; border: none; background: none;">
-          <b-icon
-             size="is-small"
-            icon="delete">
-          </b-icon>
-        </b-button>       
+          class="ml-3 has-text-grey"
+          @click="deleteSelectedModel(props.row.id)">
+            <b-icon icon="delete"></b-icon>
+        </a> 
       </b-table-column>
 
       <template #empty>
         <div class="has-text-centered">No records</div>
       </template>
-      <div slot="subheading" class="is-flex 
-        is-flex-direction-row
-        is-align-items-center
-        is-flex-wrap-wrap">header
-      </div>
+ 
       <div slot="footer" class="is-flex 
         is-flex-direction-row
         is-align-items-center
@@ -874,6 +866,5 @@ export default {
   }
 };
 </script>
-<style >
-</style>
+ 
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>

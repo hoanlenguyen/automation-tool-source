@@ -2,34 +2,24 @@
   <section class="section is-main-section">
     <b-table
       :data="data"
-      :loading="isLoading"
-      
+      :loading="isLoading"      
       backend-pagination
-      :total="totalItems"
-      :per-page="filter.rowsPerPage"      
-      :pagination-simple="false"
-      pagination-position="bottom"
-      
       backend-sorting
       :default-sort="filter.sortBy"
       :default-sort-direction="filter.sortDirection"
       :sort-icon="sortIcon"
       :sort-icon-size="sortIconSize"
       @sort="onSort"
-
-      aria-next-label="Next page"
-      aria-previous-label="Previous page"
-      aria-page-label="Page"
-      aria-current-label="Current page"           
-      :pagination-order="paginationOrder"   
       :debounce-page-input="200"
+      mobile-cards
     >
       <b-table-column
         field="departmentId"
         label="Dept"
         sortable        
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.department}}
@@ -40,7 +30,8 @@
         label="Name"
         sortable        
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.employeeName}}
@@ -51,7 +42,8 @@
         label="Employee ID"
         sortable        
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.employeeCode}}
@@ -62,7 +54,8 @@
         label="Rank"
         sortable        
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.rank}}
@@ -72,7 +65,8 @@
         field="BrandId"
         label="Brand"
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.brand}}
@@ -82,7 +76,8 @@
         field="sumDaysOfPaidMCs"
         label="Paid MCs"
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.sumDaysOfPaidMCs}}
@@ -92,7 +87,8 @@
         field="sumDaysOfPaidOffs"
         label="Paid Offs"
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.sumDaysOfPaidOffs}}
@@ -102,7 +98,8 @@
         field="sumHoursOfExtraPay"
         label="Extra OTs(hours)"
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.sumHoursOfExtraPay}}
@@ -112,7 +109,8 @@
         field="sumDaysOfExtraPay"
         label="Extra day"
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.sumDaysOfExtraPay}}
@@ -121,8 +119,9 @@
       <b-table-column
         field="sumDaysOfDeduction"
         label="Unpaid of Leaves (Amount of day)"
-        width="200px"
-        header-class="is-size-7"
+        width="300"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.sumDaysOfDeduction}}
@@ -132,7 +131,8 @@
         field="sumHoursOfDeduction"
         label="Late"
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.sumHoursOfDeduction}}
@@ -142,7 +142,8 @@
         field="lateAmount"
         label="Late amount"
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.lateAmount}}
@@ -152,7 +153,8 @@
         field="fines"
         label="Fines"
         width="200px"
-        header-class="is-size-7"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
         v-slot="props"
       >       
       {{ props.row.fines}}
@@ -161,23 +163,11 @@
       <template #empty>
         <div class="has-text-centered">No records</div>
       </template>
-      <div slot="subheading" class="is-flex 
-        is-flex-direction-row
-        is-align-items-center
-        is-flex-wrap-wrap">header
-      </div>
+      
       <div slot="footer" class="is-flex 
         is-flex-direction-row
         is-align-items-center
         is-flex-wrap-wrap">
-        <b-button
-            label="Create"
-            type="is-info"
-            class="mr-4"
-            icon-left="note-plus"
-            @click="isModalActive=true"
-            v-if="canCreate"
-          />
         <b-button
             label="Reset"
             type="is-light"

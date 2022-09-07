@@ -1,28 +1,17 @@
 <template>
   <section class="section is-main-section">
     <b-table
-      :data="data"
-      :loading="isLoading"
-      
+    :data="data"
+      :loading="isLoading"      
       backend-pagination
-      :total="totalItems"
-      :per-page="filter.rowsPerPage"      
-      :pagination-simple="false"
-      pagination-position="bottom"
-      
       backend-sorting
       :default-sort="filter.sortBy"
       :default-sort-direction="filter.sortDirection"
       :sort-icon="sortIcon"
       :sort-icon-size="sortIconSize"
       @sort="onSort"
-
-      aria-next-label="Next page"
-      aria-previous-label="Previous page"
-      aria-page-label="Page"
-      aria-current-label="Current page"           
-      :pagination-order="paginationOrder"   
       :debounce-page-input="200"
+      mobile-cards
     >
       <b-table-column
         field="Name"
@@ -30,6 +19,8 @@
         sortable        
         width="350px"
         v-slot="props"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
       >       
       {{ props.row.name}}
       </b-table-column>
@@ -38,8 +29,10 @@
         field="WorkingHours"
         label="Working hours"
         sortable        
-        width="300px"
+        width="250"
         v-slot="props"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
       >       
       {{ props.row.workingHours}}
       </b-table-column>
@@ -49,7 +42,9 @@
         label="Status"
         sortable
         v-slot="props"
-        width="300px">        
+        width="250"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
       </b-table-column>
 
@@ -58,7 +53,9 @@
         label="CreationTime"
         sortable
         v-slot="props"
-        width="300px">
+        width="300px"
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell">
        {{ props.row.creationTime | dateTime }} 
       </b-table-column>
 
@@ -66,38 +63,30 @@
         field="Edit"
         label="Edit"        
         v-slot="props"
-        width="100px">
-        <b-button 
+        width="100"
+        centered
+        header-class="is-size-7 customTableBorderHeader"
+        cell-class="customTableCell"
+        >
+        <a 
           v-if="canUpdate"
-          title="edit"          
-          class="button mr-5"
-          @click="editModel(props.row)" 
-          style="padding: 0; border: none; background: none;">
-          <b-icon
-            icon="pencil"
-            type="is-info">
-          </b-icon>
-        </b-button> 
-        <b-button 
+          title="edit"
+          @click="editModel(props.row)">
+            <b-icon icon="pencil" type="is-info"></b-icon>
+        </a> 
+        <a 
           v-if="canDelete"
           title="delete"          
-          class="button has-text-grey"
-          @click="deleteSelectedModel(props.row.id)" 
-          style="padding: 0; border: none; background: none;">
-          <b-icon
-            icon="delete">
-          </b-icon>
-        </b-button>       
+          class="ml-3 has-text-grey"
+          @click="deleteSelectedModel(props.row.id)">
+            <b-icon icon="delete"></b-icon>
+        </a> 
       </b-table-column>
 
       <template #empty>
         <div class="has-text-centered">No records</div>
       </template>
-      <div slot="subheading" class="is-flex 
-        is-flex-direction-row
-        is-align-items-center
-        is-flex-wrap-wrap">header
-      </div>
+      
       <div slot="footer" class="is-flex 
         is-flex-direction-row
         is-align-items-center

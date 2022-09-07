@@ -1,5 +1,6 @@
 /* Styles */
 import '@/scss/main.scss'
+import '@/css/customize.css'
 
 /* Core */
 import Vue from 'vue'

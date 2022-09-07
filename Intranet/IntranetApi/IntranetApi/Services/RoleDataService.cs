@@ -182,7 +182,7 @@ namespace IntranetApi.Services
                                             .AsNoTracking()
                                             .Where(p => roleIds.Contains(p.RoleId))
                                             .GroupBy(p => p.RoleId)
-                                            .Select(p => new RoleEmployeeList { RoleId = p.Key, EmployeeNames = p.Select(q => q.User.Name).ToList() })
+                                            .Select(p => new RoleEmployeeList { RoleId = p.Key, Employees = p.Select(q =>new EmployeeSimpleDto { Name = q.User.Name , EmployeeCode = q.User.EmployeeCode}).ToList() })
                                             .ToListAsync();
                     foreach (var item in items)
                     {
@@ -195,8 +195,7 @@ namespace IntranetApi.Services
                         var roleEmployee = roleEmployees.FirstOrDefault(p => p.RoleId == item.Id);
                         if (roleEmployee != null)
                         {
-                            item.Count = roleEmployee.EmployeeNames.Count;
-                            item.EmployeeNames = roleEmployee.EmployeeNames;
+                            item.Employees = roleEmployee.Employees;
                         }
                     }
                 }

@@ -33,17 +33,10 @@
         cell-class="customTableCell"
         v-slot="props"
       >       
-        <b-tooltip 
-          v-if="props.row.employeeNames &&props.row.employeeNames.length>0"
-              type="is-light"
-              position="is-right"
-              :triggers="['click']"
-              :auto-close="['outside', 'escape']">
-              <template v-slot:content>
-                  <p class="is-size-7" v-for="(name,index) in props.row.employeeNames" :key="index">{{name}}</p>
-              </template>
-          <a> {{ props.row.count}}</a>
-        </b-tooltip>
+        <a v-if="props.row.employees &&props.row.employees.length>0" 
+            @click="isEmpoyeeListModalActive=true;selectedRoleName=props.row.name;employeeList=[...props.row.employees]"> 
+            {{ props.row.employees.length}}
+        </a>
         <span v-else>0</span>
       </b-table-column>
 
@@ -235,6 +228,31 @@
         </footer>
         </div>
     </b-modal>
+
+    <b-modal v-model="isEmpoyeeListModalActive" has-modal-card scroll="keep">
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">{{selectedRoleName}}</p>                 
+        </header>
+        <section class="modal-card-body">
+          <b-table :data="employeeList" sticky-header style="max-height: 50vh;overflow-y: auto;">
+            <b-table-column field="EmployeeCode" label="Employee Code" width="250" v-slot="props"
+                header-class="is-size-7 customTableBorderHeader"
+                cell-class="customTableCell">
+                {{ props.row.employeeCode }}
+            </b-table-column>
+            <b-table-column field="name" label="Name" width="350" v-slot="props"
+                header-class="is-size-7 customTableBorderHeader"
+                cell-class="customTableCell">
+                {{ props.row.name }}
+            </b-table-column>            
+          </b-table>
+        </section>
+        <footer class="modal-card-foot">
+          <b-button label="Close" @click="isEmpoyeeListModalActive=false" />
+        </footer>
+        </div>
+    </b-modal>
   </section>
 </template>
 <script>
@@ -301,7 +319,10 @@ export default {
       },
       isModalActive:false,
       isDeleteModalActive:false,
+      isEmpoyeeListModalActive: false,
       selectedId:null,
+      selectedRoleName:null,
+      employeeList:[],      
       permissions
     };
   },

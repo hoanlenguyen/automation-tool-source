@@ -13,7 +13,6 @@
       :debounce-page-input="200"
       mobile-cards
       hoverable
-      sticky-header      
     >
       <b-table-column
         field="Name"
@@ -23,7 +22,6 @@
         v-slot="props"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
-        sticky
       >       
       {{ props.row.name}}
       </b-table-column>
@@ -371,26 +369,3 @@ export default {
   }
 };
 </script>
-<style>
-  .customTableBorderHeader{
-    border: 0.5px solid #dcdfe6 !important;
-    border-collapse: collapse !important;
-    padding: 0.75em 1.5em 0.75em 0.75em !important;
-    color: #606266;
-    vertical-align: bottom;
-    background: linear-gradient(#f4f5f8,#f1f3f6);
-  }
-  .customTableCell{
-    border: 1px solid #dcdfe6 !important;
-    border-collapse: collapse !important;
-  }
-
-  .b-table .table {
-    border-collapse: collapse !important;
-  }
-
-  .table-footer{
-    border: 1px solid #dcdfe6 !important;
-  }
- 
-</style>

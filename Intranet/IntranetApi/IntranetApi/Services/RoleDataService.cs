@@ -175,7 +175,7 @@ namespace IntranetApi.Services
                     creatorUserIds.AddRange(lastModifierUserIds);
                     var creators = await db.Users.AsNoTracking()
                                     .Where(p => creatorUserIds.Contains(p.Id))
-                                    .Select(p => new BaseDropdown { Id = p.Id, Name = p.Email })
+                                    .Select(p => new BaseDropdown { Id = p.Id, Name = p.Name })
                                     .ToListAsync();
                     var roleIds = items.Select(p => p.Id);
                     var roleEmployees = await db.UserRoles.Include(p => p.User)

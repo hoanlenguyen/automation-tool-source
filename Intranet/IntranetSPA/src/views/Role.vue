@@ -17,7 +17,6 @@
         field="Name"
         label="Name"
         sortable        
-        width="350"
         v-slot="props"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
@@ -45,7 +44,7 @@
         label="Creation Time"
         sortable
         v-slot="props"
-        width="300px"
+        width="200"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">
        {{ props.row.creationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
@@ -54,7 +53,7 @@
       <b-table-column
         field="CreatorUserId"
         label="Created By"
-        width="200px"
+        width="200"
         sortable
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
@@ -70,14 +69,14 @@
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
         v-slot="props"
-        width="300px">
+        width="200">
        {{ props.row.lastModificationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
       </b-table-column>
 
       <b-table-column
         label="Updated By"
         field="LastModifierUserId"
-        width="200px"
+        width="200"
         sortable
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
@@ -93,7 +92,7 @@
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
         v-slot="props"
-        width="300px">        
+        width="100">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Disabled' }}</span>        
       </b-table-column>
 
@@ -104,26 +103,28 @@
         cell-class="customTableCell"       
         v-slot="props"
         centered
-        width="120px">        
-        <a 
-          v-if="canUpdate"
-          title="edit"          
-          @click="getDetail(props.row.id)">
-          <b-icon
-            icon="pencil"
-            type="is-info">
-          </b-icon>
-        </a> 
-
-        <a 
-          v-if="canDelete"
-          title="delete"          
-          class="ml-3 has-text-grey"
-          @click="deleteSelectedModel(props.row.id)">
-          <b-icon
-            icon="delete">
-          </b-icon>
-        </a>       
+        width="100"> 
+        <div class="is-flex is-flex-direction-row is-justify-content-space-between">    
+          <a 
+            v-if="canUpdate"
+            title="edit"          
+            @click="getDetail(props.row.id)">
+            <b-icon
+              icon="pencil"
+              type="is-info">
+            </b-icon>
+          </a> 
+          
+          <a 
+            v-if="canDelete"
+            title="delete"          
+            class="ml-3 has-text-grey"
+            @click="deleteSelectedModel(props.row.id)">
+            <b-icon
+              icon="delete">
+            </b-icon>
+          </a>       
+        </div>   
       </b-table-column>
 
       <template #empty>

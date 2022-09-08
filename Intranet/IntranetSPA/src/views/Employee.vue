@@ -20,7 +20,6 @@
         field="Name"
         label="Name"
         sortable        
-        width="350"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"        
         v-slot="props"
@@ -34,7 +33,7 @@
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
         sortable        
-        width="300"
+        width="250"
         v-slot="props"
       >       
       {{props.row.employeeCode}}
@@ -197,7 +196,8 @@
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
         >
-        <a 
+        <div class="is-flex is-flex-direction-row is-justify-content-space-between">
+          <a 
           v-if="canUpdate"
           title="edit"
           @click="editModel(props.row)">
@@ -210,6 +210,7 @@
           @click="deleteSelectedModel(props.row.id)">
             <b-icon icon="delete"></b-icon>
         </a> 
+        </div>
       </b-table-column>
 
       <template #empty>

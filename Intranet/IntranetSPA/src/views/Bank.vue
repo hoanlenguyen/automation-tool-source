@@ -18,7 +18,6 @@
         field="Name"
         label="Name"
         sortable        
-        width="350px"
         v-slot="props"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
@@ -31,7 +30,7 @@
         label="Status"
         sortable
         v-slot="props"
-        width="250"
+        width="200"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
@@ -40,9 +39,9 @@
       <b-table-column
         field="CreationTime"
         label="Creation Time"
+        width="300"
         sortable
         v-slot="props"
-        width="300"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">
        {{ props.row.creationTime | dateTime }} 
@@ -57,7 +56,8 @@
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell"
         >
-        <a 
+        <div class="is-flex is-flex-direction-row is-justify-content-space-between">
+          <a 
           v-if="canUpdate"
           title="edit"
           @click="editModel(props.row)">
@@ -69,7 +69,8 @@
           class="ml-3 has-text-grey"
           @click="deleteSelectedModel(props.row.id)">
             <b-icon icon="delete"></b-icon>
-        </a> 
+        </a>
+        </div>         
       </b-table-column>
 
       <template #empty>

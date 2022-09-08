@@ -12,8 +12,7 @@
     @sort="onSort"
     :debounce-page-input="200"
     mobile-cards
-    narrowed
-    
+    narrowed    
     >
       <b-table-column
         field="DepartmentId"
@@ -84,7 +83,7 @@
         label="Creation Time"
         sortable
         v-slot="props"
-        width="300px"
+        width="300"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">
        {{ props.row.creationTime | dateTime }} 
@@ -94,7 +93,7 @@
         field="creatorUserId"
         label="Created by"
         v-slot="props"
-        width="300px"
+        width="250"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">        
        {{ props.row.creatorName}}       
@@ -106,25 +105,28 @@
         label="Edit"        
         v-slot="props"
         centered
-        width="120"
+        width="100"
         header-class="is-size-7 customTableBorderHeader"
         cell-class="customTableCell">
-        <a 
-          v-if="canUpdate"
-          title="edit"          
-          @click="getDetail(props.row.id)">
-          <b-icon
-            icon="pencil"
-            type="is-info">
-          </b-icon>
-        </a> 
-        <a 
-          v-if="canDelete"
-          title="delete"          
-          class="ml-3 has-text-grey"
-          @click="deleteSelectedModel(props.row.id)">
-            <b-icon icon="delete"></b-icon>
-        </a> 
+        
+        <div class="is-flex is-flex-direction-row is-justify-content-space-between">
+          <a 
+            v-if="canUpdate"
+            title="edit"          
+            @click="getDetail(props.row.id)">
+            <b-icon
+              icon="pencil"
+              type="is-info">
+            </b-icon>
+          </a> 
+          <a 
+            v-if="canDelete"
+            title="delete"          
+            class="ml-3 has-text-grey"
+            @click="deleteSelectedModel(props.row.id)">
+              <b-icon icon="delete"></b-icon>
+          </a> 
+        </div>
       </b-table-column>
 
       <template #empty>

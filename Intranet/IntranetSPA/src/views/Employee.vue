@@ -21,7 +21,7 @@
         label="Name"
         sortable        
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"        
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"        
         v-slot="props"
       >       
       {{props.row.name}}
@@ -31,7 +31,7 @@
         field="employeeCode"
         label="Employee code"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         sortable        
         width="250"
         v-slot="props"
@@ -44,7 +44,7 @@
         label="Rank"
         width="150"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"      
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"      
         v-slot="props"
       >       
       {{props.row.rank}}
@@ -55,7 +55,7 @@
         label="Department"
         width="150"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"        
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"        
         v-slot="props"
       >       
       {{props.row.dept}}
@@ -66,7 +66,7 @@
         label="Brand"
         width="150"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"        
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"        
         v-slot="props"
       >       
         <p v-for="(brandName,index) in props.row.brands" :index="index">{{brandName}}</p> 
@@ -77,7 +77,7 @@
         label="Bank Name"
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"     
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"     
         v-slot="props"
       >       
       {{props.row.bankName}}
@@ -88,7 +88,7 @@
         label="Bank Account Number"
         width="150"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"              
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"              
         v-slot="props">       
         {{props.row.bankAccountNumber}}
       </b-table-column> -->
@@ -98,7 +98,7 @@
         label="Id Number"
         width="150"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"              
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"              
         v-slot="props">       
         {{props.row.idNumber}}
       </b-table-column> -->
@@ -108,7 +108,7 @@
         label="Country"
         width="150"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"          
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"          
         v-slot="props">       
         {{props.row.country}}
       </b-table-column>
@@ -118,7 +118,7 @@
         label="Salary"
         width="150" 
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"         
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"         
         v-slot="props">       
         {{props.row.salary|formattedNumber}}
       </b-table-column>
@@ -128,7 +128,7 @@
         label="Status"
         width="100"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell" 
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'" 
         sortable
         v-slot="props">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
@@ -141,7 +141,7 @@
         v-slot="props"
         width="150"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
         {{ props.row.startDate | dateTime('DD-MM-YYYY') }}       
       </b-table-column>
 
@@ -152,7 +152,7 @@
         v-slot="props"
         width="150"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
         <span class="is-size-7">{{ props.row.birthDate | dateTime('DD-MM-YYYY') }} </span>
       </b-table-column> -->
 
@@ -163,7 +163,7 @@
         v-slot="props"
         width="150"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
         {{ props.row.creationTime | dateTime }}        
       </b-table-column>
 
@@ -173,7 +173,7 @@
         v-slot="props"
         width="200"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
         {{ props.row.lastModificationTime | dateTime }}
       </b-table-column>
 
@@ -183,7 +183,7 @@
         v-slot="props"
         width="200"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
         {{ props.row.lastModifierUser }}
       </b-table-column>
 
@@ -194,7 +194,7 @@
         width="120"
         centered
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         >
         <div class="is-flex is-flex-direction-row is-justify-content-space-between">
           <a 

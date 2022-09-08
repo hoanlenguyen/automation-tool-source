@@ -29,7 +29,7 @@ import VueSignalR from '@latelier/vue-signalr'
 /* Default title tag */
 const defaultDocumentTitle = 'Intranet'
 
-
+import VueMobileDetection from 'vue-mobile-detection'
 
 router.beforeEach((to, from, next) => {
   let token=getToken()  
@@ -57,6 +57,7 @@ Vue.config.productionTip = false
 Vue.config.devtools = process.env.NODE_ENV === 'development'
 Vue.use(VueSignalR, `${process.env.VUE_APP_BASE_API}/hubClient`)
 Vue.use(Buefy)
+Vue.use(VueMobileDetection)
 new Vue({
   router,
   store,

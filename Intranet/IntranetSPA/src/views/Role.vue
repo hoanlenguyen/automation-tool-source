@@ -15,11 +15,11 @@
     >
       <b-table-column
         field="Name"
-        label="Name"
+        label="Role"
         sortable        
         v-slot="props"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
       >       
       {{ props.row.name}}
       </b-table-column>
@@ -29,7 +29,7 @@
         label="Count"
         width="120"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
         <a v-if="props.row.employees &&props.row.employees.length>0" 
@@ -46,7 +46,7 @@
         v-slot="props"
         width="200"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
        {{ props.row.creationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
       </b-table-column>
 
@@ -56,7 +56,7 @@
         width="200"
         sortable
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.creatorUser}}
@@ -67,7 +67,7 @@
         label="Updated On"
         sortable
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
         width="200">
        {{ props.row.lastModificationTime | dateTime('DD-MM-YYYY hh:mm:ss') }} 
@@ -79,7 +79,7 @@
         width="200"
         sortable
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.lastModifierUser}}
@@ -90,7 +90,7 @@
         label="Status"
         sortable
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
         width="100">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Disabled' }}</span>        
@@ -100,7 +100,7 @@
         field="Edit"
         label="Edit"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"       
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"       
         v-slot="props"
         centered
         width="100"> 
@@ -239,12 +239,12 @@
           <b-table :data="employeeList" sticky-header style="max-height: 50vh;overflow-y: auto;">
             <b-table-column field="EmployeeCode" label="Employee Code" width="250" v-slot="props"
                 header-class="is-size-7 customTableBorderHeader"
-                cell-class="customTableCell">
+                :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
                 {{ props.row.employeeCode }}
             </b-table-column>
             <b-table-column field="name" label="Name" width="350" v-slot="props"
                 header-class="is-size-7 customTableBorderHeader"
-                cell-class="customTableCell">
+                :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
                 {{ props.row.name }}
             </b-table-column>            
           </b-table>

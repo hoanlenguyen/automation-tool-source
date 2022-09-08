@@ -12,6 +12,12 @@
       border-collapse: collapse !important;
   }
 
+  .customTableCellOnMobile {
+    border: 1px solid #dcdfe6 !important;
+    border-collapse: collapse !important;
+    font-size: 0.75rem !important;
+    }
+
   .b-table .table {
       border-collapse: collapse !important;
   }
@@ -37,4 +43,15 @@
   white-space: nowrap;
 }
 
+
+@media screen and (max-width: 768px) {
+    .b-table .table-wrapper.has-mobile-cards tr {
+        box-shadow: 0 2px 3px rgb(10 10 10 / 10%);
+        margin-bottom: 6px !important;
+    }
+
+    .b-table>.table-mobile-sort{
+        display: none;
+    }
+}
  

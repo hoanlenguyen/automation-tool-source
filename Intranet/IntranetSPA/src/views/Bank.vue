@@ -16,11 +16,11 @@
     >
       <b-table-column
         field="Name"
-        label="Name"
+        label="Bank"
         sortable        
         v-slot="props"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
       >       
       {{ props.row.name}}
       </b-table-column>
@@ -32,7 +32,7 @@
         v-slot="props"
         width="200"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">        
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
       </b-table-column>
 
@@ -43,7 +43,7 @@
         sortable
         v-slot="props"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
        {{ props.row.creationTime | dateTime }} 
       </b-table-column>
 
@@ -54,21 +54,21 @@
         width="100"
         centered
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         >
         <div class="is-flex is-flex-direction-row is-justify-content-space-between">
           <a 
           v-if="canUpdate"
           title="edit"
           @click="editModel(props.row)">
-            <b-icon icon="pencil" type="is-info"></b-icon>
+            <b-icon icon="pencil" type="is-info" :size="$isMobile()?'is-small':''"></b-icon>
         </a> 
         <a 
           v-if="canDelete"
           title="delete"          
-          class="ml-3 has-text-grey"
+          class="ml-2 has-text-grey"
           @click="deleteSelectedModel(props.row.id)">
-            <b-icon icon="delete"></b-icon>
+            <b-icon icon="delete" :size="$isMobile()?'is-small':''"></b-icon>
         </a>
         </div>         
       </b-table-column>
@@ -84,6 +84,7 @@
             label="Create"
             type="is-info"
             class="mr-4"
+            :size="$isMobile()?'is-small':''"
             icon-left="note-plus"
             @click="isModalActive=true"
             v-if="canCreate"
@@ -92,11 +93,12 @@
             label="Reset"
             type="is-light"
             class="mr-4"
+            :size="$isMobile()?'is-small':''"
             icon-left="reload"
             @click="resetFilter"
         />
-        <span class="has-text-weight-normal mr-4">Total count: {{totalItems}}</span>
-        <b-select v-model="filter.rowsPerPage"  @input="onChangePageSize" class="mr-4">
+        <span :class="$isMobile()?'is-size-7 has-text-weight-normal mr-4': 'has-text-weight-normal mr-4'">Total count: {{totalItems}}</span>
+        <b-select :size="$isMobile()?'is-small':''" v-model="filter.rowsPerPage"  @input="onChangePageSize" class="mr-4">
             <option v-for="i in pageOptions" :value="i" :key="i">{{`${i} per page`}}</option>        
         </b-select>
         <b-pagination
@@ -105,7 +107,7 @@
             :range-before="1"
             :range-after="1"
             :order="`is-right`"
-            :size="``"
+            :size="$isMobile()?'is-small':''"
             :simple="false"
             :rounded="false"
             :per-page="filter.rowsPerPage"
@@ -115,7 +117,7 @@
             aria-previous-label="Previous page"
             aria-page-label="Page"
             aria-current-label="Current page"
-            :page-input="true"
+            :page-input="!$isMobile()"
             :page-input-position="``"
             :debounce-page-input="``"
             @change="onChangePageNumber">

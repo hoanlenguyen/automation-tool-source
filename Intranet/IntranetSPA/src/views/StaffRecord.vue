@@ -20,7 +20,7 @@
         sortable        
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.department}}
@@ -32,7 +32,7 @@
         v-slot="props"
         width="300px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">        
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">        
        {{ props.row.employeeName}}       
       </b-table-column>
 
@@ -42,7 +42,7 @@
         v-slot="props"
         width="300px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">        
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">        
        {{ props.row.employeeCode}}       
       </b-table-column>
 
@@ -52,7 +52,7 @@
         v-slot="props"
         width="300px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">        
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">        
        {{ props.row.recordTypeName}}       
       </b-table-column>
 
@@ -63,7 +63,7 @@
         v-slot="props"
         width="300px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
        {{ props.row.startDate | dateTime('DD-MM-YYYY') }} 
       </b-table-column>
 
@@ -74,7 +74,7 @@
         v-slot="props"
         width="300px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
        {{ props.row.endDate | dateTime('DD-MM-YYYY') }} 
       </b-table-column>
 
@@ -85,7 +85,7 @@
         v-slot="props"
         width="300"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
        {{ props.row.creationTime | dateTime }} 
       </b-table-column>
 
@@ -95,7 +95,7 @@
         v-slot="props"
         width="250"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">        
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">        
        {{ props.row.creatorName}}       
       </b-table-column>
 
@@ -107,7 +107,7 @@
         centered
         width="100"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
         
         <div class="is-flex is-flex-direction-row is-justify-content-space-between">
           <a 

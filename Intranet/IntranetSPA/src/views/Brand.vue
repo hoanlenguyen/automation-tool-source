@@ -15,10 +15,10 @@
     >
       <b-table-column
         field="Name"
-        label="Name"
+        label="Brand"
         sortable        
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.name}}
@@ -31,7 +31,7 @@
         v-slot="props"
         width="200"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         >        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
       </b-table-column>
@@ -43,7 +43,7 @@
         v-slot="props"
         width="300"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell">
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
        {{ props.row.creationTime | dateTime }} 
       </b-table-column>
 
@@ -54,7 +54,7 @@
         width="100"
         centered
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         >
         <div class="is-flex is-flex-direction-row is-justify-content-space-between">
           <a 

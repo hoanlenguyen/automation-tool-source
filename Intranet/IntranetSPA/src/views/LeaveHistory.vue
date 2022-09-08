@@ -20,7 +20,7 @@
         sortable        
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.department}}
@@ -32,7 +32,7 @@
         sortable        
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.employeeName}}
@@ -44,7 +44,7 @@
         sortable        
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.employeeCode}}
@@ -56,7 +56,7 @@
         sortable        
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.rank}}
@@ -67,7 +67,7 @@
         label="Brand"
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       <p v-for="(brandName,index) in props.row.brands" :index="index">{{brandName}}</p> 
@@ -78,7 +78,7 @@
         label="Paid MCs"
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.sumDaysOfPaidMCs}}
@@ -89,7 +89,7 @@
         label="Paid Offs"
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.sumDaysOfPaidOffs}}
@@ -100,7 +100,7 @@
         label="Extra OTs(hours)"
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.sumHoursOfExtraPay}}
@@ -111,7 +111,7 @@
         label="Extra day"
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.sumDaysOfExtraPay}}
@@ -122,7 +122,7 @@
         label="Unpaid of Leaves (Amount of day)"
         width="300"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.sumDaysOfDeduction}}
@@ -133,7 +133,7 @@
         label="Late"
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.sumHoursOfDeduction}}
@@ -144,7 +144,7 @@
         label="Late amount"
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.lateAmount}}
@@ -155,7 +155,7 @@
         label="Fines"
         width="200px"
         header-class="is-size-7 customTableBorderHeader"
-        cell-class="customTableCell"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
       {{ props.row.fines}}

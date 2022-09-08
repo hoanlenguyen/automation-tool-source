@@ -1,6 +1,6 @@
 <template>
   <div>
-    <section class="section is-main-section" style="width:1000px">
+    <section class="section is-main-section" :style="$isMobile()?'width:350px': 'width:1000px'">
       <tiles>
        <!-- <profile-update-form class="tile is-child" /> -->
         <card-component
@@ -85,7 +85,7 @@
           </b-field>
         </form>
       </card-component> -->
-      <ChangePassword  style="width:1000px"/>
+      <ChangePassword  :style="$isMobile()?'width:350px': 'width:1000px'"/>
     </section>
   </div>
 </template>

@@ -29,6 +29,9 @@ namespace IntranetApi.Models
         public int DeptId { get; set; } = 1;
         public int BankId { get; set; } = 1;
 
+        [MaxLength(150)]
+        public string BankAccountName { get; set; }
+
         [MaxLength(20)]
         public string? BankAccountNumber { get; set; }
 
@@ -49,10 +52,7 @@ namespace IntranetApi.Models
 
         [MaxLength(150)]
         public string? Note { get; set; }
-
-        //[MaxLength(20)]
-        //public string IntranetUsername { get; set; }
-
+         
         [MaxLength(20)]
         public string IntranetPassword { get; set; }=string.Empty;
 

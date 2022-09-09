@@ -380,7 +380,7 @@ namespace IntranetApi.Services
 
                                 if (string.IsNullOrEmpty(rowInput.BankName))//G
                                 {
-                                    errorCells.Add($"F{row}");
+                                    errorCells.Add($"G{row}");
                                     errorDetails.Add("Missing Bank");
                                 }
                                 else
@@ -388,7 +388,7 @@ namespace IntranetApi.Services
                                     rowInput.BankId = banks.FirstOrDefault(p => p.Name.Equals(rowInput.BankName, StringComparison.OrdinalIgnoreCase))?.Id;
                                     if (rowInput.BankId == null)
                                     {
-                                        errorCells.Add($"F{row}");
+                                        errorCells.Add($"G{row}");
                                         errorDetails.Add("Invalid Bank");
                                     }
                                 }
@@ -450,9 +450,9 @@ namespace IntranetApi.Services
                                     }
                                 }
 
-                                if (string.IsNullOrEmpty(rowInput.Role)) //P
+                                if (string.IsNullOrEmpty(rowInput.Role)) //Q
                                 {
-                                    errorCells.Add($"P{row}");
+                                    errorCells.Add($"Q{row}");
                                     errorDetails.Add("Missing Role");
                                 }
                                 else
@@ -462,20 +462,14 @@ namespace IntranetApi.Services
                                     rowInput.RoleId = roles.FirstOrDefault(p => p.Name.Equals(rowInput.Role, StringComparison.OrdinalIgnoreCase))?.Id;
                                     if (rowInput.RoleId == null)
                                     {
-                                        errorCells.Add($"P{row}");
+                                        errorCells.Add($"Q{row}");
                                         errorDetails.Add("Invalid Role");
                                     }
                                 }
-
-                                //if (string.IsNullOrEmpty(rowInput.IntranetUsername))//Q
-                                //{
-                                //    cells.Add($"Q{row}");
-                                //    errorDetails.Add("Missing Intranet Username");
-                                //}
-
-                                if (string.IsNullOrEmpty(rowInput.IntranetPassword))//Q
+                                 
+                                if (string.IsNullOrEmpty(rowInput.IntranetPassword))//R
                                 {
-                                    errorCells.Add($"Q{row}");
+                                    errorCells.Add($"R{row}");
                                     errorDetails.Add("Missing Intranet Password");
                                 }
 

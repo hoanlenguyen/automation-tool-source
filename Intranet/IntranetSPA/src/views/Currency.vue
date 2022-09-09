@@ -16,7 +16,7 @@
     >
       <b-table-column
         field="Name"
-        label="Currency"
+        label="Country"
         sortable        
         v-slot="props"
         header-class="is-size-7 customTableBorderHeader"
@@ -156,11 +156,11 @@
               <b-field>
                 <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
               </b-field>
-              <b-field label="Currency">
+              <b-field label="Country">
                 <b-input
                   type="Text"
                   v-model.trim="model.name"
-                  placeholder="Currency...."
+                  placeholder="Country...."
                   required>
                 </b-input>
               </b-field>

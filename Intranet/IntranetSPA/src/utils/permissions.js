@@ -152,5 +152,27 @@ export default [
                 label: 'StaffRecord.Delete',
             }
         ]
+    },
+    {
+        id: 'Currency',
+        label: 'Currency',
+        children: [
+            {
+                id: 'Currency.View',
+                label: 'Currency.View',
+            },
+            {
+                id: 'Currency.Create',
+                label: 'Currency.Create',
+            },
+            {
+                id: 'Currency.Update',
+                label: 'Currency.Update',
+            },
+            {
+                id: 'Currency.Delete',
+                label: 'Currency.Delete',
+            }
+        ]
     }
 ]

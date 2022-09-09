@@ -53,7 +53,7 @@ namespace IntranetApi.Services
                     throw new Exception("Name already exists");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = new Currency { Name = input.Name, CreatorUserId = userId };
+                var entity = input.Adapt<Currency>();
                 db.Currencies.Add(entity);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetCurrencies);
@@ -82,8 +82,7 @@ namespace IntranetApi.Services
                 if (entity == null)
                     return Results.NotFound();
 
-                entity.Name = input.Name;
-                entity.Status = input.Status;
+                input.Adapt(entity);
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 memoryCache.Remove(CacheKeys.GetCurrencies);
@@ -133,9 +132,9 @@ namespace IntranetApi.Services
                 var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
                                 .Skip(input.SkipCount)
                                 .Take(input.RowsPerPage)
-                                .ProjectToType<CurrencyCreateOrEdit>()
+                                .ProjectToType<CurrencyList>()
                                 .ToListAsync();
-                return Results.Ok(new PagedResultDto<CurrencyCreateOrEdit>(totalCount, items));
+                return Results.Ok(new PagedResultDto<CurrencyList>(totalCount, items));
             })
             .RequireAuthorization(CurrencyPermissions.View)
             ;

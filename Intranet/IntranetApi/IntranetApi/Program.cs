@@ -101,14 +101,8 @@ builder.Services
 
 builder.Services.AddAuthorization(
     options => options.AddCustomizedAuthorizationOptions(
-        nameof(Bank),
-        nameof(Brand), 
-        nameof(Rank),
-        nameof(Department),
-        nameof(Role),
-        nameof(Employee),
-        nameof(StaffRecord)
-        )
+        nameof(Bank),nameof(Brand), nameof(Rank),nameof(Department),
+        nameof(Role),nameof(Employee),nameof(StaffRecord),nameof(Currency))
     );
 
 // add Swagger & JWT authen to Swagger
@@ -209,6 +203,7 @@ app.AddDepartmentDataService(mySQLConnection.ConnectionString);
 app.AddRankDataService(mySQLConnection.ConnectionString);
 app.AddEmployeeDataService(mySQLConnection.ConnectionString);
 app.AddStaffRecordDataService(mySQLConnection.ConnectionString);
+app.AddCurrencyDataService(mySQLConnection.ConnectionString);
 app.AddFileDataService();
 
 app.Run();

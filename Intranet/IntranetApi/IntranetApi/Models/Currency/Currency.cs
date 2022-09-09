@@ -8,7 +8,7 @@ namespace IntranetApi.Models
         public string Name { get; set; }
 
         [MaxLength(10)]
-        public string CurrencyCode { get; set; }
+        public string? CurrencyCode { get; set; }
 
         [MaxLength(10)]
         public string CurrencySymbol { get; set; }

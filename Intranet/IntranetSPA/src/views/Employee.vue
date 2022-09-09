@@ -120,7 +120,7 @@
         header-class="is-size-7 customTableBorderHeader"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"         
         v-slot="props">       
-        {{props.row.salary|formattedNumber}}
+        {{props.row.currencySymbol}} {{props.row.salary|formattedNumber}}
       </b-table-column>
 
       <b-table-column

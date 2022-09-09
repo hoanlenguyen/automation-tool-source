@@ -94,6 +94,14 @@ const routes = [
     path: '/leave-history',
     name: 'Leave History',
     component: () => import('@/views/LeaveHistory.vue')
+  },
+  {
+    meta: {
+      title: 'Currency data'
+    },
+    path: '/currency',
+    name: 'Currency',
+    component: () => import('@/views/Currency.vue')
   },  
   {
     path: '/full-page',

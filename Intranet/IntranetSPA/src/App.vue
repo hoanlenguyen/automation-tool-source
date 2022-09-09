@@ -41,6 +41,16 @@ export default {
       var items=[];
       if(!this.$store.state.userPermissions)
         return [items];
+      
+      if(this.$store.state.userPermissions.includes(
+        "Currency.View"
+      ))
+        items.push({
+          to: '/currency',
+          label: 'Currencies',
+          icon: 'currency-usd'
+        });
+
 
       if(this.$store.state.userPermissions.includes(
         "Bank.View"

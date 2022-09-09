@@ -89,7 +89,7 @@ namespace IntranetApi.Services
             List<BaseDropdown> values = null;
             if (!memoryCache.TryGetValue(CacheKeys.GetBrands, out values))
             {
-                values = GetDataList(nameof(Department));
+                values = GetDataList(nameof(Brand));
                 memoryCache.Set(CacheKeys.GetBrands, values, cacheOptions);
             }
             return values;

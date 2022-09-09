@@ -12,6 +12,7 @@
         public string Brand { get; set; }
         public string BankName { get; set; }
         public string BankAccountNumber { get; set; }
+        public string BankAccountName { get; set; }
         public string StartDate { get; set; }
         public string Salary { get; set; }
         public string BirthDate { get; set; }

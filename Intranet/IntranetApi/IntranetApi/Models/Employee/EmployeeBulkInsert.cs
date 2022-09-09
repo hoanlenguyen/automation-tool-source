@@ -16,8 +16,8 @@ namespace IntranetApi.Models
         public int DeptId { get; set; }
         public int BankId { get; set; }
         public int RankId { get; set; }
-        [MaxLength(20)]
-        public string BankAccountNumber { get; set; }
+        public string BankAccountNumber { get; set; } = string.Empty;
+        public string BankAccountName { get; set; }
 
         public DateTime? StartDate { get; set; }
 
@@ -43,8 +43,10 @@ namespace IntranetApi.Models
         public int Salary { get; set; }
         public string? Note { get; set; }
         public List<int> BrandIds { get; set; }
+
         //public string IntranetUsername { get; set; }
         public string IntranetPassword { get; set; }
+
         public string? Country { get; set; }
     }
 }

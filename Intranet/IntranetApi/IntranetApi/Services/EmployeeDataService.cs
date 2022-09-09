@@ -299,16 +299,17 @@ namespace IntranetApi.Services
                                 rowInput.Brand = (worksheet.Cells[row, 6]?.Text ?? string.Empty).Trim();//F
                                 rowInput.BankName = (worksheet.Cells[row, 7]?.Text ?? string.Empty).Trim();//G
                                 rowInput.BankAccountNumber = (worksheet.Cells[row, 8]?.Text ?? string.Empty).Trim();//H
-                                rowInput.StartDateStr = (worksheet.Cells[row, 9]?.Text ?? string.Empty).Trim();//I
-                                rowInput.SalaryStr = (worksheet.Cells[row, 10]?.Text ?? string.Empty).Trim();//J
-                                rowInput.BirthDateStr = (worksheet.Cells[row, 11]?.Text ?? string.Empty).Trim();//K
-                                rowInput.IdNumber = (worksheet.Cells[row, 12]?.Text ?? string.Empty).Trim();//L
-                                rowInput.Country = (worksheet.Cells[row, 13]?.Text ?? string.Empty).Trim();//M
-                                rowInput.BackendUser = (worksheet.Cells[row, 14]?.Text ?? string.Empty).Trim();//N
-                                rowInput.BackendPass = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
-                                rowInput.Role = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//P
-                                rowInput.IntranetPassword = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
-                                rowInput.Note = (worksheet.Cells[row, 18]?.Text ?? string.Empty).Trim();//R
+                                rowInput.BankAccountName = (worksheet.Cells[row, 9]?.Text ?? string.Empty).Trim();//I
+                                rowInput.StartDateStr = (worksheet.Cells[row, 10]?.Text ?? string.Empty).Trim();//J
+                                rowInput.SalaryStr = (worksheet.Cells[row, 11]?.Text ?? string.Empty).Trim();//K
+                                rowInput.BirthDateStr = (worksheet.Cells[row, 12]?.Text ?? string.Empty).Trim();//L
+                                rowInput.IdNumber = (worksheet.Cells[row, 13]?.Text ?? string.Empty).Trim();//M
+                                rowInput.Country = (worksheet.Cells[row, 14]?.Text ?? string.Empty).Trim();//N
+                                rowInput.BackendUser = (worksheet.Cells[row, 15]?.Text ?? string.Empty).Trim();//O
+                                rowInput.BackendPass = (worksheet.Cells[row, 16]?.Text ?? string.Empty).Trim();//P
+                                rowInput.Role = (worksheet.Cells[row, 17]?.Text ?? string.Empty).Trim();//Q
+                                rowInput.IntranetPassword = (worksheet.Cells[row, 18]?.Text ?? string.Empty).Trim();//R
+                                rowInput.Note = (worksheet.Cells[row, 19]?.Text ?? string.Empty).Trim();//S
 
                                 if (rowInput.Name.IsNullOrEmpty() && rowInput.EmployeeCode.IsNullOrEmpty() && rowInput.Rank.IsNullOrEmpty())
                                     continue;
@@ -365,6 +366,8 @@ namespace IntranetApi.Services
                                 }
                                 else
                                 {
+                                    Console.WriteLine($"{rowInput.Brand}");
+                                    Console.WriteLine($"brands.Count {brands.Count}");
                                     brandNames = rowInput.Brand.Split(',').Select(p => (p?.ToLower() ?? string.Empty).Trim()).ToList();
                                     rowInput.BrandIds = brands.Where(p => brandNames.Contains(p.Name.ToLower())).Select(p => p.Id).ToList();
 
@@ -396,9 +399,9 @@ namespace IntranetApi.Services
                                     errorDetails.Add("Missing BankAccountNumber");
                                 }
 
-                                if (string.IsNullOrEmpty(rowInput.StartDateStr)) //I
+                                if (string.IsNullOrEmpty(rowInput.StartDateStr)) //J
                                 {
-                                    errorCells.Add($"I{row}");
+                                    errorCells.Add($"J{row}");
                                     errorDetails.Add("Missing StartDate");
                                 }
                                 else
@@ -407,14 +410,14 @@ namespace IntranetApi.Services
                                     //Console.WriteLine($"rowInput.StartDate {rowInput.StartDate.GetValueOrDefault().ToString("yyy-MM-dd")}");
                                     if (rowInput.StartDate == null)
                                     {
-                                        errorCells.Add($"I{row}");
+                                        errorCells.Add($"J{row}");
                                         errorDetails.Add("Invalid StartDate");
                                     }
                                 }
 
-                                if (string.IsNullOrEmpty(rowInput.SalaryStr)) //J
+                                if (string.IsNullOrEmpty(rowInput.SalaryStr)) //K
                                 {
-                                    errorCells.Add($"J{row}");
+                                    errorCells.Add($"K{row}");
                                     errorDetails.Add("Missing Salary");
                                 }
                                 else
@@ -422,7 +425,7 @@ namespace IntranetApi.Services
                                     var salary = 0;
                                     if (!int.TryParse(rowInput.SalaryStr, out salary))
                                     {
-                                        errorCells.Add($"J{row}");
+                                        errorCells.Add($"K{row}");
                                         errorDetails.Add("Invalid Salary");
                                     }
                                     else
@@ -431,9 +434,9 @@ namespace IntranetApi.Services
                                     }
                                 }
 
-                                if (string.IsNullOrEmpty(rowInput.BirthDateStr)) //K
+                                if (string.IsNullOrEmpty(rowInput.BirthDateStr)) //L
                                 {
-                                    errorCells.Add($"K{row}");
+                                    errorCells.Add($"L{row}");
                                     errorDetails.Add("Missing BirthDate");
                                 }
                                 else
@@ -442,7 +445,7 @@ namespace IntranetApi.Services
                                     //Console.WriteLine($"rowInput.BirthDate {rowInput.BirthDate.GetValueOrDefault().ToString("yyy-MM-dd")}");
                                     if (rowInput.BirthDate == null)
                                     {
-                                        errorCells.Add($"K{row}");
+                                        errorCells.Add($"L{row}");
                                         errorDetails.Add("Invalid BirthDate");
                                     }
                                 }

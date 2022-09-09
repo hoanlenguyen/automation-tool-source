@@ -9,6 +9,7 @@ namespace IntranetApi.Models
     {
         [MaxLength(150)]
         public string Name { get; set; }
+
         public UserType UserType { get; set; } = UserType.Employee;
         public bool IsDeleted { get; set; } = false;
         public bool IsFirstTimeLogin { get; set; } = true;
@@ -18,11 +19,13 @@ namespace IntranetApi.Models
         public int? LastModifierUserId { get; set; }
         public bool Status { get; set; } = true;
         //[NotMapped]
-        
+
         //public override string? Email { get; set; }
+
         #region Employee
+
         [MaxLength(50)]
-        public string EmployeeCode { get; set; }=string.Empty;
+        public string EmployeeCode { get; set; } = string.Empty;
 
         public int RoleId { get; set; } = 1;
         public int RankId { get; set; } = 1;
@@ -30,14 +33,14 @@ namespace IntranetApi.Models
         public int BankId { get; set; } = 1;
 
         [MaxLength(150)]
-        public string BankAccountName { get; set; }
+        public string BankAccountName { get; set; } = string.Empty;
 
         [MaxLength(20)]
         public string? BankAccountNumber { get; set; }
 
         public DateTime? StartDate { get; set; }
 
-        public DateTime BirthDate { get; set; }=DateTime.Now;
+        public DateTime BirthDate { get; set; } = DateTime.Now;
 
         [MaxLength(20)]
         public string? IdNumber { get; set; }
@@ -52,9 +55,9 @@ namespace IntranetApi.Models
 
         [MaxLength(150)]
         public string? Note { get; set; }
-         
+
         [MaxLength(20)]
-        public string IntranetPassword { get; set; }=string.Empty;
+        public string IntranetPassword { get; set; } = string.Empty;
 
         [MaxLength(80)]
         public string? Country { get; set; }
@@ -62,6 +65,7 @@ namespace IntranetApi.Models
         public virtual ICollection<StaffRecord> StaffRecords { get; set; } = new HashSet<StaffRecord>();
         public virtual ICollection<BrandEmployee> BrandEmployees { get; set; } = new HashSet<BrandEmployee>();
         public virtual ICollection<UserRole> UserRoles { get; set; } = new HashSet<UserRole>();
+
         [ForeignKey(nameof(RankId))]
         public virtual Rank Rank { get; set; }
 

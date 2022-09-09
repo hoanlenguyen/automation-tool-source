@@ -108,10 +108,9 @@ namespace IntranetApi.Services
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<User>();
                 entity.CreatorUserId = userId;
-                entity.IsFirstTimeLogin=true;
+                entity.IsFirstTimeLogin = true;
                 var result = await userManager.CreateAsync(entity, entity.IntranetPassword);
                 Console.WriteLine($"UserId: {entity.Id}");
-                //await db.UserRoles.AddAsync(new UserRole { UserId = entity.Id, RoleId = entity.RoleId });
                 return Results.Ok();
             })
             .RequireAuthorization(EmployeePermissions.Create)
@@ -162,7 +161,7 @@ namespace IntranetApi.Services
                 await db.SaveChangesAsync();
                 return Results.Ok();
             })
-            //.RequireAuthorization(EmployeePermissions.Update)
+            .RequireAuthorization(EmployeePermissions.Update)
             ;
 
             app.MapDelete("employee/{id:int}", [Authorize]
@@ -193,13 +192,14 @@ namespace IntranetApi.Services
             [FromBody] EmployeeFilterDto input) =>
             {
                 ProcessFilterValues(ref input);
-                List<BaseDropdown> roles = cacheService.GetRoles();
+                //List<BaseDropdown> roles = cacheService.GetRoles();
                 List<BaseDropdown> banks = cacheService.GetBanks();
                 List<BaseDropdown> brands = cacheService.GetBrands();
                 List<BaseDropdown> departments = cacheService.GetDepartments();
                 List<BaseDropdown> ranks = cacheService.GetRanks();
+                List<CurrencySimpleDto> currencies = cacheService.GetCurrencies();
                 List<BaseDropdown> adminUsers = null;
-                 
+
                 var query = db.Users
                            .Include(p => p.BrandEmployees)
                            .ThenInclude(p => p.Brand)
@@ -219,11 +219,11 @@ namespace IntranetApi.Services
                 adminUsers = await db.Users.Where(p => adminUserIds.Contains(p.Id)).Select(p => new BaseDropdown { Id = p.Id, Name = p.Name }).ToListAsync();
                 foreach (var item in items)
                 {
-                    item.Role = roles.FirstOrDefault(p => p.Id == item.RoleId)?.Name;
                     item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
                     item.Dept = departments.FirstOrDefault(p => p.Id == item.DeptId)?.Name;
                     item.BankName = banks.FirstOrDefault(p => p.Id == item.BankId)?.Name;
                     item.LastModifierUser = adminUsers.FirstOrDefault(p => p.Id == (item.LastModifierUserId ?? item.CreatorUserId).GetValueOrDefault())?.Name;
+                    item.CurrencySymbol = currencies.FirstOrDefault(p => p.Name.Equals(item.Country, StringComparison.OrdinalIgnoreCase))?.CurrencySymbol;
                 }
                 return Results.Ok(new PagedResultDto<EmployeeExcelInput>(totalCount, items));
             })
@@ -251,7 +251,7 @@ namespace IntranetApi.Services
                 List<BaseDropdown> banks = cacheService.GetBanks();
                 List<BaseDropdown> brands = cacheService.GetBrands();
                 List<BaseDropdown> departments = cacheService.GetDepartments();
-                List<BaseDropdown> ranks = cacheService.GetRanks();                 
+                List<BaseDropdown> ranks = cacheService.GetRanks();
                 var totalRows = 0;
                 var rowInputList = new List<EmployeeExcelInput>();
                 var shouldSendEmail = false;

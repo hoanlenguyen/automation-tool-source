@@ -87,4 +87,12 @@ namespace IntranetApi.Models
         public const string Update = "StaffRecord.Update";
         public const string Delete = "StaffRecord.Delete";
     }
+
+    public static class CurrencyPermissions
+    {
+        public const string View = "Currency.View";
+        public const string Create = "Currency.Create";
+        public const string Update = "Currency.Update";
+        public const string Delete = "Currency.Delete";
+    }
 }

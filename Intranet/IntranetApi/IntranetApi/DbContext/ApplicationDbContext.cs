@@ -24,6 +24,7 @@ namespace IntranetApi.DbContext
         public DbSet<StaffRecord> StaffRecords { get; set; }
         public DbSet<StaffRecordDocument> StaffRecordDocuments { get; set; }
         public DbSet<EmployeeImportHistory> EmployeeImportHistories { get; set; }
+        public DbSet<Currency> Currencies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

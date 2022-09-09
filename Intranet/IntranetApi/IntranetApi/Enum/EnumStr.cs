@@ -28,6 +28,7 @@
         public const string GetBanks = "GetBanks";
         public const string GetBrands = "GetBrands";
         public const string GetDepartments = "GetDepartments";
+        public const string GetCurrencies = "GetCurrencies";
         public const string GetAdminUsers = "GetAdminUsers";
 
         public const string GetRolesDropdown = "GetRolesDropdown";
@@ -35,5 +36,6 @@
         public const string GetBanksDropdown = "GetBanksDropdown";
         public const string GetBrandsDropdown = "GetBrandsDropdown";
         public const string GetDepartmentsDropdown = "GetDepartmentsDropdown";
+        public const string GetCurrenciesDropdown = "GetCurrenciesDropdown";
     }
 }

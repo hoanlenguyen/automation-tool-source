@@ -223,7 +223,7 @@ namespace IntranetApi.Services
                 return Results.Ok(/*GetBaseDropdown(sqlConnectionStr)*/ memoryCacheService.GetRolesDropdown());
             });
 
-            app.MapPost("Role/addPermission", [Authorize]
+            app.MapPost("Role/addPermission", [AllowAnonymous]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,

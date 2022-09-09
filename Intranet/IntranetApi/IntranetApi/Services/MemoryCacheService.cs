@@ -13,6 +13,7 @@ namespace IntranetApi.Services
         List<BaseDropdown> GetDepartments();
         List<BaseDropdown> GetRanks();
         List<BaseDropdown> GetBrands();
+        List<CurrencySimpleDto> GetCurrencies();
 
         List<BaseDropdown> GetRolesDropdown();
         List<BaseDropdown> GetBanksDropdown();
@@ -105,6 +106,21 @@ namespace IntranetApi.Services
             return values;
         }
 
+        public List<CurrencySimpleDto> GetCurrencies()
+        {
+            List<CurrencySimpleDto> values = null;
+            if (!memoryCache.TryGetValue(CacheKeys.GetCurrencies, out values))
+            {
+                using var connection = new MySqlConnection(sqlConnectionStr);
+                values =  connection.Query<CurrencySimpleDto>($"select Id, Name, CurrencyCode, CurrencySymbol  from Currencies where IsDeleted = 0")
+                                 .ToList();
+                memoryCache.Set(CacheKeys.GetCurrencies, values, cacheOptions);
+            }
+            return values;
+        }
+
+
+        #region Dropdown
         public List<BaseDropdown> GetRolesDropdown()
         {
             List<BaseDropdown> values = null;
@@ -159,5 +175,6 @@ namespace IntranetApi.Services
             }
             return values;
         }
+        #endregion
     }
 }

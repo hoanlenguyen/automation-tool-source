@@ -20,7 +20,6 @@ namespace IntranetApi.DbContext
         public DbSet<Brand> Brands { get; set; }
         public DbSet<BrandEmployee> BrandEmployees { get; set; }
         public DbSet<Department> Departments { get; set; }
-        //public DbSet<Employee> Employee { get; set; }
         public DbSet<Rank> Ranks { get; set; }
         public DbSet<StaffRecord> StaffRecords { get; set; }
         public DbSet<StaffRecordDocument> StaffRecordDocuments { get; set; }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
@@ -151,6 +152,7 @@ builder.Services.AddMemoryCache();
 //builder.Services.AddSingleton<IHubClient, HubClient>();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+builder.Services.AddSingleton<IMemoryCacheService>(sp => new MemoryCacheService(sp.GetService<IMemoryCache>(), mySQLConnection.ConnectionString));
 
 //add Queue job in background
 //builder.Services.AddHostedService<QueuedHostedService>();

@@ -1,5 +1,4 @@
-﻿using Dapper;
-using IntranetApi.DbContext;
+﻿using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
@@ -8,7 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using MySqlConnector;
 using System.Data;
 using System.Security.Claims;
 
@@ -22,12 +20,6 @@ namespace IntranetApi.Services
                 input.SortBy = "Id";
             if (string.IsNullOrEmpty(input.SortDirection))
                 input.SortDirection = "desc";
-        }
-
-        private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
-        {
-            using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Banks where IsDeleted = 0").ToList();
         }
 
         public static void AddBankDataService(this WebApplication app, string sqlConnectionStr)
@@ -64,6 +56,7 @@ namespace IntranetApi.Services
                 var entity = new Bank { Name = input.Name, CreatorUserId = userId };
                 db.Banks.Add(entity);
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBanks);
                 memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 return Results.Ok();
             })
@@ -93,6 +86,7 @@ namespace IntranetApi.Services
                 entity.Status = input.Status;
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
+                memoryCache.Remove(CacheKeys.GetBanks);
                 memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 db.SaveChanges();
                 return Results.Ok();
@@ -117,6 +111,7 @@ namespace IntranetApi.Services
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBanks);
                 memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 return Results.Ok();
             })
@@ -147,16 +142,9 @@ namespace IntranetApi.Services
 
             app.MapGet("Bank/dropdown", [Authorize]
             async Task<IResult> (
-            [FromServices] IMemoryCache memoryCache) =>
+            [FromServices] IMemoryCacheService cacheService) =>
             {
-                List<BaseDropdown> items = null;
-                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-                if (!memoryCache.TryGetValue(CacheKeys.GetBanksDropdown, out items))
-                {
-                    items = GetBaseDropdown(sqlConnectionStr);
-                    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
-                }
-                return Results.Ok(items);
+                return Results.Ok(cacheService.GetBanksDropdown());
             });
         }
     }

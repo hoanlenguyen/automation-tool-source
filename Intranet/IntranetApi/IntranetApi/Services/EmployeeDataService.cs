@@ -151,7 +151,6 @@ namespace IntranetApi.Services
                 input.Adapt(user);
                 user.LastModifierUserId = userId;
                 user.LastModificationTime = DateTime.Now;
-                //user.UserName = user.EmployeeCode;
                 user.NormalizedUserName = user.UserName.ToUpperInvariant();
                 if (!user.IntranetPassword.Equals(currentPassword)
                                     && user.IntranetPassword.IsNotNullOrEmpty())
@@ -189,53 +188,18 @@ namespace IntranetApi.Services
 
             app.MapPost("employee/list", [AllowAnonymous]
             async Task<IResult> (
-            [FromServices] IMemoryCache memoryCache,
+            [FromServices] IMemoryCacheService cacheService,
             [FromServices] ApplicationDbContext db,
             [FromBody] EmployeeFilterDto input) =>
             {
                 ProcessFilterValues(ref input);
-                List<BaseDropdown> roles = null;
-                List<BaseDropdown> banks = null;
-                List<BaseDropdown> brands = null;
-                List<BaseDropdown> departments = null;
-                List<BaseDropdown> ranks = null;
+                List<BaseDropdown> roles = cacheService.GetRoles();
+                List<BaseDropdown> banks = cacheService.GetBanks();
+                List<BaseDropdown> brands = cacheService.GetBrands();
+                List<BaseDropdown> departments = cacheService.GetDepartments();
+                List<BaseDropdown> ranks = cacheService.GetRanks();
                 List<BaseDropdown> adminUsers = null;
-                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-                if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out roles))
-                {
-                    roles = GetDataList(sqlConnectionStr, nameof(Role));
-                    memoryCache.Set(CacheKeys.GetRolesDropdown, roles, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetBanksDropdown, out banks))
-                {
-                    banks = GetDataList(sqlConnectionStr, nameof(Bank));
-                    memoryCache.Set(CacheKeys.GetBanksDropdown, banks, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetBrandsDropdown, out brands))
-                {
-                    brands = GetDataList(sqlConnectionStr, nameof(Brand));
-                    memoryCache.Set(CacheKeys.GetBrandsDropdown, brands, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetDepartmentsDropdown, out departments))
-                {
-                    departments = GetDataList(sqlConnectionStr, nameof(Department));
-                    memoryCache.Set(CacheKeys.GetDepartmentsDropdown, departments, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetRanksDropdown, out ranks))
-                {
-                    ranks = GetDataList(sqlConnectionStr, nameof(Rank));
-                    memoryCache.Set(CacheKeys.GetRanksDropdown, ranks, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetAdminUserDropdown, out adminUsers))
-                {
-                    adminUsers = GetDataList(sqlConnectionStr, nameof(User));
-                    memoryCache.Set(CacheKeys.GetAdminUserDropdown, adminUsers, cacheOptions);
-                }
+                 
                 var query = db.Users
                            .Include(p => p.BrandEmployees)
                            .ThenInclude(p => p.Brand)
@@ -249,7 +213,10 @@ namespace IntranetApi.Services
                                 .Take(input.RowsPerPage)
                                 .ProjectToType<EmployeeExcelInput>()
                                 .ToListAsync();
-
+                var adminUserIds = items.Select(p => p.CreatorUserId).ToList();
+                adminUserIds.AddRange(items.Select(p => p.LastModifierUserId).ToList());
+                adminUserIds = adminUserIds.Where(p => p != null).Distinct().ToList();
+                adminUsers = await db.Users.Where(p => adminUserIds.Contains(p.Id)).Select(p => new BaseDropdown { Id = p.Id, Name = p.Name }).ToListAsync();
                 foreach (var item in items)
                 {
                     item.Role = roles.FirstOrDefault(p => p.Id == item.RoleId)?.Name;
@@ -265,7 +232,7 @@ namespace IntranetApi.Services
 
             app.MapPost("employee/importExcel", [Authorize][DisableRequestSizeLimit]
             async Task<IResult> (
-                [FromServices] IMemoryCache memoryCache,
+                [FromServices] IMemoryCacheService cacheService,
                 [FromServices] IHttpContextAccessor httpContextAccessor,
                 [FromServices] IConfiguration config,
                 [FromServices] UserManager<User> userManager,
@@ -277,46 +244,14 @@ namespace IntranetApi.Services
                 if (!request.Form.Files.Any())
                     throw new Exception("No file found!");
 
-                //var shouldSendEmailWhenReachLimit = config.GetValue<int>("ShouldSendEmailWhenReachLimit");
                 var userEmail = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
                 var userIdSr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdSr, out var userId);
-                List<BaseDropdown> roles = null;
-                List<BaseDropdown> banks = null;
-                List<BaseDropdown> brands = null;
-                List<BaseDropdown> departments = null;
-                List<BaseDropdown> ranks = null;
-                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-                //if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out roles))
-                //{
-                //    roles = GetDataList(sqlConnectionStr, nameof(Role));
-                //    memoryCache.Set(CacheKeys.GetRolesDropdown, roles, cacheOptions);
-                //}
-                roles = GetDataList(sqlConnectionStr, nameof(Role));
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetBanksDropdown, out banks))
-                {
-                    banks = GetDataList(sqlConnectionStr, nameof(Bank));
-                    memoryCache.Set(CacheKeys.GetBanksDropdown, banks, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetBrandsDropdown, out brands))
-                {
-                    brands = GetDataList(sqlConnectionStr, nameof(Brand));
-                    memoryCache.Set(CacheKeys.GetBrandsDropdown, brands, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetDepartmentsDropdown, out departments))
-                {
-                    departments = GetDataList(sqlConnectionStr, nameof(Department));
-                    memoryCache.Set(CacheKeys.GetDepartmentsDropdown, departments, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetRanksDropdown, out ranks))
-                {
-                    ranks = GetDataList(sqlConnectionStr, nameof(Rank));
-                    memoryCache.Set(CacheKeys.GetRanksDropdown, ranks, cacheOptions);
-                }
+                List<BaseDropdown> roles = cacheService.GetRoles();
+                List<BaseDropdown> banks = cacheService.GetBanks();
+                List<BaseDropdown> brands = cacheService.GetBrands();
+                List<BaseDropdown> departments = cacheService.GetDepartments();
+                List<BaseDropdown> ranks = cacheService.GetRanks();                 
                 var totalRows = 0;
                 var rowInputList = new List<EmployeeExcelInput>();
                 var shouldSendEmail = false;

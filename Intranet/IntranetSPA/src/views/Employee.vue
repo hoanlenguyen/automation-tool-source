@@ -227,6 +227,7 @@
           type="is-primary"
           class="mr-4"
           icon-left="note-plus"
+          :size="$isMobile()?'is-small':''"
           @click="isModalImportActive=true"
           :loading="isImportLoading"          
         />
@@ -236,6 +237,7 @@
           type="is-info"
           class="mr-4"
           icon-left="note-plus"
+          :size="$isMobile()?'is-small':''"
           @click="isModalActive=true"
         />
         <b-button
@@ -243,33 +245,34 @@
             type="is-light"
             class="mr-4"
             icon-left="reload"
+            :size="$isMobile()?'is-small':''"
             @click="resetFilter"
         />
-        <span class="has-text-weight-normal mr-4">Total count: {{totalItems}}</span>
-        <b-select v-model="filter.rowsPerPage"  @input="onChangePageSize" class="mr-4">
-            <option v-for="i in pageOptions" :value="i" :key="i">{{`${i} per page`}}</option>        
+        <span :class="$isMobile()?'is-size-7 has-text-weight-normal mr-4': 'has-text-weight-normal mr-4'">Total count: {{totalItems}}</span>
+        <b-select :size="$isMobile()?'is-small':''" v-model="filter.rowsPerPage"  @input="onChangePageSize" class="mr-4">
+          <option v-for="i in pageOptions" :value="i" :key="i">{{`${i} per page`}}</option>        
         </b-select>
         <b-pagination
-            :total="totalItems"
-            v-model="filter.page"
-            :range-before="1"
-            :range-after="1"
-            :order="`is-right`"
-            :size="``"
-            :simple="false"
-            :rounded="false"
-            :per-page="filter.rowsPerPage"
-            :icon-prev="`chevron-left`"
-            :icon-next="`chevron-right`"
-            aria-next-label="Next page"
-            aria-previous-label="Previous page"
-            aria-page-label="Page"
-            aria-current-label="Current page"
-            :page-input="true"
-            :page-input-position="``"
-            :debounce-page-input="``"
-            @change="onChangePageNumber">
-        </b-pagination>        
+          :total="totalItems"
+          v-model="filter.page"
+          :range-before="1"
+          :range-after="1"
+          :order="`is-right`"
+          :size="$isMobile()?'is-small':''"
+          :simple="false"
+          :rounded="false"
+          :per-page="filter.rowsPerPage"
+          :icon-prev="`chevron-left`"
+          :icon-next="`chevron-right`"
+          aria-next-label="Next page"
+          aria-previous-label="Previous page"
+          aria-page-label="Page"
+          aria-current-label="Current page"
+          :page-input="!$isMobile()"
+          :page-input-position="``"
+          :debounce-page-input="``"
+          @change="onChangePageNumber">
+        </b-pagination>               
       </div>
     </b-table>
     <b-modal v-model="isModalActive" trap-focus has-modal-card full-screen :can-cancel="false" scroll="keep">
@@ -333,22 +336,7 @@
               </b-select>
           </b-field>
 
-          <b-field label="Department" class="column is-3">
-            <b-select
-              placeholder="Select department"
-              v-model="model.deptId"
-              clearable
-              expanded
-            >
-            <option
-              v-for="option in departments"
-              :value="option.id"
-              :key="option.id"
-            >
-              {{ option.name }}
-            </option>
-            </b-select>
-          </b-field>
+          
 
           <b-field label="Bank" class="column is-3">
             <b-select
@@ -367,22 +355,40 @@
             </b-select>
           </b-field>
 
+          <b-field label="Bank Account Name" class="column is-3">
+            <b-input
+              type="Text"
+              v-model="model.bankAccountName">
+            </b-input>
+          </b-field>
+
           <b-field label="Bank Account Number" class="column is-3">
             <b-input
               type="Text"
               v-model="model.bankAccountNumber">
             </b-input>
           </b-field>
-        </div>
+        </div>        
 
         <div class="columns">
-          <b-field label="Salary" class="column is-3">
-            <b-input
-              type="number"
-              v-model="model.salary"
-              required>
-            </b-input>
+          <b-field label="Department" class="column is-3">
+            <b-select
+              placeholder="Select department"
+              v-model="model.deptId"
+              clearable
+              expanded
+            >
+            <option
+              v-for="option in departments"
+              :value="option.id"
+              :key="option.id"
+            >
+              {{ option.name }}
+            </option>
+            </b-select>
           </b-field>
+
+          
 
           <b-field label="Start Date" class="column is-3">
               <b-datepicker
@@ -450,7 +456,7 @@
             </b-input>
           </b-field>
 
-           <b-field label="Intranet Pass" class="column is-3">
+          <b-field label="Intranet Pass" class="column is-3">
             <b-input
               type="Text"
               v-model="model.intranetPassword"
@@ -460,12 +466,21 @@
         </div>   
 
         <div class="columns">
+          <b-field label="Salary" class="column is-3">
+            <b-input
+              type="number"
+              v-model="model.salary"
+              required>
+            </b-input>
+          </b-field>
+
           <b-field label="Country" class="column is-3">
             <b-input
               type="Text"
               v-model="model.country">
             </b-input>
           </b-field>
+
           <b-field label="Note" class="column is-6">
             <b-input
               type="Text"

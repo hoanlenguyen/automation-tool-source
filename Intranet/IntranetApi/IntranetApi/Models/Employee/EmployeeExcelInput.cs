@@ -18,6 +18,7 @@ namespace IntranetApi.Models
         public string BankName { get; set; }
         public int? BankId { get; set; }
         public string BankAccountNumber { get; set; }
+        public string BankAccountName { get; set; }
         public string SalaryStr { get; set; }
         public int Salary { get; set; }
         public string StartDateStr { get; set; }

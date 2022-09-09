@@ -21,7 +21,7 @@
     },
     "resourceName": {
       "type": "string",
-      "defaultValue": "automation-tool-api",
+      "defaultValue": "intranet-tool-dev-api",
       "metadata": {
         "description": "Name of the main resource to be created by this template."
       }

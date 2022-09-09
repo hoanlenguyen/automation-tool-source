@@ -86,6 +86,7 @@
             type="is-info"
             class="mr-4"
             icon-left="note-plus"
+            :size="$isMobile()?'is-small':''"
             @click="isModalActive=true"
             v-if="canCreate"
           />
@@ -94,6 +95,7 @@
             type="is-light"
             class="mr-4"
             icon-left="reload"
+            :size="$isMobile()?'is-small':''"
             @click="resetFilter"
         />
         <span class="has-text-weight-normal mr-4">Total count: {{totalItems}}</span>
@@ -106,7 +108,7 @@
             :range-before="1"
             :range-after="1"
             :order="`is-right`"
-            :size="``"
+            :size="$isMobile()?'is-small':''"
             :simple="false"
             :rounded="false"
             :per-page="filter.rowsPerPage"
@@ -116,7 +118,7 @@
             aria-previous-label="Previous page"
             aria-page-label="Page"
             aria-current-label="Current page"
-            :page-input="true"
+            :page-input="!$isMobile()"
             :page-input-position="``"
             :debounce-page-input="``"
             @change="onChangePageNumber">

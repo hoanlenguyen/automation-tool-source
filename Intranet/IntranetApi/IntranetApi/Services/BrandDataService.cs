@@ -23,11 +23,7 @@ namespace IntranetApi.Services
             if (string.IsNullOrEmpty(input.SortDirection))
                 input.SortDirection = "desc";
         }
-        private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
-        {
-            using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Brands where IsDeleted = 0").ToList();
-        }
+        
         public static void AddBrandDataService(this WebApplication app, string sqlConnectionStr)
         {
             app.MapGet("Brand/{id:int}", [Authorize]
@@ -61,6 +57,7 @@ namespace IntranetApi.Services
                 var entity = new Brand { Name = input.Name, CreatorUserId = userId };
                 db.Add(entity);
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBrands);
                 memoryCache.Remove(CacheKeys.GetBrandsDropdown);
                 return Results.Ok();
             })
@@ -89,8 +86,9 @@ namespace IntranetApi.Services
                 entity.Name = input.Name;
                 entity.Status = input.Status;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;                
+                entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBrands);
                 memoryCache.Remove(CacheKeys.GetBrandsDropdown);
                 return Results.Ok();
             })
@@ -114,6 +112,7 @@ namespace IntranetApi.Services
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetBrands);
                 memoryCache.Remove(CacheKeys.GetBrandsDropdown);
                 return Results.Ok();
             })
@@ -137,23 +136,25 @@ namespace IntranetApi.Services
                                 .Take(input.RowsPerPage)
                                 .ProjectToType<BrandCreateOrEdit>()
                                 .ToListAsync();
-                return Results.Ok(new PagedResultDto<BrandCreateOrEdit>(totalCount, items));                 
+                return Results.Ok(new PagedResultDto<BrandCreateOrEdit>(totalCount, items));
             })
             .RequireAuthorization(BrandPermissions.View)
             ;
 
-            app.MapGet("Brand/dropdown", [Authorize]
+            app.MapGet("Brand/dropdown", [AllowAnonymous]
+            async Task<IResult> (
+            [FromServices] IMemoryCacheService cacheService) =>
+            {
+                return Results.Ok(cacheService.GetBrandsDropdown());
+            });
+
+            app.MapGet("Brand/clearCache", [AllowAnonymous]
             async Task<IResult> (
             [FromServices] IMemoryCache memoryCache) =>
             {
-                List<BaseDropdown> items = null;
-                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-                if (!memoryCache.TryGetValue(CacheKeys.GetBrandsDropdown, out items))
-                {
-                    items = GetBaseDropdown(sqlConnectionStr);
-                    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
-                }
-                return Results.Ok(items);
+                memoryCache.Remove(CacheKeys.GetBrands);
+                memoryCache.Remove(CacheKeys.GetBrandsDropdown);
+                return Results.Ok();
             });
         }
     }

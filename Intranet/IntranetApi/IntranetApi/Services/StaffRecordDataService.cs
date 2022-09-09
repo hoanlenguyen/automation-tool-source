@@ -209,22 +209,22 @@ namespace IntranetApi.Services
                 List<BaseDropdown> ranks = null;
                 var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
 
-                if (!memoryCache.TryGetValue(CacheKeys.GetBrandsDropdown, out brands))
+                if (!memoryCache.TryGetValue(CacheKeys.GetBrands, out brands))
                 {
                     brands = GetDataList(sqlConnectionStr, nameof(Brand));
-                    memoryCache.Set(CacheKeys.GetBrandsDropdown, brands, cacheOptions);
+                    memoryCache.Set(CacheKeys.GetBrands, brands, cacheOptions);
                 }
 
-                if (!memoryCache.TryGetValue(CacheKeys.GetDepartmentsDropdown, out departments))
+                if (!memoryCache.TryGetValue(CacheKeys.GetDepartments, out departments))
                 {
                     departments = GetDataList(sqlConnectionStr, nameof(Department));
-                    memoryCache.Set(CacheKeys.GetDepartmentsDropdown, departments, cacheOptions);
+                    memoryCache.Set(CacheKeys.GetDepartments, departments, cacheOptions);
                 }
 
-                if (!memoryCache.TryGetValue(CacheKeys.GetRanksDropdown, out ranks))
+                if (!memoryCache.TryGetValue(CacheKeys.GetRanks, out ranks))
                 {
                     ranks = GetDataList(sqlConnectionStr, nameof(Rank));
-                    memoryCache.Set(CacheKeys.GetRanksDropdown, ranks, cacheOptions);
+                    memoryCache.Set(CacheKeys.GetRanks, ranks, cacheOptions);
                 }
                 ProcessFilterValues(ref input);
                 var query = db.StaffRecords
@@ -284,22 +284,22 @@ namespace IntranetApi.Services
                 List<BaseDropdown> ranks = null;
                 var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
 
-                if (!memoryCache.TryGetValue(CacheKeys.GetBrandsDropdown, out brands))
+                if (!memoryCache.TryGetValue(CacheKeys.GetBrands, out brands))
                 {
                     brands = GetDataList(sqlConnectionStr, nameof(Brand));
-                    memoryCache.Set(CacheKeys.GetBrandsDropdown, brands, cacheOptions);
+                    memoryCache.Set(CacheKeys.GetBrands, brands, cacheOptions);
                 }
 
-                if (!memoryCache.TryGetValue(CacheKeys.GetDepartmentsDropdown, out departments))
+                if (!memoryCache.TryGetValue(CacheKeys.GetDepartments, out departments))
                 {
                     departments = GetDataList(sqlConnectionStr, nameof(Department));
-                    memoryCache.Set(CacheKeys.GetDepartmentsDropdown, departments, cacheOptions);
+                    memoryCache.Set(CacheKeys.GetDepartments, departments, cacheOptions);
                 }
 
-                if (!memoryCache.TryGetValue(CacheKeys.GetRanksDropdown, out ranks))
+                if (!memoryCache.TryGetValue(CacheKeys.GetRanks, out ranks))
                 {
                     ranks = GetDataList(sqlConnectionStr, nameof(Rank));
-                    memoryCache.Set(CacheKeys.GetRanksDropdown, ranks, cacheOptions);
+                    memoryCache.Set(CacheKeys.GetRanks, ranks, cacheOptions);
                 }
 
                 if (!string.IsNullOrEmpty(input.Keyword))

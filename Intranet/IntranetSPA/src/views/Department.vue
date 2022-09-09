@@ -96,6 +96,7 @@
             label="Create"
             type="is-info"
             class="mr-4"
+            :size="$isMobile()?'is-small':''"
             icon-left="note-plus"
             @click="isModalActive=true"
             v-if="canCreate"
@@ -104,33 +105,34 @@
             label="Reset"
             type="is-light"
             class="mr-4"
+            :size="$isMobile()?'is-small':''"
             icon-left="reload"
             @click="resetFilter"
         />
-        <span class="has-text-weight-normal mr-4">Total count: {{totalItems}}</span>
-        <b-select v-model="filter.rowsPerPage"  @input="onChangePageSize" class="mr-4">
+        <span :class="$isMobile()?'is-size-7 has-text-weight-normal mr-4': 'has-text-weight-normal mr-4'">Total count: {{totalItems}}</span>
+        <b-select :size="$isMobile()?'is-small':''" v-model="filter.rowsPerPage"  @input="onChangePageSize" class="mr-4">
             <option v-for="i in pageOptions" :value="i" :key="i">{{`${i} per page`}}</option>        
         </b-select>
         <b-pagination
-            :total="totalItems"
-            v-model="filter.page"
-            :range-before="1"
-            :range-after="1"
-            :order="`is-right`"
-            :size="``"
-            :simple="false"
-            :rounded="false"
-            :per-page="filter.rowsPerPage"
-            :icon-prev="`chevron-left`"
-            :icon-next="`chevron-right`"
-            aria-next-label="Next page"
-            aria-previous-label="Previous page"
-            aria-page-label="Page"
-            aria-current-label="Current page"
-            :page-input="true"
-            :page-input-position="``"
-            :debounce-page-input="``"
-            @change="onChangePageNumber">
+          :total="totalItems"
+          v-model="filter.page"
+          :range-before="1"
+          :range-after="1"
+          :order="`is-right`"
+          :size="$isMobile()?'is-small':''"
+          :simple="false"
+          :rounded="false"
+          :per-page="filter.rowsPerPage"
+          :icon-prev="`chevron-left`"
+          :icon-next="`chevron-right`"
+          aria-next-label="Next page"
+          aria-previous-label="Previous page"
+          aria-page-label="Page"
+          aria-current-label="Current page"
+          :page-input="!$isMobile()"
+          :page-input-position="``"
+          :debounce-page-input="``"
+          @change="onChangePageNumber">
         </b-pagination>        
       </div>
     </b-table>

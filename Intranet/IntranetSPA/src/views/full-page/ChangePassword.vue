@@ -105,7 +105,7 @@
 import _ from 'lodash';
 import CardComponent from '@/components/CardComponent.vue'
 import { changePassword } from "@/api/user";
-import {setToken} from '@/utils/auth';
+//import {setToken} from '@/utils/auth';
 export default {
   name: 'Login',
   components: { CardComponent },

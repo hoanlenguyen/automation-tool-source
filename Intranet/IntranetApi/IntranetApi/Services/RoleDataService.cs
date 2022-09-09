@@ -25,11 +25,11 @@ namespace IntranetApi.Services
                 input.SortDirection = "desc";
         }
 
-        private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
-        {
-            using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Roles where IsDeleted = 0").ToList();
-        }
+        //private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
+        //{
+        //    using var connection = new MySqlConnection(sqlConnectionStr);
+        //    return connection.Query<BaseDropdown>("select Id, Name from Roles where IsDeleted = 0").ToList();
+        //}
 
         public static void AddRoleDataService(this WebApplication app, string sqlConnectionStr)
         {
@@ -81,6 +81,7 @@ namespace IntranetApi.Services
                     var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
                     await db.RoleClaims.AddRangeAsync(roleClaims);
                 }
+                memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 await db.SaveChangesAsync();
                 return Results.Ok(entity);
@@ -121,6 +122,7 @@ namespace IntranetApi.Services
                     var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
                     await db.RoleClaims.AddRangeAsync(roleClaims);
                 }
+                memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 db.SaveChanges();
                 return Results.Ok();
@@ -145,6 +147,7 @@ namespace IntranetApi.Services
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 return Results.Ok();
             })
@@ -204,9 +207,10 @@ namespace IntranetApi.Services
             .RequireAuthorization(RolePermissions.View)
             ;
 
-            app.MapGet("Role/dropdown", [Authorize]
+            app.MapGet("Role/dropdown", [AllowAnonymous]
             async Task<IResult> (
-            [FromServices] IMemoryCache memoryCache) =>
+            /*[FromServices] IMemoryCache memoryCache*/
+            IMemoryCacheService memoryCacheService) =>
             {
                 //List<BaseDropdown> items = null;
                 //var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
@@ -216,7 +220,7 @@ namespace IntranetApi.Services
                 //    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
                 //}
                 //return Results.Ok(items);
-                return Results.Ok(GetBaseDropdown(sqlConnectionStr));
+                return Results.Ok(/*GetBaseDropdown(sqlConnectionStr)*/ memoryCacheService.GetRolesDropdown());
             });
 
             app.MapPost("Role/addPermission", [Authorize]

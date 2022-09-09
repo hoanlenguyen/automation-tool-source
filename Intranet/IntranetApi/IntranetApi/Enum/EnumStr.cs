@@ -23,11 +23,17 @@
 
     public static class CacheKeys
     {
+        public const string GetRoles = "GetRoles";
+        public const string GetRanks = "GetRanks";
+        public const string GetBanks = "GetBanks";
+        public const string GetBrands = "GetBrands";
+        public const string GetDepartments = "GetDepartments";
+        public const string GetAdminUsers = "GetAdminUsers";
+
         public const string GetRolesDropdown = "GetRolesDropdown";
         public const string GetRanksDropdown = "GetRanksDropdown";
         public const string GetBanksDropdown = "GetBanksDropdown";
         public const string GetBrandsDropdown = "GetBrandsDropdown";
         public const string GetDepartmentsDropdown = "GetDepartmentsDropdown";
-        public const string GetAdminUserDropdown = "GetAdminUserDropdown";
     }
 }

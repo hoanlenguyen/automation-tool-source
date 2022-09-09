@@ -27,12 +27,6 @@ namespace IntranetApi.Services
                 input.SortDirection = SortDirection.DESC;
         }
 
-        private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
-        {
-            using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Ranks where IsDeleted = 0").ToList();
-        }
-
         public static void AddRankDataService(this WebApplication app, string sqlConnectionStr)
         {
             app.MapGet("Rank/{id:int}", [Authorize]
@@ -70,6 +64,7 @@ namespace IntranetApi.Services
                 db.Add(entity);
                 db.SaveChanges();
                 input.Id = entity.Id;                
+                memoryCache.Remove(CacheKeys.GetRanks);
                 memoryCache.Remove(CacheKeys.GetRanksDropdown);
                 return Results.Ok();
             })
@@ -99,6 +94,7 @@ namespace IntranetApi.Services
                 input.Adapt(entity);
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
+                memoryCache.Remove(CacheKeys.GetRanks);
                 memoryCache.Remove(CacheKeys.GetRanksDropdown);
                 db.SaveChanges();
                 return Results.Ok();
@@ -123,6 +119,7 @@ namespace IntranetApi.Services
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
+                memoryCache.Remove(CacheKeys.GetRanks);
                 memoryCache.Remove(CacheKeys.GetRanksDropdown);
                 return Results.Ok();
             })
@@ -151,16 +148,9 @@ namespace IntranetApi.Services
 
             app.MapGet("Rank/dropdown", [Authorize]
             async Task<IResult> (
-            [FromServices] IMemoryCache memoryCache) =>
+            [FromServices] IMemoryCacheService cacheService) =>
             {
-                List<BaseDropdown> items = null;
-                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-                if (!memoryCache.TryGetValue(CacheKeys.GetRanksDropdown, out items))
-                {
-                    items = GetBaseDropdown(sqlConnectionStr);
-                    memoryCache.Set(CacheKeys.GetRanksDropdown, items, cacheOptions);
-                }
-                return Results.Ok(items);
+                return Results.Ok(cacheService.GetRanksDropdown());
             });             
         }
     }

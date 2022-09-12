@@ -140,10 +140,6 @@ builder.Services.AddMemoryCache();
 
 //add DependencyInjection
 //builder.Services.AddSingleton<ISendMailService, SendMailService>();
-//builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
-//builder.Services.AddSingleton<IImportDataToQueueService, ImportDataToQueueService>();
-//builder.Services.AddSingleton<IExportDataToQueueService, ExportDataToQueueService>();
-//builder.Services.AddSingleton<IHubClient, HubClient>();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
 builder.Services.AddSingleton<IMemoryCacheService>(sp => new MemoryCacheService(sp.GetService<IMemoryCache>(), mySQLConnection.ConnectionString));
@@ -196,14 +192,14 @@ app.UseAuthorization();
 
 //add Services
 app.AddAdminUserService();
-app.AddRoleDataService(mySQLConnection.ConnectionString);
-app.AddBankDataService(mySQLConnection.ConnectionString);
-app.AddBrandDataService(mySQLConnection.ConnectionString);
-app.AddDepartmentDataService(mySQLConnection.ConnectionString);
-app.AddRankDataService(mySQLConnection.ConnectionString);
-app.AddEmployeeDataService(mySQLConnection.ConnectionString);
-app.AddStaffRecordDataService(mySQLConnection.ConnectionString);
-app.AddCurrencyDataService(mySQLConnection.ConnectionString);
+app.AddRoleDataService();
+app.AddBankDataService();
+app.AddBrandDataService();
+app.AddDepartmentDataService();
+app.AddRankDataService();
+app.AddEmployeeDataService();
+app.AddStaffRecordDataService();
+app.AddCurrencyDataService();
 app.AddFileDataService();
 
 app.Run();

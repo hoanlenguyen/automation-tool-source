@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <NameOfLastUsedPublishProfile>C:\STS\automation-tool-source\Intranet\IntranetApi\IntranetApi\Properties\PublishProfiles\intranet-tool-dev-api - Zip Deploy7.pubxml</NameOfLastUsedPublishProfile>
+    <NameOfLastUsedPublishProfile>F:\DotNet\automation-tool-source\Intranet\IntranetApi\IntranetApi\Properties\PublishProfiles\intranet-tool-dev-api - Web Deploy8.pubxml</NameOfLastUsedPublishProfile>
   </PropertyGroup>
 </Project>

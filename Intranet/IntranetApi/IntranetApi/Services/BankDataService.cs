@@ -22,7 +22,7 @@ namespace IntranetApi.Services
                 input.SortDirection = "desc";
         }
 
-        public static void AddBankDataService(this WebApplication app, string sqlConnectionStr)
+        public static void AddBankDataService(this WebApplication app)
         {
             app.MapGet("bank/{id:int}", [Authorize]
             async Task<IResult> (

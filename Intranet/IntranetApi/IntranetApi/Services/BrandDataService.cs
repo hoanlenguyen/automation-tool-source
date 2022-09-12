@@ -24,7 +24,7 @@ namespace IntranetApi.Services
                 input.SortDirection = "desc";
         }
         
-        public static void AddBrandDataService(this WebApplication app, string sqlConnectionStr)
+        public static void AddBrandDataService(this WebApplication app)
         {
             app.MapGet("Brand/{id:int}", [Authorize]
             async Task<IResult> (

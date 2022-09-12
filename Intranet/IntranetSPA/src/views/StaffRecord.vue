@@ -197,13 +197,14 @@
               clearable
               size="is-small"
               @typing="getAsyncData"              
-              @select="option => {selected = option; model.employeeId=option!==null? option.id:0}">
+              @select="option => {selected = option; model.employeeId=option!==null? option.id:0; model.departmentId=option!==null? option.departmentId:0}">
               <template #empty>No employees found</template>
             </b-autocomplete>
           </b-field>
 
           <b-field label="Department"> 
-            <div class="is-flex is-flex-direction-column">
+            {{selected!=null?selected.departmentName:''}}
+            <!-- <div class="is-flex is-flex-direction-column">
               <div v-for="(item, index) in departments" :key="index">
               <b-radio  v-model="model.departmentId"
                 :native-value="item.id"
@@ -216,7 +217,7 @@
               v-if="model.departmentId==0"
               v-model="model.otherDepartment">
             </b-input>
-            </div>
+            </div> -->
           </b-field>
 
           <b-field label="Select Extra/ Deduction/ Paid-Offs">
@@ -410,7 +411,7 @@ export default {
   name:"staffRecord",
   created() {
     this.getEmployeeByBrand();
-    this.getDepartmentDropdown();
+    //this.getDepartmentDropdown();
     this.getList();
   },
   data() {
@@ -616,24 +617,6 @@ export default {
       if(!this.model.employeeId){
         this.$buefy.snackbar.open({
             message: 'Missing employee name!',
-            queue: false,
-            type: 'is-warning'
-          });
-        return;
-      }
-
-      if(this.model.departmentId===null){
-        this.$buefy.snackbar.open({
-            message: 'Missing Department!',
-            queue: false,
-            type: 'is-warning'
-          });
-        return;
-      }
-
-      if(this.model.departmentId==0 && !this.model.otherDepartment){
-        this.$buefy.snackbar.open({
-            message: 'Missing Other Department!',
             queue: false,
             type: 'is-warning'
           });

@@ -22,7 +22,7 @@ namespace IntranetApi.Services
                 input.SortDirection = "desc";
         }
 
-        public static void AddCurrencyDataService(this WebApplication app, string sqlConnectionStr)
+        public static void AddCurrencyDataService(this WebApplication app)
         {
             app.MapGet("Currency/{id:int}", [Authorize]
             async Task<IResult> (

@@ -27,7 +27,7 @@ namespace IntranetApi.Services
                 input.SortDirection = SortDirection.DESC;
         }
 
-        public static void AddRankDataService(this WebApplication app, string sqlConnectionStr)
+        public static void AddRankDataService(this WebApplication app)
         {
             app.MapGet("Rank/{id:int}", [Authorize]
             async Task<IResult> (

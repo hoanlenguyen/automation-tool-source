@@ -1,5 +1,4 @@
-﻿using Dapper;
-using IntranetApi.DbContext;
+﻿using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
@@ -7,8 +6,6 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using MySqlConnector;
 using System.Data;
 using System.Security.Claims;
 
@@ -28,13 +25,7 @@ namespace IntranetApi.Services
                 input.SortDirection = SortDirection.DESC;
         }
 
-        private static List<BaseDropdown> GetDataList(string sqlConnectionStr, string tableName)
-        {
-            using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>($"select Id, Name from {tableName}s where IsDeleted = 0").ToList();
-        }
-
-        public static void AddStaffRecordDataService(this WebApplication app, string sqlConnectionStr)
+        public static void AddStaffRecordDataService(this WebApplication app)
         {
             app.MapGet("StaffRecord/{id:int}", [Authorize]
             async Task<IResult> (
@@ -77,14 +68,14 @@ namespace IntranetApi.Services
                     case StaffRecordDetailType.DeductionUnpaidLeave:
                         {
                             entity.NumberOfDays = (entity.EndDate - entity.StartDate).Days + 1;
-                            if(entity.RecordDetailType== StaffRecordDetailType.ExtraPayCoverShift)
+                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayCoverShift)
                             {
                                 entity.CalculationAmount = entity.NumberOfDays * (salary / 365);
                             }
 
                             if (entity.RecordDetailType == StaffRecordDetailType.DeductionUnpaidLeave)
                             {
-                                entity.CalculationAmount = - entity.NumberOfDays * (salary / 365);
+                                entity.CalculationAmount = -entity.NumberOfDays * (salary / 365);
                             }
                             break;
                         }
@@ -92,9 +83,9 @@ namespace IntranetApi.Services
                     case StaffRecordDetailType.DeductionLate:
                         {
                             entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
-                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayOTs && workingHours>0)
+                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayOTs && workingHours > 0)
                             {
-                                entity.CalculationAmount = entity.NumberOfHours * (salary /(365*workingHours));
+                                entity.CalculationAmount = entity.NumberOfHours * (salary / (365 * workingHours));
                             }
                             break;
                         }
@@ -200,38 +191,18 @@ namespace IntranetApi.Services
             app.MapPost("StaffRecord/list", [Authorize]
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
-            [FromServices] IMemoryCache memoryCache,
+            [FromServices] IMemoryCacheService cacheService,
             [FromBody] StaffRecordFilter input
             ) =>
             {
-                List<BaseDropdown> brands = null;
-                List<BaseDropdown> departments = null;
-                List<BaseDropdown> ranks = null;
-                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetBrands, out brands))
-                {
-                    brands = GetDataList(sqlConnectionStr, nameof(Brand));
-                    memoryCache.Set(CacheKeys.GetBrands, brands, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetDepartments, out departments))
-                {
-                    departments = GetDataList(sqlConnectionStr, nameof(Department));
-                    memoryCache.Set(CacheKeys.GetDepartments, departments, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetRanks, out ranks))
-                {
-                    ranks = GetDataList(sqlConnectionStr, nameof(Rank));
-                    memoryCache.Set(CacheKeys.GetRanks, ranks, cacheOptions);
-                }
+                List<BaseDropdown> brands = cacheService.GetBrands();
+                List<BaseDropdown> departments = cacheService.GetDepartments();
+                List<BaseDropdown> ranks = cacheService.GetRanks();
                 ProcessFilterValues(ref input);
                 var query = db.StaffRecords
                             .Include(p => p.Employee)
                             .AsNoTracking()
                             .Where(p => !p.IsDeleted)
-                             //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                              ;
                 var totalCount = await query.CountAsync();
                 var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
@@ -255,6 +226,7 @@ namespace IntranetApi.Services
             app.MapGet("StaffRecord/GetEmployeeByBrand", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IMemoryCacheService cacheService,
             [FromServices] ApplicationDbContext db) =>
             {
                 var result = new List<EmployeeDropdown>();
@@ -264,10 +236,16 @@ namespace IntranetApi.Services
 
                 var query = from be in db.BrandEmployees
                             join u in db.Users on be.EmployeeId equals u.Id
-                            where brandIds.Contains(be.BrandId) && u.UserType == UserType.Employee
-                            select new { u.Id, u.EmployeeCode, u.Name, FullName = $"{u.EmployeeCode} - {u.Name}" };
+                            where brandIds.Contains(be.BrandId) /*&& u.UserType == UserType.Employee*/
+                            select new StaffRecordDropdown { Id = u.Id, EmployeeCode = u.EmployeeCode, Name = u.Name, DepartmentId= u.DeptId };
 
-                return Results.Ok(query.ToList().DistinctBy(p => p.Id));
+                var items = query.ToList().DistinctBy(p => p.Id);
+                var depts = cacheService.GetDepartments();                 
+                foreach (var item in items)
+                {
+                    item.DepartmentName = depts.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
+                }
+                return Results.Ok(items);
             })
             .RequireAuthorization(StaffRecordPermissions.View)
             ;
@@ -275,32 +253,13 @@ namespace IntranetApi.Services
             app.MapPost("LeaveHistory/list", [Authorize]
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
-            [FromServices] IMemoryCache memoryCache,
+            [FromServices] IMemoryCacheService cacheService,
             [FromBody] LeaveHistoryFilter input
             ) =>
             {
-                List<BaseDropdown> brands = null;
-                List<BaseDropdown> departments = null;
-                List<BaseDropdown> ranks = null;
-                var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetBrands, out brands))
-                {
-                    brands = GetDataList(sqlConnectionStr, nameof(Brand));
-                    memoryCache.Set(CacheKeys.GetBrands, brands, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetDepartments, out departments))
-                {
-                    departments = GetDataList(sqlConnectionStr, nameof(Department));
-                    memoryCache.Set(CacheKeys.GetDepartments, departments, cacheOptions);
-                }
-
-                if (!memoryCache.TryGetValue(CacheKeys.GetRanks, out ranks))
-                {
-                    ranks = GetDataList(sqlConnectionStr, nameof(Rank));
-                    memoryCache.Set(CacheKeys.GetRanks, ranks, cacheOptions);
-                }
+                List<BaseDropdown> brands = cacheService.GetBrands();
+                List<BaseDropdown> departments = cacheService.GetDepartments();
+                List<BaseDropdown> ranks = cacheService.GetRanks();
 
                 if (!string.IsNullOrEmpty(input.Keyword))
                     input.Keyword = input.Keyword.Trim();

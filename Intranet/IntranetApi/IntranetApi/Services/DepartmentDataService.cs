@@ -24,7 +24,7 @@ namespace IntranetApi.Services
                 input.SortDirection = "desc";
         }
 
-        public static void AddDepartmentDataService(this WebApplication app, string sqlConnectionStr)
+        public static void AddDepartmentDataService(this WebApplication app)
         {
             app.MapGet("Department/{id:int}", [AllowAnonymous]
             async Task<IResult> (

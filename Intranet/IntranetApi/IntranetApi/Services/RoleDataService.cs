@@ -25,13 +25,7 @@ namespace IntranetApi.Services
                 input.SortDirection = "desc";
         }
 
-        //private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
-        //{
-        //    using var connection = new MySqlConnection(sqlConnectionStr);
-        //    return connection.Query<BaseDropdown>("select Id, Name from Roles where IsDeleted = 0").ToList();
-        //}
-
-        public static void AddRoleDataService(this WebApplication app, string sqlConnectionStr)
+        public static void AddRoleDataService(this WebApplication app)
         {
             app.MapGet("Role/{id:int}", [Authorize]
             async Task<IResult> (

@@ -46,13 +46,7 @@ namespace IntranetApi.Services
             }
             return null;
         }
-
-        private static List<BaseDropdown> GetDataList(string sqlConnectionStr, string tableName)
-        {
-            using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>($"select Id, Name from {tableName}s where IsDeleted = 0").ToList();
-        }
-
+ 
         private static void ProcessFilterValues(ref EmployeeFilterDto input)
         {
             if (string.IsNullOrEmpty(input.SortBy))
@@ -61,13 +55,7 @@ namespace IntranetApi.Services
                 input.SortDirection = "desc";
         }
 
-        private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
-        {
-            using var connection = new MySqlConnection(sqlConnectionStr);
-            return connection.Query<BaseDropdown>("select Id, Name from Employee where IsDeleted = 0").ToList();
-        }
-
-        public static void AddEmployeeDataService(this WebApplication app, string sqlConnectionStr)
+        public static void AddEmployeeDataService(this WebApplication app)
         {
             app.MapGet("employee/{id:int}", [Authorize]
             async Task<IResult> (
@@ -493,21 +481,12 @@ namespace IntranetApi.Services
                         }
                     }
                     Console.WriteLine($"employees count {employees.Count}");
-                    //var duplicateResult = await CheckUniqueValue(employees);
                     var duplicateResult = new EmployeeCheckUnique();
                     var employeeCodes = employees.Select(p => p.EmployeeCode.ToUpperInvariant());
                     duplicateResult.EmployeeCodes = db.Users.Where(p => employeeCodes.Contains(p.NormalizedUserName))
                                                             .Select(p => p.EmployeeCode)
                                                             .ToList();
                     var index = 0;
-                    //Console.WriteLine($"employees.Count {employees.Count}");
-                    //Console.WriteLine($"employees.0 {employees[0]?.EmployeeCode}");
-                    //Console.WriteLine($"employees.1 {employees[1]?.EmployeeCode}");
-                    //Console.WriteLine($"rowInputList.Count {rowInputList.Count}");
-
-                    //Console.WriteLine($"employees.0 {rowInputList[0]?.EmployeeCode}");
-                    //Console.WriteLine($"employees.1 {rowInputList[1]?.EmployeeCode}");
-                    //Console.WriteLine($"employees.2 {rowInputList[2]?.EmployeeCode}");
                     foreach (var value in duplicateResult.EmployeeCodes)
                     {
                         Console.WriteLine($"value {value}");
@@ -520,16 +499,6 @@ namespace IntranetApi.Services
                             employee.ErrorDetails = "EmployeeCode existed";
                             errorList.Add(employee);
                         }
-                        //index = employees.FindIndex(p => p.EmployeeCode.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        ////Console.WriteLine($"index {index}");
-                        //if (index > -1)
-                        //{
-                        //    //Console.WriteLine($"duplicateResult.EmployeeCodes {value}");
-                        //    var employee = employees[index].Adapt<EmployeeImportError>();
-                        //    employee.Cells = $"B{index + 1}";
-                        //    employee.ErrorDetails = "EmployeeCode existed";
-                        //    errorList.Add(employee);
-                        //}
                     }
 
                     employees = employees.Where(
@@ -558,17 +527,6 @@ namespace IntranetApi.Services
             .RequireAuthorization(EmployeePermissions.Create)
             ;
 
-            app.MapGet("employee/dropdown", [Authorize]
-            async Task<IResult> (
-            [FromServices] ApplicationDbContext db) =>
-            {
-                List<BaseDropdown> items = null;
-
-                items = GetBaseDropdown(sqlConnectionStr);
-
-                return Results.Ok(items);
-            });
-
             app.MapGet("employee/GetByBrand", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
@@ -595,89 +553,6 @@ namespace IntranetApi.Services
             })
             .RequireAuthorization(EmployeePermissions.View)
             ;
-
-            async Task BulkInsertEmployeesToDB(IEnumerable<EmployeeBulkInsert> items)
-            {
-                if (items.Count() == 0)
-                {
-                    Console.WriteLine($"BulkInsertEmployeesToDB -no new data");
-                    return;
-                }
-                var watch = Stopwatch.StartNew();
-                var dataTable = items.ToDataTable();
-                using var connection = new MySqlConnection(sqlConnectionStr);
-                connection.Open();
-
-                var bulkCopy = new MySqlBulkCopy(connection);
-                bulkCopy.DestinationTableName = TableName.Employee;
-                bulkCopy.BulkCopyTimeout = 0;
-                await bulkCopy.WriteToServerAsync(dataTable);
-
-                watch.Stop();
-                Console.WriteLine($"Complete BulkInsertCustomerScoreToMySQL: time {watch.Elapsed.TotalSeconds} s");
-            }
-
-            async Task<EmployeeCheckUnique> CheckUniqueValue(IEnumerable<EmployeeBulkInsert> items)
-            {
-                var result = new EmployeeCheckUnique();
-                if (items.Count() == 0) return result;
-                var watch = Stopwatch.StartNew();
-                //var dataTable = items.ToDataTable();
-                //using var connection = new MySqlConnection(sqlConnectionStr);
-                //connection.Open();
-                //var commandStr = $"create temporary table IF NOT EXISTS TempEmployeeList SELECT * FROM users LIMIT 0;";
-                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
-                //{
-                //    myCmd.CommandType = CommandType.Text;
-                //    myCmd.ExecuteNonQuery();
-                //}
-                //Console.WriteLine($"create temporary table TempEmployeeList");
-                //var bulkCopy = new MySqlBulkCopy(connection);
-                //bulkCopy.DestinationTableName = "TempEmployeeList";
-                //bulkCopy.BulkCopyTimeout = 0;
-                //await bulkCopy.WriteToServerAsync(dataTable);
-                //watch.Stop();
-                //Console.WriteLine($"WriteToServerAsync TempEmployeeList time: {watch.Elapsed.TotalSeconds}");
-                //watch.Restart();
-                //commandStr = "select t.EmployeeCode " +
-                //             "from TempEmployeeList  t " +
-                //             "inner join Employee c " +
-                //             "on t.EmployeeCode = c.EmployeeCode ";
-                //result.EmployeeCodes = connection.Query<string>(commandStr).ToList();
-                //watch.Stop();
-
-                //watch.Restart();
-                //commandStr = "select t.BackendUser " +
-                //             "from TempEmployeeList  t " +
-                //             "inner join Employee c " +
-                //             "on t.BackendUser = c.BackendUser ";
-                //result.BackendUsers = connection.Query<string>(commandStr).ToList();
-                //Console.WriteLine($"query join table TempEmployeeList - BackendUser, time: {watch.Elapsed.TotalSeconds}");
-
-                //watch.Restart();
-                //commandStr = "select t.IdNumber " +
-                //             "from TempEmployeeList  t " +
-                //             "inner join Employee c " +
-                //             "on t.IdNumber = c.IdNumber ";
-                //result.IdNumbers = connection.Query<string>(commandStr).ToList();
-                //Console.WriteLine($"query join table TempEmployeeList - IdNumber, time: {watch.Elapsed.TotalSeconds}");
-
-                //watch.Restart();
-                //commandStr = "select t.IntranetUsername " +
-                //             "from TempEmployeeList  t " +
-                //             "inner join Employee c " +
-                //             "on t.IntranetUsername = c.IntranetUsername ";
-                //result.IntranetUsernames = connection.Query<string>(commandStr).ToList();
-                //Console.WriteLine($"query join table TempEmployeeList - IntranetUsername, time: {watch.Elapsed.TotalSeconds}");
-
-                //commandStr = "DROP TEMPORARY TABLE IF EXISTS TempEmployeeList";
-                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
-                //{
-                //    myCmd.CommandType = CommandType.Text;
-                //    myCmd.ExecuteNonQuery();
-                //}
-                return result;
-            }
         }
     }
 }

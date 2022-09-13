@@ -46,8 +46,7 @@
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">        
         {{ props.row.currencySymbol }}        
       </b-table-column>
-
-      <b-table-column
+      <!-- <b-table-column
         field="Status"
         label="Status"
         sortable
@@ -56,8 +55,7 @@
         header-class="is-size-7 customTableBorderHeader"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">        
        <span :class="props.row.status?'':'has-text-danger'">{{ props.row.status?'Active':'Inactive' }}</span>        
-      </b-table-column>
-
+      </b-table-column> -->
       <b-table-column
         field="CreationTime"
         label="Creation Time"
@@ -153,9 +151,9 @@
                 <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
             </header>
             <section class="modal-card-body">
-              <b-field>
+              <!-- <b-field>
                 <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
-              </b-field>
+              </b-field> -->
               <b-field label="Country">
                 <b-input
                   type="Text"

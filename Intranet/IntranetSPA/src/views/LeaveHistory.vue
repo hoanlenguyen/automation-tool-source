@@ -70,7 +70,7 @@
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
-      <p v-for="(brandName,index) in props.row.brands" :index="index">{{brandName}}</p> 
+      <p v-for="(brandName,index) in props.row.brands" :key="index">{{brandName}}</p> 
       </b-table-column>
 
       <b-table-column

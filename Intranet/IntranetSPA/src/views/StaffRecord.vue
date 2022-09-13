@@ -1,5 +1,16 @@
 <template>
   <section class="section is-main-section">
+    <div class="p-2" v-if="$isMobile()">
+      <b-button
+        label="Create"
+        type="is-info"
+        class="mr-4"
+        :size="$isMobile()?'is-small':''"
+        icon-left="note-plus"
+        @click="isModalActive=true"
+        v-if="canCreate"
+      />
+    </div>
     <b-table
     :data="data"
     :loading="isLoading"      

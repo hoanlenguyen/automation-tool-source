@@ -69,7 +69,7 @@
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"        
         v-slot="props"
       >       
-        <p v-for="(brandName,index) in props.row.brands" :index="index">{{brandName}}</p> 
+        <p v-for="(brandName,index) in props.row.brands" :key="index">{{brandName}}</p> 
       </b-table-column>
 
       <!-- <b-table-column
@@ -320,7 +320,26 @@
 
         <div class="columns">
           <b-field label="Rank" class="column is-3">
-              <b-select
+            <multiselect
+              ref="multiselectRank"
+              v-model="selectRank"
+              tag-placeholder=""
+              placeholder="Select rank"             
+              :options="ranks"
+              label="name"
+              track-by="id"
+              :multiple="false"
+              :taggable="false"
+              :close-on-select="true"
+              :clear-on-select="true"
+              selectLabel=""
+              deselectLabel="Remove"
+              @select="(selectedOption, id)=>{ model.rankId=selectedOption.id }"
+              @remove="(removedOption, id)=>{ model.rankId=null }"
+              >
+              <span  slot="noResult">No result found</span>
+            </multiselect>
+              <!-- <b-select
                 placeholder="Select role"
                 v-model="model.rankId"
                 clearable
@@ -333,13 +352,30 @@
               >
                 {{ option.name }}
               </option>
-              </b-select>
+              </b-select> -->
           </b-field>
 
-          
-
           <b-field label="Bank" class="column is-3">
-            <b-select
+            <multiselect
+              ref="multiselectBank"
+              v-model="selectBank"
+              tag-placeholder=""
+              placeholder="Select bank"             
+              :options="banks"
+              label="name"
+              track-by="id"
+              :multiple="false"
+              :taggable="false"
+              :close-on-select="true"
+              :clear-on-select="true"
+              selectLabel=""
+              deselectLabel="Remove"
+              @select="(selectedOption, id)=>{ model.bankId=selectedOption.id }"
+              @remove="(removedOption, id)=>{ model.bankId=null }"
+              >
+              <span  slot="noResult">No result found</span>
+            </multiselect>
+            <!-- <b-select
               placeholder="Select bank"
               v-model="model.bankId"
               clearable
@@ -352,7 +388,7 @@
             >
               {{ option.name }}
             </option>
-            </b-select>
+            </b-select> -->
           </b-field>
 
           <b-field label="Bank Account Name" class="column is-3">
@@ -372,7 +408,26 @@
 
         <div class="columns">
           <b-field label="Department" class="column is-3">
-            <b-select
+             <multiselect
+              ref="multiselectDepartment"
+              v-model="selectDepartment"
+              tag-placeholder=""
+              placeholder="Select department"             
+              :options="departments"
+              label="name"
+              track-by="id"
+              :multiple="false"
+              :taggable="false"
+              :close-on-select="true"
+              :clear-on-select="true"
+              selectLabel=""
+              deselectLabel="Remove"
+              @select="(selectedOption, id)=>{ model.deptId=selectedOption.id }"
+              @remove="(removedOption, id)=>{ model.deptId=null }"
+              >
+              <span  slot="noResult">No result found</span>
+            </multiselect>
+            <!-- <b-select
               placeholder="Select department"
               v-model="model.deptId"
               clearable
@@ -385,7 +440,7 @@
             >
               {{ option.name }}
             </option>
-            </b-select>
+            </b-select> -->
           </b-field>
 
           
@@ -417,6 +472,7 @@
         <div class="columns">
           <b-field label="Brand" class="column is-3">
             <multiselect
+            ref="multiselectBrand"
             v-model="selectBrands"
             tag-placeholder=""
             placeholder="Select brand"             
@@ -424,15 +480,34 @@
             label="name"
             track-by="id"
             :multiple="true"
-            :taggable="true"
+            :taggable="false"
             selectLabel="Add"
             deselectLabel="Remove"
-          >
-          </multiselect>
+            @select="(selectedOption, id)=>{model.brand=selectedOption;model.brandId= id  }"
+            >
+            <span  slot="noResult">No result found</span>
+            </multiselect>
           </b-field>
-
           <b-field label="Intranet Role" class="column is-3">
-            <b-select
+            <multiselect
+              v-model="selectRole"
+              tag-placeholder=""
+              placeholder="Select role"             
+              :options="roles"
+              label="name"
+              track-by="id"
+              :multiple="false"
+              :taggable="false"
+              :close-on-select="true"
+              :clear-on-select="true"
+              selectLabel=""
+              deselectLabel="Remove"
+              @select="(selectedOption, id)=>{ model.roleId=selectedOption.id }"
+              @remove="(removedOption, id)=>{ model.roleId=null }"
+              >
+              <span  slot="noResult">No result found</span>
+            </multiselect>
+            <!-- <b-select
               placeholder="Select role"
               v-model="model.roleId"
               clearable
@@ -445,7 +520,7 @@
             >
               {{ option.name }}
             </option>
-            </b-select>
+            </b-select> -->
           </b-field>
 
           <b-field label="Intranet User" class="column is-3">
@@ -633,7 +708,11 @@ export default {
       ranks:[],
       birthDate:null,
       startDate:null,
-      selectBrands:[]
+      selectBrands:[],
+      selectRank:null,
+      selectBank:null,
+      selectDepartment:null,
+      selectRole:null,
     };
   },
   watch: {},
@@ -703,6 +782,10 @@ export default {
       this.birthDate = null;
       this.startDate = null;
       this.selectBrands= [];
+      this.selectRank=null;
+      this.selectBank=null;
+      this.selectDepartment=null;
+      this.selectRole=null;
       this.isModalActive= false;
     },
     cancelCreateOrUpdate(){
@@ -715,7 +798,8 @@ export default {
       if(this.startDate)
         this.model.startDate = `${this.startDate.getFullYear()}-${('0' + (this.startDate.getMonth()+1)).slice(-2)}-${('0' + this.startDate.getDate()).slice(-2)}`;
       
-      this.model.brandIds = this.selectBrands.length>0? this.selectBrands.map((p) => p.id):[];       
+      this.model.brandIds = this.selectBrands.length>0? this.selectBrands.map((p) => p.id):[];  
+           
       console.log('this.model.brandIds' + this.model.brandIds);
       createOrUpdate(this.model)
       .then((response) => {
@@ -736,9 +820,21 @@ export default {
       this.birthDate= moment(this.model.birthDate,'YYYY-MM-DD').toDate();
       this.startDate= moment(this.model.startDate,'YYYY-MM-DD').toDate();
       //console.log('brandIds '+this.model.brandIds);
-      if(this.model.brandIds){
+      if(this.model.brandIds)
         this.selectBrands= this.brands.filter(p=> this.model.brandIds.includes(p.id));
-      }
+      
+      if(this.model.rankId)
+        this.selectRank= this.ranks.find(item=> item.id== this.model.rankId);
+
+      if(this.model.bankId)
+        this.selectBank= this.banks.find(item=> item.id== this.model.bankId);
+
+      if(this.model.deptId)
+        this.selectDepartment= this.departments.find(item=> item.id == this.model.deptId);
+ 
+      if(this.model.roleId)
+        this.selectRole= this.roles.find(item=> item.id== this.model.roleId);
+      
       this.isModalActive= true;
     },
     deleteData(){

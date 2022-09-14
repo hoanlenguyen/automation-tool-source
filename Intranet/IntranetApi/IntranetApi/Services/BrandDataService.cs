@@ -1,5 +1,4 @@
-﻿using Dapper;
-using IntranetApi.DbContext;
+﻿using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
@@ -8,7 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using MySqlConnector;
 using System.Data;
 using System.Security.Claims;
 
@@ -23,7 +21,7 @@ namespace IntranetApi.Services
             if (string.IsNullOrEmpty(input.SortDirection))
                 input.SortDirection = "desc";
         }
-        
+
         public static void AddBrandDataService(this WebApplication app)
         {
             app.MapGet("Brand/{id:int}", [Authorize]
@@ -54,7 +52,7 @@ namespace IntranetApi.Services
                     throw new Exception("Name already exists");
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = new Brand { Name = input.Name, CreatorUserId = userId };
+                var entity = input.Adapt<Brand>();
                 db.Add(entity);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBrands);
@@ -83,8 +81,7 @@ namespace IntranetApi.Services
                 if (entity == null)
                     return Results.NotFound();
 
-                entity.Name = input.Name;
-                entity.Status = input.Status;
+                input.Adapt(entity);
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
@@ -134,9 +131,9 @@ namespace IntranetApi.Services
                 var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
                                 .Skip(input.SkipCount)
                                 .Take(input.RowsPerPage)
-                                .ProjectToType<BrandCreateOrEdit>()
+                                .ProjectToType<BrandList>()
                                 .ToListAsync();
-                return Results.Ok(new PagedResultDto<BrandCreateOrEdit>(totalCount, items));
+                return Results.Ok(new PagedResultDto<BrandList>(totalCount, items));
             })
             .RequireAuthorization(BrandPermissions.View)
             ;

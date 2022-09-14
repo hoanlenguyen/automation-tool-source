@@ -1,5 +1,4 @@
-﻿using Dapper;
-using IntranetApi.DbContext;
+﻿using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
@@ -8,8 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using MySqlConnector;
 using OfficeOpenXml;
 using System.Data;
 using System.Diagnostics;
@@ -46,7 +43,7 @@ namespace IntranetApi.Services
             }
             return null;
         }
- 
+
         private static void ProcessFilterValues(ref EmployeeFilterDto input)
         {
             if (string.IsNullOrEmpty(input.SortBy))
@@ -190,7 +187,7 @@ namespace IntranetApi.Services
 
                 var query = db.Users
                            .Include(p => p.BrandEmployees)
-                           .ThenInclude(p => p.Brand)
+                           //.ThenInclude(p => p.Brand)
                            .AsNoTracking()
                            .Where(p => !p.IsDeleted && p.UserType == UserType.Employee)
                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
@@ -210,6 +207,7 @@ namespace IntranetApi.Services
                     item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
                     item.Dept = departments.FirstOrDefault(p => p.Id == item.DeptId)?.Name;
                     item.BankName = banks.FirstOrDefault(p => p.Id == item.BankId)?.Name;
+                    item.Brands = brands.Where(p => item.BrandIds.Contains(p.Id)).Select(p => p.Name);
                     item.LastModifierUser = adminUsers.FirstOrDefault(p => p.Id == (item.LastModifierUserId ?? item.CreatorUserId).GetValueOrDefault())?.Name;
                     item.CurrencySymbol = currencies.FirstOrDefault(p => p.Name.Equals(item.Country, StringComparison.OrdinalIgnoreCase))?.CurrencySymbol;
                 }
@@ -277,6 +275,8 @@ namespace IntranetApi.Services
                             EmployeeBulkInsert newEmployee;
                             EmployeeImportError importError;
                             //int i = 0;
+                            worksheet.Columns[10].Style.Numberformat.Format= "@";
+                            worksheet.Columns[12].Style.Numberformat.Format= "@";
                             for (int row = 2; row <= rowCount; row++)
                             {
                                 rowInput.Name = (worksheet.Cells[row, 1]?.Text ?? string.Empty).Trim();//A
@@ -454,7 +454,7 @@ namespace IntranetApi.Services
                                         errorDetails.Add("Invalid Role");
                                     }
                                 }
-                                 
+
                                 if (string.IsNullOrEmpty(rowInput.IntranetPassword))//R
                                 {
                                     errorCells.Add($"R{row}");
@@ -527,32 +527,19 @@ namespace IntranetApi.Services
             .RequireAuthorization(EmployeePermissions.Create)
             ;
 
-            app.MapGet("employee/GetByBrand", [Authorize]
+            app.MapGet("employee/getRelatedData", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
-            [FromServices] ApplicationDbContext db,
-            int id) =>
+            [FromServices] IMemoryCacheService cacheService) =>
             {
-                var result = new List<EmployeeDropdown>();
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
-                var employeeManager = db.Users
-                .Include(p => p.BrandEmployees.DefaultIfEmpty())
-                .FirstOrDefault(p => p.Id == userId)
-                ;
-                if (employeeManager == null)
-                    return Results.Ok(result);
-                var brandIds = employeeManager.BrandEmployees.Select(p => p.BrandId).ToList();
-                //var brandIds = employeeManager.BrandIds;
-
-                //entity.IsDeleted = true;
-                //entity.LastModifierUserId = userId;
-                //entity.LastModificationTime = DateTime.Now;
-                db.SaveChanges();
-                return Results.Ok();
-            })
-            .RequireAuthorization(EmployeePermissions.View)
-            ;
+                return Results.Ok(new
+                {
+                    roles = cacheService.GetRoles(),
+                    departments = cacheService.GetDepartments(),
+                    banks = cacheService.GetBanks(),
+                    brands = cacheService.GetBrands(),
+                    ranks = cacheService.GetRanks()
+                });
+            });
         }
     }
 }

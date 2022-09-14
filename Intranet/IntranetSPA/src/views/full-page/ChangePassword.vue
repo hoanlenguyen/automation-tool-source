@@ -13,10 +13,7 @@
 
     <form
       method="POST"
-      @submit.prevent="submit"
-    >
-
-
+      @submit.prevent="submit">
       <b-field label="Current password">
         <b-input
           v-model.trim="form.currentPassword"

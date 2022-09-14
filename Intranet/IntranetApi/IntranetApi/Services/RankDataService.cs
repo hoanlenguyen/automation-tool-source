@@ -140,8 +140,9 @@ namespace IntranetApi.Services
                 var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
                                        .Skip(input.SkipCount)
                                        .Take(input.RowsPerPage)
+                                       .ProjectToType<RankList>()
                                        .ToListAsync();
-                return Results.Ok(new PagedResultDto<Rank>(totalCount, items));
+                return Results.Ok(new PagedResultDto<RankList>(totalCount, items));
             })
             .RequireAuthorization(RankPermissions.View)
             ;

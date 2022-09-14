@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import menu from '@/menu.js'
+//import menu from '@/menu.js'
 import NavBar from '@/components/NavBar.vue'
 import AsideMenu from '@/components/AsideMenu.vue'
 // import FooterBar from '@/components/FooterBar.vue'
@@ -39,63 +39,9 @@ export default {
     },
     filteredMenu(){
       var items=[];
+      var settings=[];
       if(!this.$store.state.userPermissions)
         return [items];
-      
-      if(this.$store.state.userPermissions.includes(
-        "Currency.View"
-      ))
-        items.push({
-          to: '/currency',
-          label: 'Currencies',
-          icon: 'currency-usd'
-        });
-
-
-      if(this.$store.state.userPermissions.includes(
-        "Bank.View"
-      ))
-        items.push({
-          to: '/bank',
-          label: 'Banks',
-          icon: 'bank'
-        });
-
-      if(this.$store.state.userPermissions.includes(
-        "Brand.View"
-      ))
-        items.push({
-        to: '/brand',
-        label: 'Brands',
-        icon: 'watermark'
-        });
-
-      if(this.$store.state.userPermissions.includes(
-        "Department.View"
-      ))
-        items.push({
-        to: '/department',
-        label: 'Departments',
-        icon: 'domain'
-        });
-
-      if(this.$store.state.userPermissions.includes(
-        "Rank.View"
-      ))
-        items.push({
-          to: '/rank',
-          label: 'Ranks',
-          icon: 'account-supervisor'
-        });
-
-      if(this.$store.state.userPermissions.includes(
-        "Role.View"
-      ))
-        items.push( {
-        to: '/role',
-        label: 'User rights',
-        icon: 'shield-account'
-        });
 
       if(this.$store.state.userPermissions.includes(
         "Employee.View"
@@ -116,13 +62,78 @@ export default {
         });
       
       if(this.$store.state.userPermissions.includes(
-        "StaffRecord.View"
+        "LeaveHistory.View"
       ))
         items.push({
         to: '/leave-history',
         label: 'Leave history',
-        icon: 'format-list-bulleted'
+        icon: 'clipboard-text'
       });
+      
+      if(this.$store.state.userPermissions.includes(
+        "Currency.View"
+      ))
+        settings.push({
+          to: '/currency',
+          label: 'Currencies',
+          icon: 'currency-usd'
+        });
+
+
+      if(this.$store.state.userPermissions.includes(
+        "Bank.View"
+      ))
+        settings.push({
+          to: '/bank',
+          label: 'Banks',
+          icon: 'bank'
+        });
+
+      if(this.$store.state.userPermissions.includes(
+        "Brand.View"
+      ))
+      settings.push({
+        to: '/brand',
+        label: 'Brands',
+        icon: 'watermark'
+        });
+
+      if(this.$store.state.userPermissions.includes(
+        "Department.View"
+      ))
+        settings.push({
+        to: '/department',
+        label: 'Departments',
+        icon: 'domain'
+        });
+
+      if(this.$store.state.userPermissions.includes(
+        "Rank.View"
+      ))
+        settings.push({
+          to: '/rank',
+          label: 'Ranks',
+          icon: 'account-supervisor'
+        });
+
+      if(this.$store.state.userPermissions.includes(
+        "Role.View"
+      ))
+        settings.push( {
+        to: '/role',
+        label: 'User rights',
+        icon: 'shield-account'
+        });
+
+      if(settings.length>0)
+        items.push(
+        {
+          label: 'Settings',
+          subLabel: 'Settings',
+          icon: 'format-list-bulleted',
+          menu: settings
+        }
+      )
 
        return [items];
     },

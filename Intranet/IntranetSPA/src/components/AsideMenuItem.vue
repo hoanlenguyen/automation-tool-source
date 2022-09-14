@@ -32,6 +32,7 @@
       </div>
     </component>
     <aside-menu-list
+      class="pl-3"
       v-if="hasDropdown"
       :menu="item.menu"
       is-submenu-list

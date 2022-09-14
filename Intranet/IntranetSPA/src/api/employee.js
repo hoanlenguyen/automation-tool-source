@@ -37,3 +37,9 @@ export function importEmployees(inputParams, inputData) {
     headers: {'Content-Type': 'multipart/form-data'}
     })
 }
+
+export function getRelatedData() {
+  return request({
+    url: 'employee/getRelatedData',
+    method: 'get'})
+}

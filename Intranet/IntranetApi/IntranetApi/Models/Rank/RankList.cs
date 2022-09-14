@@ -1,9 +1,8 @@
 ﻿namespace IntranetApi.Models
 {
-    public class RankCreateOrEdit : BaseEntity
+    public class RankList : BaseAuditEntity
     {
         public string Name { get; set; }
-        public bool Status { get; set; }
         public int Level { get; set; }
     }
 }

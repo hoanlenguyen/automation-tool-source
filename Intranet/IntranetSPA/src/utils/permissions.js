@@ -154,6 +154,16 @@ export default [
         ]
     },
     {
+        id: 'LeaveHistory',
+        label: 'Leave History',
+        children: [
+            {
+                id: 'LeaveHistory.View',
+                label: 'LeaveHistory.View'
+            }
+        ]
+    },
+    {
         id: 'Currency',
         label: 'Currency',
         children: [

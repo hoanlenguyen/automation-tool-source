@@ -72,37 +72,6 @@
         <p v-for="(brandName,index) in props.row.brands" :key="index">{{brandName}}</p> 
       </b-table-column>
 
-      <!-- <b-table-column
-        field="Bank.Name"
-        label="Bank Name"
-        width="200px"
-        header-class="is-size-7 customTableBorderHeader"
-        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"     
-        v-slot="props"
-      >       
-      {{props.row.bankName}}
-      </b-table-column>
-
-      <b-table-column
-        field="bankAccountNumber"
-        label="Bank Account Number"
-        width="150"
-        header-class="is-size-7 customTableBorderHeader"
-        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"              
-        v-slot="props">       
-        {{props.row.bankAccountNumber}}
-      </b-table-column> -->
-
-      <!-- <b-table-column
-        field="idNumber"
-        label="Id Number"
-        width="150"
-        header-class="is-size-7 customTableBorderHeader"
-        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"              
-        v-slot="props">       
-        {{props.row.idNumber}}
-      </b-table-column> -->
-
       <b-table-column
         field="Country"
         label="Country"
@@ -144,17 +113,6 @@
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
         {{ props.row.startDate | dateTime('DD-MM-YYYY') }}       
       </b-table-column>
-
-      <!-- <b-table-column
-        field="birthDate"
-        label="Birth Date"
-        sortable
-        v-slot="props"
-        width="150"
-        header-class="is-size-7 customTableBorderHeader"
-        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">
-        <span class="is-size-7">{{ props.row.birthDate | dateTime('DD-MM-YYYY') }} </span>
-      </b-table-column> -->
 
       <b-table-column
         field="CreationTime"
@@ -339,20 +297,7 @@
               >
               <span  slot="noResult">No result found</span>
             </multiselect>
-              <!-- <b-select
-                placeholder="Select role"
-                v-model="model.rankId"
-                clearable
-                expanded
-              >
-              <option
-                v-for="option in ranks"
-                :value="option.id"
-                :key="option.id"
-              >
-                {{ option.name }}
-              </option>
-              </b-select> -->
+               
           </b-field>
 
           <b-field label="Bank" class="column is-3">
@@ -374,21 +319,7 @@
               @remove="(removedOption, id)=>{ model.bankId=null }"
               >
               <span  slot="noResult">No result found</span>
-            </multiselect>
-            <!-- <b-select
-              placeholder="Select bank"
-              v-model="model.bankId"
-              clearable
-              expanded
-            >
-            <option
-              v-for="option in banks"
-              :value="option.id"
-              :key="option.id"
-            >
-              {{ option.name }}
-            </option>
-            </b-select> -->
+            </multiselect>          
           </b-field>
 
           <b-field label="Bank Account Name" class="column is-3">
@@ -427,23 +358,7 @@
               >
               <span  slot="noResult">No result found</span>
             </multiselect>
-            <!-- <b-select
-              placeholder="Select department"
-              v-model="model.deptId"
-              clearable
-              expanded
-            >
-            <option
-              v-for="option in departments"
-              :value="option.id"
-              :key="option.id"
-            >
-              {{ option.name }}
-            </option>
-            </b-select> -->
           </b-field>
-
-          
 
           <b-field label="Start Date" class="column is-3">
               <b-datepicker
@@ -507,20 +422,6 @@
               >
               <span  slot="noResult">No result found</span>
             </multiselect>
-            <!-- <b-select
-              placeholder="Select role"
-              v-model="model.roleId"
-              clearable
-              expanded
-            >
-            <option
-              v-for="option in roles"
-              :value="option.id"
-              :key="option.id"
-            >
-              {{ option.name }}
-            </option>
-            </b-select> -->
           </b-field>
 
           <b-field label="Intranet User" class="column is-3">
@@ -623,7 +524,7 @@
 <script>
 import moment from "moment";
 import Multiselect from "vue-multiselect";
-import { getDetail, getList, createOrUpdate, deleteData, importEmployees  } from "@/api/employee";
+import { getDetail, getList, createOrUpdate, deleteData, importEmployees, getRelatedData  } from "@/api/employee";
 import { getDropdown as getRoleDropdown } from "@/api/role";
 import { getDropdown as getBankDropdown } from "@/api/bank";
 import { getDropdown as getBrandDropdown } from "@/api/brand";
@@ -634,11 +535,12 @@ export default {
   components: { Multiselect },
   created() {
     this.getList();
-    this.getRoleDropdown();
-    this.getDepartmentDropdown();
-    this.getBankDropdown();
-    this.getBrandDropdown();
-    this.getRankDropdown();
+    this.getRelatedData();
+    // this.getRoleDropdown();
+    // this.getDepartmentDropdown();
+    // this.getBankDropdown();
+    // this.getBrandDropdown();
+    // this.getRankDropdown();
   },
   data() {
     return {
@@ -905,6 +807,21 @@ export default {
       if (this.errorList.length > 0) 
          this.exportExcelData(this.errorList, "ErrorList", 30);
     },
+    getRelatedData() {
+      getRelatedData()
+        .then((response) => {
+          if (response.status == 200) {
+            let data= response.data;
+            this.roles = data.roles;
+            this.departments = data.departments;
+            this.banks = data.banks;
+            this.brands = data.brands;
+            this.ranks = data.ranks;
+          } 
+        })
+        .catch((error) => {this.notifyErrorMessage(error)})
+        .finally(() => {});
+    },
     getRoleDropdown() {
       getRoleDropdown()
         .then((response) => {
@@ -913,7 +830,7 @@ export default {
           } 
         })
         .catch((error) => {
-          console.log(error);
+          this.notifyErrorMessage(error)
         })
         .finally(() => {
         });
@@ -981,5 +898,3 @@ export default {
   }
 };
 </script>
- 
-<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>

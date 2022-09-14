@@ -142,6 +142,11 @@
                     placeholder="Name...."
                     required>
                   </b-input>
+              </b-field>
+              <b-field>
+                <b-checkbox v-model="model.isAllBrand" type="is-success">
+                    <span>All brand</span>
+                </b-checkbox>
               </b-field>                 
             </section>
             <footer class="modal-card-foot">
@@ -212,11 +217,13 @@ export default {
       model:{
         name:null,
         status:true,
+        isAllBrand:false,
         id:0
       },
       defaultModel:{
         name:null,
         status:true,
+        isAllBrand:false,
         id:0
       },
       isModalActive:false,

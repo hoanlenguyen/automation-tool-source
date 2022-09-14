@@ -99,11 +99,18 @@ builder.Services
         };
     });
 
+//add claims- permissions
 builder.Services.AddAuthorization(
     options => options.AddCustomizedAuthorizationOptions(
-        nameof(Bank),nameof(Brand), nameof(Rank),nameof(Department),
-        nameof(Role),nameof(Employee),nameof(StaffRecord),nameof(Currency))
-    );
+       Permissions.Bank,
+       Permissions.Brand,
+       Permissions.Department,
+       Permissions.Rank,
+       Permissions.Role,
+       Permissions.Currency,
+       Permissions.StaffRecord,
+       Permissions.LeaveHistory
+    ));
 
 // add Swagger & JWT authen to Swagger
 var securityScheme = new OpenApiSecurityScheme()
@@ -153,10 +160,8 @@ builder.Services.AddSingleton<IMemoryCacheService>(sp => new MemoryCacheService(
 //    return new BackgroundTaskQueue(queueCapacity);
 //});
 
-
 //add extra mapp config
 MapperConfig.AddMapperConfigs();
-
 
 var app = builder.Build();
 
@@ -201,5 +206,6 @@ app.AddEmployeeDataService();
 app.AddStaffRecordDataService();
 app.AddCurrencyDataService();
 app.AddFileDataService();
+app.AddLeaveHistoryService();
 
 app.Run();

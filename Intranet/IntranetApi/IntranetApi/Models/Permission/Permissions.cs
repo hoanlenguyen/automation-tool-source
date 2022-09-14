@@ -5,6 +5,15 @@ namespace IntranetApi.Models
 {
     public static class Permissions
     {
+        public const string Bank = "Bank";
+        public const string Brand = "Brand";
+        public const string Department = "Department";
+        public const string Rank = "Rank";
+        public const string Role = "Role";
+        public const string Currency = "Currency";
+        public const string StaffRecord = "StaffRecord";
+        public const string LeaveHistory = "LeaveHistory";
+
         public const string Type = "Permission";
         public static List<string> GeneratePermissionsForModule(string module)
         {
@@ -13,7 +22,7 @@ namespace IntranetApi.Models
                 $"{module}.Create",
                 $"{module}.View",
                 $"{module}.Update",
-                $"{module}.Delete",
+                $"{module}.Delete"
             };
         }
 
@@ -24,7 +33,6 @@ namespace IntranetApi.Models
                 var allPermissions = GeneratePermissionsForModule(module);
                 foreach (var permission in allPermissions)
                 {
-                    //Console.WriteLine(permission);
                     option.AddPolicy(permission, policy => policy.Requirements.Add(new PermissionRequirement(permission)));
                 }
             }
@@ -86,6 +94,14 @@ namespace IntranetApi.Models
         public const string Create = "StaffRecord.Create";
         public const string Update = "StaffRecord.Update";
         public const string Delete = "StaffRecord.Delete";
+    }
+
+    public static class LeaveHistoryPermissions
+    {
+        public const string View = "LeaveHistory.View";
+        //public const string Create = "StaffRecord.Create";
+        //public const string Update = "StaffRecord.Update";
+        //public const string Delete = "StaffRecord.Delete";
     }
 
     public static class CurrencyPermissions

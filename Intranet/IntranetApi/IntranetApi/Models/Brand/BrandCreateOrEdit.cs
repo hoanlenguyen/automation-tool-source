@@ -4,6 +4,6 @@
     {
         public string Name { get; set; }
         public bool Status { get; set; }
-        public DateTime CreationTime { get; set; }
+        public bool IsAllBrand { get; set; } = false;
     }
 }

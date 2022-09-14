@@ -27,10 +27,10 @@ namespace IntranetApi.Models
         [MaxLength(50)]
         public string EmployeeCode { get; set; } = string.Empty;
 
-        public int RoleId { get; set; } = 1;
-        public int RankId { get; set; } = 1;
-        public int DeptId { get; set; } = 1;
-        public int BankId { get; set; } = 1;
+        public int RoleId { get; set; }
+        public int RankId { get; set; }
+        public int DeptId { get; set; }
+        public int BankId { get; set; }
 
         [MaxLength(150)]
         public string BankAccountName { get; set; } = string.Empty;
@@ -66,17 +66,17 @@ namespace IntranetApi.Models
         public virtual ICollection<BrandEmployee> BrandEmployees { get; set; } = new HashSet<BrandEmployee>();
         public virtual ICollection<UserRole> UserRoles { get; set; } = new HashSet<UserRole>();
 
-        [ForeignKey(nameof(RankId))]
-        public virtual Rank Rank { get; set; }
+        //[ForeignKey(nameof(RankId))]
+        //public virtual Rank Rank { get; set; }
 
-        [ForeignKey(nameof(DeptId))]
-        public virtual Department Department { get; set; }
+        //[ForeignKey(nameof(DeptId))]
+        //public virtual Department Department { get; set; }
 
-        [ForeignKey(nameof(BankId))]
-        public virtual Bank Bank { get; set; }
+        //[ForeignKey(nameof(BankId))]
+        //public virtual Bank Bank { get; set; }
 
-        [ForeignKey(nameof(RoleId))]
-        public virtual Role Role { get; set; }
+        //[ForeignKey(nameof(RoleId))]
+        //public virtual Role Role { get; set; }
 
         #endregion Employee
     }

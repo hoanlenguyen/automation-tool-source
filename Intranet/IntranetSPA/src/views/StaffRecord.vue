@@ -198,37 +198,32 @@
           <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
         </header>
         <section class="modal-card-body">
-          <b-field label="Name of staff">             
-             <b-autocomplete
-              open-on-focus
-              v-model="searchEmployee"
-              :data="filterEmployees"
-              field="fullName"
-              placeholder="Search employee..."                           
-              clearable
-              size="is-small"
-              @typing="getAsyncData"              
-              @select="option => {selected = option; model.employeeId=option!==null? option.id:0; model.departmentId=option!==null? option.departmentId:0}">
-              <template #empty>No employees found</template>
-            </b-autocomplete>
+          <b-field label="Name of staff">
+            <multiselect
+              v-model="selectEmployee"
+              tag-placeholder=""
+              placeholder="Select staff"             
+              :options="employees"
+              label="fullName"
+              track-by="id"
+              :multiple="false"
+              :taggable="false"
+              :close-on-select="true"
+              :clear-on-select="true"
+              selectLabel=""
+              deselectLabel="Remove"
+              @select="(selectedOption, id)=>{ 
+                model.employeeId=selectedOption.id;
+                model.departmentId= selectedOption.departmentId  }"
+              @remove="(removedOption, id)=>{ model.employeeId=0 }"
+              >
+              <span  slot="noResult">No result found</span>
+            </multiselect>           
+              
           </b-field>
 
           <b-field label="Department"> 
-            {{selected!=null?selected.departmentName:''}}
-            <!-- <div class="is-flex is-flex-direction-column">
-              <div v-for="(item, index) in departments" :key="index">
-              <b-radio  v-model="model.departmentId"
-                :native-value="item.id"
-                type="is-info">
-                {{item.name}}
-              </b-radio>
-            </div>
-             <b-input
-              type="Text"
-              v-if="model.departmentId==0"
-              v-model="model.otherDepartment">
-            </b-input>
-            </div> -->
+            {{selectEmployee!=null?selectEmployee.departmentName:''}}             
           </b-field>
 
           <b-field label="Select Extra/ Deduction/ Paid-Offs">
@@ -414,15 +409,16 @@
 <script>
 import moment from "moment";
 import { saveAs } from 'file-saver';
+import Multiselect from "vue-multiselect";
 import { getDetail, getList, createOrUpdate, deleteData , getEmployeeByBrand } from "@/api/staffRecord";
 import { getDropdown as getDepartmentDropdown } from "@/api/department";
 import { uploadFiles  } from "@/api/fileService";
 import { RecordTypes,RecordDetailTypes  } from "@/utils/enum";
 export default {
   name:"staffRecord",
+  components: { Multiselect },
   created() {
     this.getEmployeeByBrand();
-    //this.getDepartmentDropdown();
     this.getList();
   },
   data() {
@@ -496,6 +492,7 @@ export default {
       startDate:null,
       endDate:null,
       isLoadingFiles:false,
+      selectEmployee:null,
       recordTypeValues:
       [
         {id:0,name:'Extra pay (OTs, Cover Shift)'},
@@ -508,10 +505,7 @@ export default {
     };
   },
   watch: {
-    "model.recordType"(value){
-      // console.log(value);
-      // console.log(this.model.recordDetailType != this.recordDetailTypes.extraPayOTs 
-      //       && this.model.recordDetailType != this.recordDetailTypes.extraPayCoverShift);
+    "model.recordType"(value){ 
       const parsed = parseInt(value);
       switch (parsed){
         case(this.recordTypes.extraPay):{
@@ -569,16 +563,7 @@ export default {
           "StaffRecord.Delete"
         )
       );
-    },
-    filteredDataArray() {
-      if(!this.searchEmployee) return this.employees;
-      return this.employees.filter((option) => {
-          return option
-              .toString()
-              .toLowerCase()
-              .indexOf(this.searchEmployee.toLowerCase()) >= 0
-      })
-    }
+    } 
    },
   methods: {
     resetFilter() {
@@ -619,6 +604,7 @@ export default {
       this.isModalActive= false;
       this.startDate = null;
       this.endDate = null;
+      this.selectEmployee=null;
       this.files=[];
     },
     cancelCreateOrUpdate(){
@@ -663,7 +649,7 @@ export default {
 
       if(this.startDate)
         this.model.startDate = this.convertDateToString(this.startDate);
-        console.log(this.model.startDate);
+
       if(this.endDate)
         this.model.endDate = this.convertDateToString(this.endDate);
       
@@ -683,24 +669,10 @@ export default {
         })
       .finally(() => {});
     },
-    getAsyncData(){
-      let searchEmployee= this.searchEmployee.toLowerCase();         
-      if(!searchEmployee) this.filterEmployees=[...this.employees];
-          let array= this.employees.filter((option) => {
-            console.log(option);
-          return (option.employeeCode
-                      .toLowerCase()
-                      .indexOf(searchEmployee) >= 0)
-                ||(option.name
-                      .toLowerCase()
-                      .indexOf(searchEmployee) >= 0)
-      });
-      console.log(array.length);
-      console.log(this.employees.length);
-      this.filterEmployees=[...array];
-      },
     editModel(input){
       this.model= {...input};
+      if(this.model.employeeId)
+        this.selectEmployee= this.employees.find(item => item.id== this.model.employeeId);       
       this.startDate= moment(this.model.startDate,'YYYY-MM-DD hh:mm:ss').toDate();
       this.endDate= moment(this.model.endDate,'YYYY-MM-DD hh:mm:ss').toDate();
       this.isModalActive= true;
@@ -765,10 +737,7 @@ export default {
           this.model= {...response.data};
           this.startDate= moment(this.model.startDate,'YYYY-MM-DD').toDate();
           this.endDate= moment(this.model.endDate,'YYYY-MM-DD').toDate();
-          const index = this.employees.findIndex(item => item.id === this.model.employeeId);
-          //console.log(index);
-          this.selected=index>=0? this.employees[index]:null;
-          this.searchEmployee=index>=0? this.employees[index].fullName:'';
+          this.selectEmployee= this.employees.find(item => item.id== this.model.employeeId);
           this.isModalActive= true;
           }
         })

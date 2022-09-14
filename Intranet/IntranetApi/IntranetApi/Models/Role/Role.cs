@@ -17,6 +17,7 @@ namespace IntranetApi.Models
         public int? LastModifierUserId { get; set; }
         public bool Status { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
+        public bool IsSuperAddmin { get; set; } = false;
 
         public virtual ICollection<UserRole> UserRoles { get; set; } = new HashSet<UserRole>();
     }

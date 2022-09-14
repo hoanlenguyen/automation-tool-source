@@ -37,5 +37,5 @@
         public const string GetBrandsDropdown = "GetBrandsDropdown";
         public const string GetDepartmentsDropdown = "GetDepartmentsDropdown";
         public const string GetCurrenciesDropdown = "GetCurrenciesDropdown";
-    }
+    }     
 }

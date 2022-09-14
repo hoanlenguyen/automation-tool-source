@@ -25,6 +25,17 @@
       </b-table-column>
 
       <b-table-column
+        field="Level"
+        label="Level"
+        sortable
+        v-slot="props"
+        width="200"
+        header-class="is-size-7 customTableBorderHeader"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'">        
+       {{props.row.level}}        
+      </b-table-column>
+
+      <b-table-column
         field="Status"
         label="Status"
         sortable
@@ -123,7 +134,9 @@
       </div>
     </b-table>
     <b-modal v-model="isModalActive" trap-focus has-modal-card :can-cancel="false" width="1200" scroll="keep">
-      <form action="">
+      <form 
+        method="POST"
+        @submit.prevent="submit">
         <div class="modal-card">
             <header class="modal-card-head">
                 <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
@@ -139,11 +152,19 @@
                     placeholder="Name...."
                     required>
                   </b-input>
+              </b-field>
+              <b-field label="Level">
+                <b-input
+                  type="number"
+                  min="0"
+                  v-model.trim="model.level"
+                  required>
+                </b-input>
               </b-field>                 
             </section>
             <footer class="modal-card-foot">
                 <b-button label="Close" @click="cancelCreateOrUpdate" />
-                <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
+                <b-button :label="model.id==0?'Create':'Update'" type="is-primary" native-type="submit" @click="createOrUpdateModel"/>
             </footer>
         </div>
       </form>
@@ -209,11 +230,13 @@ export default {
       model:{
         name:null,
         status:true,
+        level:null,
         id:0
       },
       defaultModel:{
         name:null,
         status:true,
+        level:null,
         id:0
       },
       isModalActive:false,

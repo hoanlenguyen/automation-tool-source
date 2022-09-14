@@ -6,5 +6,7 @@ namespace IntranetApi.Models
     {
         [MaxLength(150)]
         public string Name { get; set; }
+
+        public int Level { get; set; }
     }
 }

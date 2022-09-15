@@ -13,6 +13,7 @@ namespace IntranetApi.Models
         public const string Currency = "Currency";
         public const string StaffRecord = "StaffRecord";
         public const string LeaveHistory = "LeaveHistory";
+        public const string Employee = "Employee";
 
         public const string Type = "Permission";
         public static List<string> GeneratePermissionsForModule(string module)

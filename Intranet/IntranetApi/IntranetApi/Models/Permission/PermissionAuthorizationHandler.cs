@@ -18,16 +18,15 @@ namespace IntranetApi.Models.Permission
         {
             using (var scope = scopeFactory.CreateScope())
             {
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                Console.WriteLine($"PermissionRequirement {requirement.Permission}");
-
                 var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
 
                 if (userIdClaim is null)
                 {
                     return Task.CompletedTask;
                 }
+
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                //Console.WriteLine($"PermissionRequirement {requirement.Permission
 
                 var userId = Convert.ToInt32(userIdClaim.Value);
                 //Console.WriteLine($"userId {userId}");

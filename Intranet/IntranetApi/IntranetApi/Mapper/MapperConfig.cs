@@ -77,6 +77,12 @@ namespace IntranetApi.Mapper
             TypeAdapterConfig<User, EmployeeList>.NewConfig()
                             .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p=>p.BrandId))
                            ;
+
+            TypeAdapterConfig<User, StaffRecordRequiredFilterData>.NewConfig()
+                            .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p => p.BrandId))
+                            .Map(dest => dest.DepartmentId, src => src.DeptId)
+                            .Map(dest => dest.RankLevel, src => src.Rank != null ? src.Rank.Level:0)
+                           ;
         }
     }
 }

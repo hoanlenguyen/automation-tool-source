@@ -66,8 +66,8 @@ namespace IntranetApi.Models
         public virtual ICollection<BrandEmployee> BrandEmployees { get; set; } = new HashSet<BrandEmployee>();
         public virtual ICollection<UserRole> UserRoles { get; set; } = new HashSet<UserRole>();
 
-        //[ForeignKey(nameof(RankId))]
-        //public virtual Rank Rank { get; set; }
+        [ForeignKey(nameof(RankId))]
+        public virtual Rank Rank { get; set; }
 
         //[ForeignKey(nameof(DeptId))]
         //public virtual Department Department { get; set; }

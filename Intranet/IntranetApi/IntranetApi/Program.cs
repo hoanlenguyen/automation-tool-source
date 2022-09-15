@@ -109,7 +109,8 @@ builder.Services.AddAuthorization(
        Permissions.Role,
        Permissions.Currency,
        Permissions.StaffRecord,
-       Permissions.LeaveHistory
+       Permissions.LeaveHistory,
+       Permissions.Employee
     ));
 
 // add Swagger & JWT authen to Swagger

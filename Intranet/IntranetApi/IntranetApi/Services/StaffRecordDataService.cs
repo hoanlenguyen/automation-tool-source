@@ -192,28 +192,66 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCacheService cacheService,
+            [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromBody] StaffRecordFilter input
             ) =>
             {
+                ProcessFilterValues(ref input);
                 List<BaseDropdown> brands = cacheService.GetBrands();
                 List<BaseDropdown> departments = cacheService.GetDepartments();
                 List<BaseDropdown> ranks = cacheService.GetRanks();
-                var isAllBrand = await db.BrandEmployees
-                               .Include(p => p.Brand)
-                               .AnyAsync(p => p.Brand.IsAllBrand);
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
+                var totalCount = 0;
+                var items = new List<StaffRecordList>();
+                var isSuperAdmin = await db.UserRoles
+                                .Include(p => p.Role)
+                                .AnyAsync(p =>p.UserId==userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
 
-                ProcessFilterValues(ref input);
-                var query = db.StaffRecords
-                            .Include(p => p.Employee)
-                            .AsNoTracking()
-                            .Where(p => !p.IsDeleted)
-                             ;
-                var totalCount = await query.CountAsync();
-                var items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
-                                       .Skip(input.SkipCount)
-                                       .Take(input.RowsPerPage)
-                                       .ProjectToType<StaffRecordList>()
-                                       .ToListAsync();
+                //var isSuperAdmin = await db.UserRoles
+                //                .Include(p => p.Role)
+                //                .AnyAsync(p => p.UserId == userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
+
+                if (isSuperAdmin)
+                {
+                    var query = db.StaffRecords
+                                .Include(p => p.Employee)
+                                .AsNoTracking()
+                                .Where(p => !p.IsDeleted)
+                                ;
+                    totalCount = await query.CountAsync();
+                    items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                                        .Skip(input.SkipCount)
+                                        .Take(input.RowsPerPage)
+                                        .ProjectToType<StaffRecordList>()
+                                        .ToListAsync();
+                }
+                else
+                {
+                    var isAllBrand = await db.BrandEmployees
+                           .Include(p => p.Brand)
+                           .AnyAsync(p => p.EmployeeId == userId&& p.Brand.IsAllBrand &&!p.Brand.IsDeleted);
+
+                    var requireData = await db.Users.AsNoTracking()
+                                                   .Where(p => p.Id == userId && !p.IsDeleted)
+                                                   .ProjectToType<StaffRecordRequiredFilterData>()
+                                                   .FirstOrDefaultAsync();
+
+                    var filteredQuery = db.StaffRecords
+                               .Include(p => p.Employee)
+                               .ThenInclude(p=>p.Rank)
+                               .AsNoTracking()
+                               .Where(p => !p.IsDeleted && (isAllBrand || requireData.BrandIds.Contains(p.Em)))
+                               ;
+                    totalCount = await filteredQuery.CountAsync();
+                    items = await filteredQuery.OrderByDynamic(input.SortBy, input.SortDirection)
+                                        .Skip(input.SkipCount)
+                                        .Take(input.RowsPerPage)
+                                        .ProjectToType<StaffRecordList>()
+                                        .ToListAsync();
+                }
+
+              
                 var creatorIds = items.Select(p => p.CreatorUserId);
                 var creators = await db.Users.Where(p => creatorIds.Contains(p.Id)).Select(p => new { p.Id, p.Name }).ToListAsync();
                 foreach (var item in items)

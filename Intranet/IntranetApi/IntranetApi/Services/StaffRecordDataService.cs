@@ -241,7 +241,7 @@ namespace IntranetApi.Services
                                .Include(p => p.Employee)
                                .ThenInclude(p=>p.Rank)
                                .AsNoTracking()
-                               .Where(p => !p.IsDeleted && (isAllBrand || requireData.BrandIds.Contains(p.Em)))
+                               .Where(p => !p.IsDeleted && (isAllBrand || requireData.BrandIds.Contains(p.EmployeeId)))
                                ;
                     totalCount = await filteredQuery.CountAsync();
                     items = await filteredQuery.OrderByDynamic(input.SortBy, input.SortDirection)

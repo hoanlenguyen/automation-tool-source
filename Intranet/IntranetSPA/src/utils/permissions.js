@@ -132,24 +132,24 @@ export default [
         ]
     },
     {
-        id: 'StaffRecord',
-        label: 'Staff Record',
+        id: 'TimeOff',
+        label: 'Time off',
         children: [
             {
                 id: 'StaffRecord.View',
-                label: 'StaffRecord.View',
+                label: 'TimeOff.View',
             },
             {
                 id: 'StaffRecord.Create',
-                label: 'StaffRecord.Create',
+                label: 'TimeOff.Create',
             },
             {
                 id: 'StaffRecord.Update',
-                label: 'StaffRecord.Update',
+                label: 'TimeOff.Update',
             },
             {
                 id: 'StaffRecord.Delete',
-                label: 'StaffRecord.Delete',
+                label: 'TimeOff.Delete',
             }
         ]
     },

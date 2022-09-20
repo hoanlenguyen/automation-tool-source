@@ -78,6 +78,7 @@ var myMixin = {
              }    
         },
         convertDateToString(dateTime){
+          if(!dateTime) return null;
           return `${dateTime.getFullYear()}-${('0' + (dateTime.getMonth()+1)).slice(-2)}-${('0' + dateTime.getDate()).slice(-2)}`
                 +`T${('0' + (dateTime.getHours()+1)).slice(-2)}:${('0' + (dateTime.getMinutes()+1)).slice(-2)}:${('0' + (dateTime.getSeconds()+1)).slice(-2)}`;
         },

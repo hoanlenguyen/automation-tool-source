@@ -23,7 +23,8 @@
     @sort="onSort"
     :debounce-page-input="200"
     mobile-cards
-    narrowed    
+    narrowed
+    hoverable    
     >
       <b-table-column
         field="DepartmentId"
@@ -157,6 +158,45 @@
             @click="isModalActive=true"
             v-if="canCreate"
           />
+          <b-field grouped group-multiline>
+      <b-field class="control mt-3">
+        <b-select placeholder="Select period" v-model="period">
+          <option
+            v-for="option in periodList"
+            :value="option.value"
+            :key="option.value">
+            {{ option.label }}
+          </option>
+        </b-select>
+      </b-field>
+      <b-field class="control mt-3">
+        <b-datepicker
+          v-model="fromTime"
+          :locale="'en-GB'"
+          placeholder="From time..."
+          icon="calendar-today"
+          :icon-right="fromTime ? 'close-circle' : ''"
+          icon-right-clickable
+          @icon-right-click="fromTime=null"
+          @input="period=null;onChangeTimeFilter()"
+          trap-focus>
+        </b-datepicker>
+      </b-field>
+      <b-field class="control mt-3 pr-3">
+        <b-datepicker
+          v-model="toTime"
+          :locale="'en-GB'"
+          placeholder="To time..."
+          icon="calendar-today"
+          :icon-right="toTime ? 'close-circle' : ''"
+          icon-right-clickable
+          @icon-right-click="toTime=null"
+          @input="period=null;onChangeTimeFilter()"
+          :min-date="fromTime"
+          trap-focus>
+        </b-datepicker>
+      </b-field>
+    </b-field>
         <b-button
             label="Reset"
             type="is-light"
@@ -200,6 +240,7 @@
         <section class="modal-card-body">
           <b-field label="Name of staff">
             <multiselect
+              ref="multiselectStaff"
               v-model="selectEmployee"
               tag-placeholder=""
               placeholder="Select staff"             
@@ -343,7 +384,7 @@
             <b-input
               type="text"
               v-model="model.remarks"
-              required maxlength="200">
+              maxlength="200">
             </b-input>
           </b-field> 
           <b-field class="file is-primary" :class="{ 'has-name': !!files }">
@@ -501,10 +542,56 @@ export default {
         {id:3,name:'Paid-MCs'},
       ],
       recordTypes:RecordTypes,
-      recordDetailTypes:RecordDetailTypes
+      recordDetailTypes:RecordDetailTypes,
+      period:null,
+      fromTime:null,
+      toTime:null,
+      periodList:[
+        {value:'This.week',label:'This week'},
+        {value:'This.month',label:'This month'},
+        {value:'Last.month',label:'Last month'},
+        {value:'This.year',label:'This year'},
+        {value:'Last.year',label:'Last year'},
+      ]
     };
   },
   watch: {
+    period(value) {
+      var curr = new Date;      
+      switch (value) {
+        case('This.week'):{
+          var first = curr.getDate() - curr.getDay(); // First day is the day of the month - the day of the week
+          var last = first + 6; // last day is the first day + 6
+          this.fromTime = new Date(curr.setDate(first));
+          this.toTime = new Date(curr.setDate(last));
+          break;
+        }
+        case('This.month'):{
+          this.fromTime = new Date(curr.getFullYear(), curr.getMonth(), 1);
+          this.toTime = new Date(curr.getFullYear(), curr.getMonth() + 1, 0);
+          break;
+        }
+        case('Last.month'):{
+          curr.setDate(0);
+          this.toTime =new Date(curr);
+          curr.setDate(1);
+          this.fromTime =new Date(curr);
+          break;
+        }
+        case('This.year'):{
+          this.fromTime =new Date(new Date().getFullYear(),0,1);
+          this.toTime =new Date(new Date().getFullYear(),11,31);
+          break;
+        }
+         case('Last.year'):{
+          this.fromTime =new Date(new Date().getFullYear()-1,0,1);
+          this.toTime =new Date(new Date().getFullYear()-1,11,31);
+          break;
+        }
+        default: break;
+      }
+      this.onChangeTimeFilter();
+    },
     "model.recordType"(value){ 
       const parsed = parseInt(value);
       switch (parsed){
@@ -567,7 +654,10 @@ export default {
    },
   methods: {
     resetFilter() {
-      this.filter = { ...this.defaultFilter };       
+      this.filter = { ...this.defaultFilter };
+      this.period= null;
+      this.fromTime= null;
+      this.toTime= null;       
       this.getList();
     },
     onChangePageSize(){
@@ -582,7 +672,13 @@ export default {
       this.filter.sortDirection = order
       this.getList();
     },
+    onChangeTimeFilter(){
+      this.filter.page = 1;
+      this.getList();
+    },
     getList() {
+      this.filter.fromTime = this.convertDateToString(this.fromTime);
+      this.filter.toTime = this.convertDateToString(this.toTime);
       this.isLoading = true;     
       getList(this.filter)
         .then((response) => {

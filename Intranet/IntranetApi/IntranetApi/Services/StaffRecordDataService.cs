@@ -1,4 +1,5 @@
-﻿using IntranetApi.DbContext;
+﻿using Dapper;
+using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
@@ -6,6 +7,7 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 using System.Data;
 using System.Security.Claims;
 
@@ -25,7 +27,7 @@ namespace IntranetApi.Services
                 input.SortDirection = SortDirection.DESC;
         }
 
-        public static void AddStaffRecordDataService(this WebApplication app)
+        public static void AddStaffRecordDataService(this WebApplication app, string sqlConnectionStr)
         {
             app.MapGet("StaffRecord/{id:int}", [Authorize]
             async Task<IResult> (
@@ -188,36 +190,34 @@ namespace IntranetApi.Services
             .RequireAuthorization(StaffRecordPermissions.Delete)
             ;
 
-            app.MapPost("StaffRecord/list", [Authorize]
+            app.MapPost("StaffRecord/list", [AllowAnonymous]
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCacheService cacheService,
             [FromServices] IHttpContextAccessor httpContextAccessor,
-            [FromBody] StaffRecordFilter input
+            [FromBody] StaffRecordFilter input             
             ) =>
             {
                 ProcessFilterValues(ref input);
-                List<BaseDropdown> brands = cacheService.GetBrands();
+                //List<BaseDropdown> brands = cacheService.GetBrands();
                 List<BaseDropdown> departments = cacheService.GetDepartments();
-                List<BaseDropdown> ranks = cacheService.GetRanks();
+                //List<BaseDropdown> ranks = cacheService.GetRanks();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var totalCount = 0;
                 var items = new List<StaffRecordList>();
                 var isSuperAdmin = await db.UserRoles
                                 .Include(p => p.Role)
-                                .AnyAsync(p =>p.UserId==userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
-
-                //var isSuperAdmin = await db.UserRoles
-                //                .Include(p => p.Role)
-                //                .AnyAsync(p => p.UserId == userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
-
+                                .AnyAsync(p => p.UserId == userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
+                             
                 if (isSuperAdmin)
                 {
                     var query = db.StaffRecords
                                 .Include(p => p.Employee)
                                 .AsNoTracking()
                                 .Where(p => !p.IsDeleted)
+                                .WhereIf(input.FromTime!=null, p=>p.CreationTime>= input.FromTime)
+                                .WhereIf(input.ToTime!=null, p=>p.CreationTime <= input.ToTime)
                                 ;
                     totalCount = await query.CountAsync();
                     items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
@@ -228,41 +228,31 @@ namespace IntranetApi.Services
                 }
                 else
                 {
-                    var isAllBrand = await db.BrandEmployees
-                           .Include(p => p.Brand)
-                           .AnyAsync(p => p.EmployeeId == userId&& p.Brand.IsAllBrand &&!p.Brand.IsDeleted);
+                    using var connection = new MySqlConnection(sqlConnectionStr);
+                    items = connection.Query<StaffRecordList>("SP_Filter_Time_Off", 
+                        new { 
+                              currentUserId = userId,
+                              fromTime = input.FromTime,
+                              toTime= input.ToTime,
+                              exportLimit=input.RowsPerPage,
+                              exportOffset= input.SkipCount},
+                        commandType: CommandType.StoredProcedure).ToList();
 
-                    var requireData = await db.Users.AsNoTracking()
-                                                   .Where(p => p.Id == userId && !p.IsDeleted)
-                                                   .ProjectToType<StaffRecordRequiredFilterData>()
-                                                   .FirstOrDefaultAsync();
-
-                    var filteredQuery = db.StaffRecords
-                               .Include(p => p.Employee)
-                               .ThenInclude(p=>p.Rank)
-                               .AsNoTracking()
-                               .Where(p => !p.IsDeleted && (isAllBrand || requireData.BrandIds.Contains(p.EmployeeId)))
-                               ;
-                    totalCount = await filteredQuery.CountAsync();
-                    items = await filteredQuery.OrderByDynamic(input.SortBy, input.SortDirection)
-                                        .Skip(input.SkipCount)
-                                        .Take(input.RowsPerPage)
-                                        .ProjectToType<StaffRecordList>()
-                                        .ToListAsync();
+                    totalCount = items.Any() ? items.FirstOrDefault().TotalCount : 0;                     
                 }
 
-              
+
                 var creatorIds = items.Select(p => p.CreatorUserId);
-                var creators = await db.Users.Where(p => creatorIds.Contains(p.Id)).Select(p => new { p.Id, p.Name }).ToListAsync();
+                var creators = await db.Users.Where(p => creatorIds.Contains(p.Id)).Select(p => new BaseDropdown { Id = p.Id, Name = p.Name }).ToListAsync();
                 foreach (var item in items)
                 {
-                    item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
-                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name ?? item.OtherDepartment;
+                    //item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
+                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
                     item.CreatorName = creators.FirstOrDefault(p => p.Id == item.CreatorUserId)?.Name;
                 }
                 return Results.Ok(new PagedResultDto<StaffRecordList>(totalCount, items));
             })
-            .RequireAuthorization(StaffRecordPermissions.View)
+            //.RequireAuthorization(StaffRecordPermissions.View)
             ;
 
             app.MapGet("StaffRecord/GetEmployeeByBrand", [Authorize]

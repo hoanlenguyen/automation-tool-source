@@ -1,4 +1,5 @@
 ﻿using IntranetApi.Enum;
+using System.Text.Json.Serialization;
 
 namespace IntranetApi.Models
 {
@@ -26,5 +27,7 @@ namespace IntranetApi.Models
         public string? Remarks { get; set; }
         public string? OtherDepartment { get; set; }
         public string CreatorName { get; set; }
+        [JsonIgnore]
+        public int TotalCount { get; set; }
     }
 }

@@ -1,27 +1,37 @@
-﻿using IntranetApi.DbContext;
+﻿using Dapper;
+using IntranetApi.DbContext;
 using IntranetApi.Enum;
+using IntranetApi.Helper;
 using IntranetApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
+using System.Data;
+using System.Security.Claims;
 
 namespace IntranetApi.Services
 {
     public static class LeaveHistoryService
     {
-        public static void AddLeaveHistoryService(this WebApplication app)
+        public static void AddLeaveHistoryService(this WebApplication app, string sqlConnectionStr)
         {
             app.MapPost("LeaveHistory/list", [Authorize]
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCacheService cacheService,
+            [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromBody] LeaveHistoryFilter input
             ) =>
             {
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
+
                 List<BaseDropdown> brands = cacheService.GetBrands();
                 List<BaseDropdown> departments = cacheService.GetDepartments();
                 List<BaseDropdown> ranks = cacheService.GetRanks();
-
+                var items = new List<LeaveHistoryList>();
+                var totalCount = 0;
                 if (!string.IsNullOrEmpty(input.Keyword))
                     input.Keyword = input.Keyword.Trim();
 
@@ -31,15 +41,26 @@ namespace IntranetApi.Services
                 if (string.IsNullOrEmpty(input.SortDirection))
                     input.SortDirection = SortDirection.DESC;
 
-                var totalCount = await db.StaffRecords.Include(p => p.Employee)
-                            .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)
-                            .Select(p => p.EmployeeId).Distinct().CountAsync();
+                var isSuperAdmin = await db.UserRoles
+                                .Include(p => p.Role)
+                                .AnyAsync(p => p.UserId == userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
 
-                var query = db.StaffRecords
+                if (isSuperAdmin)
+                {
+                    totalCount = await db.StaffRecords
+                            .Include(p => p.Employee)
+                            .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)
+                            .WhereIf(input.FromTime != null, p => p.CreationTime >= input.FromTime.Value)
+                            .WhereIf(input.ToTime != null, p => p.CreationTime <= input.ToTime.Value)
+                            .Select(p => p.EmployeeId)
+                            .Distinct()
+                            .CountAsync();
+                    var query = db.StaffRecords
                             .Include(p => p.Employee)
                             .ThenInclude(q => q.BrandEmployees)
                             .AsNoTracking()
                             .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)
+                            .WhereIf(input.BrandId != null, p => p.Employee.BrandEmployees.Any(p => p.BrandId == input.BrandId))
                             .ToList()
                             .GroupBy(p => p.EmployeeId)
                             .Select(p => new LeaveHistoryList
@@ -59,27 +80,88 @@ namespace IntranetApi.Services
                                 LateAmount = p.Sum(p => p.LateAmount),
                                 Fines = p.Sum(p => p.Fine)
                             });
-                //.WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
-                ;
-                var items = /*await*/ query/*.OrderByDynamic(input.SortBy, input.SortDirection)*/
-                                       .Skip(input.SkipCount)
-                                       .Take(input.RowsPerPage)
-                                       .ToList();
-                //.ProjectToType<LeaveHistoryList>()
-                //.ToListAsync()
-                ;
+                    ;
+                    items = query/*.OrderByDynamic(input.SortBy, input.SortDirection)*/
+                                  .Skip(input.SkipCount)
+                                  .Take(input.RowsPerPage)
+                                  .ToList();
 
-                foreach (var item in items)
-                {
-                    item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
-                    item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
-                    item.Brand = string.Join(',', brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name));
-                    item.Brands = brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name);
+                    foreach (var item in items)
+                    {
+                        item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
+                        item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
+                        item.Brands = brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name);
+                    }
                 }
+                else
+                {
+                    using var connection = new MySqlConnection(sqlConnectionStr);
+                    var records = connection.Query<StaffRecordData>("SP_Filter_Leave_History",
+                        new
+                        {
+                            currentUserId = userId,
+                            inputBrandId = input.BrandId,
+                            fromTime = input.FromTime,
+                            toTime = input.ToTime,
+                        },
+                        commandType: CommandType.StoredProcedure).ToList();
+
+                    totalCount = records.Select(p => p.EmployeeId).Distinct().Count();
+                    items = records.GroupBy(p => p.EmployeeId)
+                            .Select(p => new LeaveHistoryList
+                            {
+                                EmployeeId = p.Key,
+                                EmployeeName = p.FirstOrDefault().EmployeeCode,
+                                EmployeeCode = p.FirstOrDefault().EmployeeCode,
+                                DepartmentId = p.FirstOrDefault().DepartmentId,
+                                RankId = p.FirstOrDefault().RankId,
+                                SumDaysOfPaidOffs = p.Where(p => p.RecordType == StaffRecordType.PaidOffs).Sum(p => p.NumberOfDays),
+                                SumDaysOfPaidMCs = p.Where(p => p.RecordType == StaffRecordType.PaidMCs).Sum(p => p.NumberOfDays),
+                                SumDaysOfDeduction = p.Where(p => p.RecordType == StaffRecordType.Deduction).Sum(p => p.NumberOfDays),
+                                SumHoursOfDeduction = p.Where(p => p.RecordType == StaffRecordType.Deduction).Sum(p => p.NumberOfHours),
+                                SumDaysOfExtraPay = p.Where(p => p.RecordType == StaffRecordType.ExtraPay).Sum(p => p.NumberOfDays),
+                                SumHoursOfExtraPay = p.Where(p => p.RecordType == StaffRecordType.ExtraPay).Sum(p => p.NumberOfHours),
+                                LateAmount = p.Sum(p => p.LateAmount),
+                                Fines = p.Sum(p => p.Fine)
+                            })
+                            .Skip(input.SkipCount)
+                            .Take(input.RowsPerPage)
+                            .ToList();
+                    var employeeIds = items.Select(p => p.EmployeeId);
+                    var brandEmployees = await db.BrandEmployees
+                                .Where(p => employeeIds.Contains(p.EmployeeId))
+                                .GroupBy(p => p.EmployeeId)
+                                .Select(p => new { EmployeeId = p.Key, BrandIds = p.Select(p => p.BrandId).ToList() })
+                                .ToListAsync();
+
+                    foreach (var item in items)
+                    {
+                        item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
+                        item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
+                        item.BrandEmployees = brandEmployees.FirstOrDefault(p => p.EmployeeId == item.EmployeeId).BrandIds;
+                        item.Brands = brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name);
+                    }
+                }
+
                 return Results.Ok(new PagedResultDto<LeaveHistoryList>(totalCount, items));
             })
             .RequireAuthorization(LeaveHistoryPermissions.View)
             ;
+
+            app.MapGet("LeaveHistory/GetBrandDropdownByUser", [Authorize]
+            async Task<IResult> (
+            [FromServices] ApplicationDbContext db,
+            [FromServices] IHttpContextAccessor httpContextAccessor) =>
+            {
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
+
+                var items = db.BrandEmployees
+                .Include(p => p.Brand)
+                .Where(p => p.EmployeeId == userId && !p.Brand.IsDeleted && p.Brand.Status)
+                .Select(p => new BaseDropdown { Id = p.Brand.Id, Name = p.Brand.Name });
+                return Results.Ok(items);
+            });
         }
     }
 }

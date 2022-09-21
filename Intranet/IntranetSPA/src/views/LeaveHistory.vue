@@ -119,7 +119,7 @@
 
       <b-table-column
         field="sumDaysOfDeduction"
-        label="Unpaid of Leaves (Amount of day)"
+        label="Unpaid Leaves (Amount of day)"
         width="300"
         header-class="is-size-7 customTableBorderHeader"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"

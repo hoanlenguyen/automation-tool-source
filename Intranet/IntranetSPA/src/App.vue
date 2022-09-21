@@ -20,9 +20,7 @@ export default {
     NavBar
   },
   data () {
-    return {
-      menu
-    }
+    return {}
   },
   created () {
     // this.$store.commit('user', {

@@ -171,6 +171,7 @@
       </b-field>
       <b-field class="control mt-3">
         <b-datepicker
+          ref="datepickerFromTime"
           v-model="fromTime"
           :locale="'en-GB'"
           placeholder="From time..."
@@ -184,6 +185,7 @@
       </b-field>
       <b-field class="control mt-3 pr-3">
         <b-datepicker
+          ref="datepickerToTime"
           v-model="toTime"
           :locale="'en-GB'"
           placeholder="To time..."
@@ -352,6 +354,7 @@
             </b-datetimepicker>
 
             <b-datepicker
+              ref="datepickerstartDate"
               icon="calendar-today"
               locale="en-SG"
               v-model="startDate"

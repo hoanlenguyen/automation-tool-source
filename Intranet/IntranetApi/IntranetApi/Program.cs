@@ -204,9 +204,9 @@ app.AddBrandDataService();
 app.AddDepartmentDataService();
 app.AddRankDataService();
 app.AddEmployeeDataService();
-app.AddStaffRecordDataService(mySQLConnection.ConnectionString);
 app.AddCurrencyDataService();
 app.AddFileDataService();
-app.AddLeaveHistoryService();
+app.AddStaffRecordDataService(mySQLConnection.ConnectionString);
+app.AddLeaveHistoryService(mySQLConnection.ConnectionString);
 
 app.Run();

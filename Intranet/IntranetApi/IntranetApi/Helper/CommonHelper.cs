@@ -63,5 +63,15 @@ namespace IntranetApi.Helper
                 _ => "application/octet-stream"
             };
         }
+
+        public static List<int>StringToIntList(this string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return new List<int>();
+            return value.Split(',')
+            .Where(x => int.TryParse(x, out _))
+            .Select(int.Parse)
+            .ToList();
+        }
     }
 }

@@ -138,14 +138,14 @@ namespace IntranetApi.Services
             .RequireAuthorization(BrandPermissions.View)
             ;
 
-            app.MapGet("Brand/dropdown", [AllowAnonymous]
+            app.MapGet("Brand/dropdown", [Authorize]
             async Task<IResult> (
             [FromServices] IMemoryCacheService cacheService) =>
             {
                 return Results.Ok(cacheService.GetBrandsDropdown());
             });
 
-            app.MapGet("Brand/clearCache", [AllowAnonymous]
+            app.MapGet("Brand/clearCache", [Authorize]
             async Task<IResult> (
             [FromServices] IMemoryCache memoryCache) =>
             {

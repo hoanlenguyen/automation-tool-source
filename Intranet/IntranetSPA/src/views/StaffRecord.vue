@@ -130,6 +130,12 @@
               icon="pencil"
               type="is-info">
             </b-icon>
+          </a>
+          <a 
+            v-else
+            title="view"
+            @click="getDetail(props.row.id)">
+              <b-icon icon="eye" :size="'is-small'" style="color:#4a4a4a" ></b-icon>
           </a> 
           <a 
             v-if="canDelete"
@@ -432,7 +438,7 @@
         </section>
         <footer class="modal-card-foot">
           <b-button label="Close" @click="cancelCreateOrUpdate" />
-          <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
+          <b-button v-if="canUpdate" :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
         </footer>
       </div>
     </b-modal>

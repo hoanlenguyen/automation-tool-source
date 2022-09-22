@@ -1,5 +1,26 @@
 <template>
   <section class="section is-main-section">
+    <div class="p-2" v-if="$isMobile()">
+      <b-button
+          v-if="canCreate"
+          label="Import"
+          type="is-primary"
+          class="mr-4"
+          icon-left="note-plus"
+          :size="$isMobile()?'is-small':''"
+          @click="isModalImportActive=true"
+          :loading="isImportLoading"          
+        />
+      <b-button
+        label="Create"
+        type="is-info"
+        class="mr-4"
+        :size="$isMobile()?'is-small':''"
+        icon-left="note-plus"
+        @click="isModalActive=true"
+        v-if="canCreate"
+      />
+    </div>
     <b-table
     :data="data"
     :loading="isLoading"      
@@ -156,11 +177,18 @@
         >
         <div class="is-flex is-flex-direction-row is-justify-content-space-between">
           <a 
-          v-if="canUpdate"
-          title="edit"
-          @click="editModel(props.row)">
-            <b-icon icon="pencil" type="is-info"></b-icon>
-        </a> 
+            v-if="canUpdate"
+            title="edit"
+            @click="editModel(props.row)">
+              <b-icon icon="pencil" type="is-info" :size="$isMobile()?'is-small':''"></b-icon>
+          </a>
+          <a 
+            v-else
+            title="view"
+            @click="editModel(props.row)">
+              <b-icon icon="eye" :size="'is-small'" style="color:#4a4a4a" ></b-icon>
+          </a> 
+
         <a 
           v-if="canDelete"
           title="delete"          
@@ -194,7 +222,7 @@
           label="Create"
           type="is-info"
           class="mr-4"
-          icon-left="note-plus"
+          icon-left="eye"
           :size="$isMobile()?'is-small':''"
           @click="isModalActive=true"
         />
@@ -467,7 +495,7 @@
         </section>
         <footer class="modal-card-foot">
           <b-button label="Close" @click="cancelCreateOrUpdate" />
-          <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
+          <b-button v-if="canUpdate" :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
         </footer>
         </div>
     </b-modal>

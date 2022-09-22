@@ -23,11 +23,6 @@ export default {
     return {}
   },
   created () {
-    // this.$store.commit('user', {
-    //   name: 'John Doe',
-    //   email: 'john@example.com',
-    //   avatar: 'https://avatars.dicebear.com/v2/gridy/John-Doe.svg'
-    // })
   },
   computed: {
     currentRouteName() {

@@ -158,47 +158,47 @@
             @click="isModalActive=true"
             v-if="canCreate"
           />
-          <b-field grouped group-multiline>
-      <b-field class="control mt-3">
-        <b-select placeholder="Select period" v-model="period">
-          <option
-            v-for="option in periodList"
-            :value="option.value"
-            :key="option.value">
-            {{ option.label }}
-          </option>
-        </b-select>
-      </b-field>
-      <b-field class="control mt-3">
-        <b-datepicker
-          ref="datepickerFromTime"
-          v-model="fromTime"
-          :locale="'en-GB'"
-          placeholder="From time..."
-          icon="calendar-today"
-          :icon-right="fromTime ? 'close-circle' : ''"
-          icon-right-clickable
-          @icon-right-click="fromTime=null"
-          @input="period=null;onChangeTimeFilter()"
-          trap-focus>
-        </b-datepicker>
-      </b-field>
-      <b-field class="control mt-3 pr-3">
-        <b-datepicker
-          ref="datepickerToTime"
-          v-model="toTime"
-          :locale="'en-GB'"
-          placeholder="To time..."
-          icon="calendar-today"
-          :icon-right="toTime ? 'close-circle' : ''"
-          icon-right-clickable
-          @icon-right-click="toTime=null"
-          @input="period=null;onChangeTimeFilter()"
-          :min-date="fromTime"
-          trap-focus>
-        </b-datepicker>
-      </b-field>
-    </b-field>
+        <b-field grouped group-multiline>
+          <b-field class="control mt-3">
+            <b-select placeholder="Select period" v-model="period">
+              <option
+                v-for="option in periodList"
+                :value="option.value"
+                :key="option.value">
+                {{ option.label }}
+              </option>
+            </b-select>
+          </b-field>
+          <b-field class="control mt-3">
+            <b-datepicker
+              ref="datepickerFromTime"
+              v-model="fromTime"
+              :locale="'en-GB'"
+              placeholder="From time..."
+              icon="calendar-today"
+              :icon-right="fromTime ? 'close-circle' : ''"
+              icon-right-clickable
+              @icon-right-click="fromTime=null"
+              @input="period=null;onChangeTimeFilter()"
+              trap-focus>
+            </b-datepicker>
+          </b-field>
+          <b-field class="control mt-3 pr-3">
+            <b-datepicker
+              ref="datepickerToTime"
+              v-model="toTime"
+              :locale="'en-GB'"
+              placeholder="To time..."
+              icon="calendar-today"
+              :icon-right="toTime ? 'close-circle' : ''"
+              icon-right-clickable
+              @icon-right-click="toTime=null"
+              @input="period=null;onChangeTimeFilter()"
+              :min-date="fromTime"
+              trap-focus>
+            </b-datepicker>
+          </b-field>
+        </b-field>
         <b-button
             label="Reset"
             type="is-light"

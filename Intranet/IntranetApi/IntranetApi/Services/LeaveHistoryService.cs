@@ -151,15 +151,23 @@ namespace IntranetApi.Services
             app.MapGet("LeaveHistory/GetBrandDropdownByUser", [Authorize]
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCacheService cacheService,
             [FromServices] IHttpContextAccessor httpContextAccessor) =>
             {
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-
+                var isSuperAdmin = await db.UserRoles
+                                .Include(p => p.Role)
+                                .AnyAsync(p => p.UserId == userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
+                
+                if (isSuperAdmin)
+                {
+                    return Results.Ok(cacheService.GetBrandsDropdown());
+                }
                 var items = db.BrandEmployees
-                .Include(p => p.Brand)
-                .Where(p => p.EmployeeId == userId && !p.Brand.IsDeleted && p.Brand.Status)
-                .Select(p => new BaseDropdown { Id = p.Brand.Id, Name = p.Brand.Name });
+                            .Include(p => p.Brand)
+                            .Where(p => p.EmployeeId == userId && !p.Brand.IsDeleted && p.Brand.Status)
+                            .Select(p => new BaseDropdown { Id = p.Brand.Id, Name = p.Brand.Name });
                 return Results.Ok(items);
             });
         }

@@ -1,5 +1,82 @@
 <template>
   <section class="section is-main-section">
+    <div class="columns is-desktop">
+      <div class="column is-2-desktop">
+        <multiselect
+            ref="multiSelectLeaveHistoryBrand"
+            v-model="selectBrand"
+            tag-placeholder=""
+            placeholder="Select brand"             
+            :options="brands"
+            label="name"
+            track-by="id"
+            :multiple="false"
+            :taggable="false"
+            :close-on-select="true"
+            :clear-on-select="true"
+            selectLabel=""
+            deselectLabel="Remove"
+            @select="(selectedOption, id)=>{ 
+              filter.brandId=selectedOption.id; getList(); }"
+            @remove="(removedOption, id)=>{ filter.brandId=null; getList(); }">
+            <!-- <template slot="tag" slot-scope="{ option, remove }">
+              <span class="custom__tag"><span>{{ option.name }}</span>
+              <span class="custom__remove" @click="remove(option)">❌</span></span>
+            </template>
+            <template slot="clear" slot-scope="props">
+              <div class="multiselect__clear" v-if="selectBrand" @mousedown.prevent.stop="selectBrand=null"></div>
+            </template> -->
+            <span  slot="noResult">No result found</span>
+        </multiselect>
+      </div>
+      <div class="column is-2-desktop">
+        <multiselect
+            ref="multiSelectLeaveHistoryYear"
+            v-model="selectYear"
+            tag-placeholder=""
+            placeholder="Select year"             
+            :options="years"           
+            :multiple="false"
+            :taggable="false"
+            :close-on-select="true"
+            :clear-on-select="true"
+            selectLabel=""
+            deselectLabel="Remove"
+            @select="(selectedOption, id)=>{onSelectDateFilter(selectedOption,selectMonth, true); }"
+            @remove="(removedOption, id)=>{onSelectDateFilter(null, selectMonth, true); }">           
+            <span  slot="noResult">No result found</span>
+        </multiselect>     
+      </div>
+      <div class="column is-2-desktop">
+        <multiselect
+            ref="multiSelectLeaveHistoryMonth"
+            v-model="selectMonth"
+            tag-placeholder=""
+            placeholder="Select month"             
+            :options="months"           
+            :multiple="false"
+            :taggable="false"
+            :close-on-select="true"
+            :clear-on-select="true"
+            selectLabel=""
+            deselectLabel="Remove"
+            @select="(selectedOption, id)=>{onSelectDateFilter(selectYear,selectedOption, true); }"
+            @remove="(removedOption, id)=>{onSelectDateFilter(selectYear, null,true); }">          
+            <span  slot="noResult">No result found</span>
+        </multiselect>         
+      </div>
+      <div class="column is-2-desktop">
+        <b-button
+          label="Reset"
+          type="is-light"
+          class="mr-4"
+          :size="$isMobile()?'is-small':''"
+          icon-left="reload"
+          @click="resetFilter"
+        />
+      </div>      
+    </div>
+
     <b-table
       :data="data"
       :loading="isLoading"      
@@ -254,10 +331,14 @@
   </section>
 </template>
 <script>
-import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/leaveHistory";
+import Multiselect from "vue-multiselect";
+import { getDetail, getList, createOrUpdate, deleteData, getBrandDropdownByUser  } from "@/api/leaveHistory";
 export default {
-  name:"bank",
+  name:"LeaveHistory",
+  components: { Multiselect },
   created() {
+    this.getBrandDropdownByUser();
+    this.onSelectDateFilter(this.selectYear);
     this.getList();
   },
   data() {
@@ -287,7 +368,8 @@ export default {
         sortBy:'Id',
         sortDirection:'desc',
         keyword:null,
-        status:null
+        status:null,
+        brandId:null
       },
       defaultFilter:{
         page:1,
@@ -295,7 +377,8 @@ export default {
         sortBy:'Id',
         sortDirection:'desc',
         keyword:null,
-        status:null
+        status:null,
+        brandId:null
       },
       model:{
         name:null,
@@ -310,10 +393,25 @@ export default {
       isModalActive:false,
       isDeleteModalActive:false,
       selectedId:null,
+      selectBrand:null,
+      brands:[],
+      selectMonth:null,
+      selectYear:new Date().getFullYear(),
+      months:["January","February","March","April","May","June","July",
+            "August","September","October","November","December"]
     };
   },
   watch: {},
   computed: {
+    years(){
+      var date = new Date();
+      var currentYear= date.getFullYear();
+      var years=[];
+      for (let index = 2022; index <= currentYear; index++) {
+        years.push(index);
+      }
+      return years;
+    }, 
     canCreate() {
       return (
         this.$store.state.userPermissions &&
@@ -341,7 +439,10 @@ export default {
    },
   methods: {
     resetFilter() {
-      this.filter = { ...this.defaultFilter };       
+      this.selectYear=new Date().getFullYear();
+      this.selectMonth= null;
+      this.filter = { ...this.defaultFilter }; 
+      this.onSelectDateFilter(this.selectYear);
       this.getList();
     },
     onChangePageSize(){
@@ -356,9 +457,25 @@ export default {
       this.filter.sortDirection = order
       this.getList();
     },
+    onSelectDateFilter(selectYear= null, selectMonth=null, reloadData=false){
+      if(selectYear==null && selectMonth==null){
+        this.filter.fromTime= null;
+        this.filter.toTime= null;
+      }else{         
+        let year= selectYear?selectYear:new Date().getFullYear();
+        let monthIndex= this.months.findIndex(p=>p==selectMonth);
+        var firstDay = new Date(year,monthIndex>=0? monthIndex:0, 1);
+        var lastDay = new Date(year, monthIndex>=0? monthIndex+1:12, 0);
+        this.filter.fromTime=this.convertDateToString(firstDay);
+        this.filter.toTime=this.convertDateToString(lastDay);
+      }
+      if(reloadData){
+        this.filter.page = 1;
+        this.getList(); 
+      }      
+    },
     getList() {
-      this.isLoading = true;     
-
+      this.isLoading = true;
       getList(this.filter)
         .then((response) => {
           if (response.status == 200 && response.data) {
@@ -427,7 +544,19 @@ export default {
         this.isDeleteModalActive=true;
         this.selectedId= id;
       }
-    }
+    },
+    getBrandDropdownByUser(){
+      getBrandDropdownByUser()
+      .then((response) => {
+        if (response.status == 200) {
+          this.brands= [... response.data]; 
+          }
+        })
+      .catch((error) => {
+          this.notifyErrorMessage(error)
+        })
+      .finally(() => {});
+    },
   }
 };
 </script>

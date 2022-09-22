@@ -28,4 +28,10 @@ export function deleteData(id) {
     method: 'delete'})
 }
 
+export function getBrandDropdownByUser() {
+  return request({
+    url: 'LeaveHistory/GetBrandDropdownByUser',
+    method: 'get'})
+}
+
  

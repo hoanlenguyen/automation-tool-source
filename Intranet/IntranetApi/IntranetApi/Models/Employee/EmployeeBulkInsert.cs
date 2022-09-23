@@ -21,7 +21,7 @@ namespace IntranetApi.Models
 
         public DateTime? StartDate { get; set; }
 
-        public DateTime BirthDate { get; set; }
+        public DateTime? BirthDate { get; set; }
 
         [MaxLength(20)]
         public string IdNumber { get; set; }

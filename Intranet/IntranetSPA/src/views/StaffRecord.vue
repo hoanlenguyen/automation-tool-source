@@ -165,7 +165,7 @@
             v-if="canCreate"
           />
         <b-field grouped group-multiline>
-          <b-field class="control mt-3">
+          <!-- <b-field class="control mt-3">
             <b-select placeholder="Select period" v-model="period">
               <option
                 v-for="option in periodList"
@@ -174,7 +174,7 @@
                 {{ option.label }}
               </option>
             </b-select>
-          </b-field>
+          </b-field> -->
           <b-field class="control mt-3">
             <b-datepicker
               ref="datepickerFromTime"
@@ -403,8 +403,10 @@
             <p class="is-size-6 has-text-weight-bold">MCs or other related pics</p>
             
             <div class="my-3">
-              <b-upload :loading="isLoadingFiles" multiple v-model="files" class="file-label" @change.native="uploadFiles" 
-              accept=".xlsx, .xls, .csv, .doc, .docx, .pdf, .png, .jpg, .jpeg, .bmp, .TIFF, .HEIC" required validationMessage="Please select correct file type">
+              <b-upload :loading="isLoadingFiles" multiple v-model="files" class="file-label" 
+                @change.native="uploadFiles" v-if="(canCreate && model.id==0)||(canUpdate && model.id>0)"
+                accept=".xlsx, .xls, .csv, .doc, .docx, .pdf, .png, .jpg, .jpeg, .bmp, .TIFF, .HEIC" 
+                required validationMessage="Please select correct file type">
               <span class="file-cta">
                 <b-icon class="file-icon" icon="upload" ></b-icon>
                 <span class="file-label" >Add files</span>
@@ -425,7 +427,8 @@
                   <span>{{documentName}}</span>
                   <button class="delete is-small ml-3" title="remove"
                     type="button"
-                    @click="model.staffRecordDocuments.splice(index, 1);">
+                    @click="model.staffRecordDocuments.splice(index, 1);"
+                    v-if="(canCreate && model.id==0)||(canUpdate && model.id>0)">
                   </button>                                                    
                 </b-tag>                  
                 <a title="download" class="ml-3" @click="downloadSingleRecordDocument(documentName)">
@@ -438,7 +441,7 @@
         </section>
         <footer class="modal-card-foot">
           <b-button label="Close" @click="cancelCreateOrUpdate" />
-          <b-button v-if="canUpdate" :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
+          <b-button v-if="(canCreate && model.id==0)||(canUpdate && model.id>0)" :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
         </footer>
       </div>
     </b-modal>

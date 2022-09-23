@@ -222,7 +222,7 @@
           label="Create"
           type="is-info"
           class="mr-4"
-          icon-left="eye"
+          icon-left="note-plus"
           :size="$isMobile()?'is-small':''"
           @click="isModalActive=true"
         />
@@ -263,241 +263,270 @@
     </b-table>
     <b-modal v-model="isModalActive" trap-focus has-modal-card full-screen :can-cancel="false" scroll="keep">
       <div class="modal-card">
-        <header class="modal-card-head">
-          <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
-        </header>
-        <section class="modal-card-body">
-          <b-field>
-            <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
-          </b-field>
+        <form>
+          <header class="modal-card-head">
+            <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
+          </header>
+          <section class="modal-card-body">
+            <b-field>
+              <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
+            </b-field>
+            <div class="columns is-desktop">
+              <b-field label="Name" class="column is-3">
+                <b-input
+                  type="Text"
+                  v-model.trim="model.name"
+                  required>
+                </b-input>
+              </b-field>
+
+              <b-field label="Employee Code" class="column is-3">
+                <b-input
+                  type="Text"
+                  v-model="model.employeeCode"
+                  required>
+                </b-input>
+              </b-field>
+
+              <b-field label="Id Number" class="column is-3">
+                <b-input
+                  type="Text"
+                  v-model="model.idNumber">
+                </b-input>
+              </b-field>
+
+            <b-field label="Birth Date" class="column is-3">
+              <b-datepicker
+              icon="calendar-today"
+              locale="en-SG"
+              v-model="birthDate"
+              editable>
+              </b-datepicker>
+            </b-field>
+            </div> 
+
           <div class="columns">
-            <b-field label="Name" class="column is-3">
+            <b-field label="Rank" class="column is-3">
+              <multiselect
+                ref="multiselectRank"
+                v-model="selectRank"
+                tag-placeholder=""
+                placeholder="Select rank"             
+                :options="ranks"
+                label="name"
+                track-by="id"
+                :multiple="false"
+                :taggable="false"
+                :close-on-select="true"
+                :clear-on-select="true"
+                selectLabel=""
+                deselectLabel="Remove"
+                @select="(selectedOption, id)=>{ model.rankId=selectedOption.id }"
+                @remove="(removedOption, id)=>{ model.rankId=null }"
+                >
+                <span  slot="noResult">No result found</span>
+              </multiselect>
+                
+            </b-field>
+
+            <b-field label="Bank" class="column is-3">
+              <multiselect
+                ref="multiselectBank"
+                v-model="selectBank"
+                tag-placeholder=""
+                placeholder="Select bank"             
+                :options="banks"
+                label="name"
+                track-by="id"
+                :multiple="false"
+                :taggable="false"
+                :close-on-select="true"
+                :clear-on-select="true"
+                selectLabel=""
+                deselectLabel="Remove"
+                @select="(selectedOption, id)=>{ model.bankId=selectedOption.id }"
+                @remove="(removedOption, id)=>{ model.bankId=null }"
+                >
+                <span  slot="noResult">No result found</span>
+              </multiselect>          
+            </b-field>
+
+            <b-field label="Bank Account Name" class="column is-3">
               <b-input
                 type="Text"
-                v-model.trim="model.name"
-                required>
+                v-model="model.bankAccountName">
               </b-input>
             </b-field>
 
-            <b-field label="Employee Code" class="column is-3">
+            <b-field label="Bank Account Number" class="column is-3">
+              <b-input
+                type="Text"
+                v-model="model.bankAccountNumber">
+              </b-input>
+            </b-field>
+          </div>        
+
+          <div class="columns">
+            <b-field label="Department" class="column is-3">
+              <multiselect
+                ref="multiselectDepartment"
+                v-model="selectDepartment"
+                tag-placeholder=""
+                placeholder="Select department"             
+                :options="departments"
+                label="name"
+                track-by="id"
+                :multiple="false"
+                :taggable="false"
+                :close-on-select="true"
+                :clear-on-select="true"
+                selectLabel=""
+                deselectLabel="Remove"
+                @select="(selectedOption, id)=>{ model.deptId=selectedOption.id }"
+                @remove="(removedOption, id)=>{ model.deptId=null }"
+                >
+                <span  slot="noResult">No result found</span>
+              </multiselect>
+            </b-field>
+
+            <b-field label="Start Date" class="column is-3">
+                <b-datepicker
+                icon="calendar-today"
+                locale="en-SG"
+                v-model="startDate"
+                editable>
+                </b-datepicker>
+            </b-field>
+
+            <b-field label="Backend User" class="column is-3">
+              <b-input
+                type="Text"
+                v-model="model.backendUser">
+              </b-input>
+            </b-field>
+
+            <b-field label="Backend Pass" class="column is-3">
+              <b-input
+                type="Text"
+                v-model="model.backendPass">
+              </b-input>
+            </b-field>
+          </div>
+
+          <div class="columns">
+            <b-field label="Brand" class="column is-3">
+              <multiselect
+              ref="multiselectBrand"
+              v-model="selectBrands"
+              tag-placeholder=""
+              placeholder="Select brand"             
+              :options="brands"
+              label="name"
+              track-by="id"
+              :multiple="true"
+              :taggable="false"
+              selectLabel="Add"
+              deselectLabel="Remove"
+              @select="(selectedOption, id)=>{model.brand=selectedOption;model.brandId= id  }"
+              >
+              <span  slot="noResult">No result found</span>
+              </multiselect>
+            </b-field>
+            <b-field label="Intranet Role" class="column is-3">
+              <multiselect
+                v-model="selectRole"
+                tag-placeholder=""
+                placeholder="Select role"             
+                :options="roles"
+                label="name"
+                track-by="id"
+                :multiple="false"
+                :taggable="false"
+                :close-on-select="true"
+                :clear-on-select="true"
+                selectLabel=""
+                deselectLabel="Remove"
+                @select="(selectedOption, id)=>{ model.roleId=selectedOption.id }"
+                @remove="(removedOption, id)=>{ model.roleId=null }"
+                >
+                <span  slot="noResult">No result found</span>
+              </multiselect>
+            </b-field>
+
+            <b-field label="Intranet User" class="column is-3">
               <b-input
                 type="Text"
                 v-model="model.employeeCode"
                 required>
               </b-input>
             </b-field>
-
-            <b-field label="Id Number" class="column is-3">
+ 
+            <b-field class="column is-3" :type="validPasswordMessages.length>0? 'is-danger':''" :message="validPasswordMessages">
+              <template #label>
+                Intranet Pass
+                <b-tooltip type="is-dark" position="is-right" multilined>
+                  <b-icon size="is-small" icon="help-circle-outline"></b-icon>
+                  <template v-slot:content>
+                    <div class="has-text-left">
+                      <p class="is-size-7">Password must contain the following:</p>
+                      <div class="content">
+                        <ul class="is-size-7">
+                          <li>A <b>lowercase</b> letter</li>
+                          <li>A <b>capital (uppercase)</b> letter</li>
+                          <li>A <b>special</b> letter (!@#$%^...)</li>
+                          <li>A <b>number</b></li>
+                          <li>Minimum <b>8 characters</b></li>
+                        </ul>              
+                      </div>                                  
+                    </div>
+                  </template>
+                </b-tooltip>  
+              </template>
               <b-input
-                type="Text"
-                v-model="model.idNumber">
+                v-model.trim="model.intranetPassword"
+                type="text"
+                name="password"
+                required
+                minlength="8"
+                maxlength="30"
+                icon-right="refresh"
+                icon-right-clickable
+                @icon-right-click="model.intranetPassword=generateRandomPassword()"
+              />
+            </b-field>
+          </div>   
+
+          <div class="columns">
+            <b-field label="Salary" class="column is-3">
+              <b-input
+                type="number"
+                v-model="model.salary"
+                min="0"
+                required>
               </b-input>
             </b-field>
 
-          <b-field label="Birth Date" class="column is-3">
-            <b-datepicker
-            icon="calendar-today"
-            locale="en-SG"
-            v-model="birthDate"
-            editable>
-            </b-datepicker>
-          </b-field>
-          </div> 
+            <b-field label="Country" class="column is-3">
+              <b-input
+                type="Text"
+                v-model="model.country">
+              </b-input>
+            </b-field>
 
-        <div class="columns">
-          <b-field label="Rank" class="column is-3">
-            <multiselect
-              ref="multiselectRank"
-              v-model="selectRank"
-              tag-placeholder=""
-              placeholder="Select rank"             
-              :options="ranks"
-              label="name"
-              track-by="id"
-              :multiple="false"
-              :taggable="false"
-              :close-on-select="true"
-              :clear-on-select="true"
-              selectLabel=""
-              deselectLabel="Remove"
-              @select="(selectedOption, id)=>{ model.rankId=selectedOption.id }"
-              @remove="(removedOption, id)=>{ model.rankId=null }"
-              >
-              <span  slot="noResult">No result found</span>
-            </multiselect>
-               
-          </b-field>
-
-          <b-field label="Bank" class="column is-3">
-            <multiselect
-              ref="multiselectBank"
-              v-model="selectBank"
-              tag-placeholder=""
-              placeholder="Select bank"             
-              :options="banks"
-              label="name"
-              track-by="id"
-              :multiple="false"
-              :taggable="false"
-              :close-on-select="true"
-              :clear-on-select="true"
-              selectLabel=""
-              deselectLabel="Remove"
-              @select="(selectedOption, id)=>{ model.bankId=selectedOption.id }"
-              @remove="(removedOption, id)=>{ model.bankId=null }"
-              >
-              <span  slot="noResult">No result found</span>
-            </multiselect>          
-          </b-field>
-
-          <b-field label="Bank Account Name" class="column is-3">
-            <b-input
-              type="Text"
-              v-model="model.bankAccountName">
-            </b-input>
-          </b-field>
-
-          <b-field label="Bank Account Number" class="column is-3">
-            <b-input
-              type="Text"
-              v-model="model.bankAccountNumber">
-            </b-input>
-          </b-field>
-        </div>        
-
-        <div class="columns">
-          <b-field label="Department" class="column is-3">
-             <multiselect
-              ref="multiselectDepartment"
-              v-model="selectDepartment"
-              tag-placeholder=""
-              placeholder="Select department"             
-              :options="departments"
-              label="name"
-              track-by="id"
-              :multiple="false"
-              :taggable="false"
-              :close-on-select="true"
-              :clear-on-select="true"
-              selectLabel=""
-              deselectLabel="Remove"
-              @select="(selectedOption, id)=>{ model.deptId=selectedOption.id }"
-              @remove="(removedOption, id)=>{ model.deptId=null }"
-              >
-              <span  slot="noResult">No result found</span>
-            </multiselect>
-          </b-field>
-
-          <b-field label="Start Date" class="column is-3">
-              <b-datepicker
-              icon="calendar-today"
-              locale="en-SG"
-              v-model="startDate"
-              editable>
-              </b-datepicker>
-          </b-field>
-
-          <b-field label="Backend User" class="column is-3">
-            <b-input
-              type="Text"
-              v-model="model.backendUser">
-            </b-input>
-          </b-field>
-
-          <b-field label="Backend Pass" class="column is-3">
-            <b-input
-              type="Text"
-              v-model="model.backendPass">
-            </b-input>
-          </b-field>
-        </div>
-
-        <div class="columns">
-          <b-field label="Brand" class="column is-3">
-            <multiselect
-            ref="multiselectBrand"
-            v-model="selectBrands"
-            tag-placeholder=""
-            placeholder="Select brand"             
-            :options="brands"
-            label="name"
-            track-by="id"
-            :multiple="true"
-            :taggable="false"
-            selectLabel="Add"
-            deselectLabel="Remove"
-            @select="(selectedOption, id)=>{model.brand=selectedOption;model.brandId= id  }"
-            >
-            <span  slot="noResult">No result found</span>
-            </multiselect>
-          </b-field>
-          <b-field label="Intranet Role" class="column is-3">
-            <multiselect
-              v-model="selectRole"
-              tag-placeholder=""
-              placeholder="Select role"             
-              :options="roles"
-              label="name"
-              track-by="id"
-              :multiple="false"
-              :taggable="false"
-              :close-on-select="true"
-              :clear-on-select="true"
-              selectLabel=""
-              deselectLabel="Remove"
-              @select="(selectedOption, id)=>{ model.roleId=selectedOption.id }"
-              @remove="(removedOption, id)=>{ model.roleId=null }"
-              >
-              <span  slot="noResult">No result found</span>
-            </multiselect>
-          </b-field>
-
-          <b-field label="Intranet User" class="column is-3">
-            <b-input
-              type="Text"
-              v-model="model.employeeCode"
-              required>
-            </b-input>
-          </b-field>
-
-          <b-field label="Intranet Pass" class="column is-3">
-            <b-input
-              type="Text"
-              v-model="model.intranetPassword"
-              required>
-            </b-input>
-          </b-field>                  
-        </div>   
-
-        <div class="columns">
-          <b-field label="Salary" class="column is-3">
-            <b-input
-              type="number"
-              v-model="model.salary"
-              required>
-            </b-input>
-          </b-field>
-
-          <b-field label="Country" class="column is-3">
-            <b-input
-              type="Text"
-              v-model="model.country">
-            </b-input>
-          </b-field>
-
-          <b-field label="Note" class="column is-6">
-            <b-input
-              type="Text"
-              v-model="model.note">
-            </b-input>
-          </b-field> 
-        </div>     
-        </section>
-        <footer class="modal-card-foot">
-          <b-button label="Close" @click="cancelCreateOrUpdate" />
-          <b-button v-if="canUpdate" :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
-        </footer>
-        </div>
+            <b-field label="Note" class="column is-6">
+              <b-input
+                type="Text"
+                v-model="model.note">
+              </b-input>
+            </b-field> 
+          </div>  
+          </section>
+          <footer class="modal-card-foot">
+            <b-button label="Close" @click="cancelCreateOrUpdate" />
+            <b-button v-if="(canCreate && model.id==0)||(canUpdate && model.id>0)" native-type="submit" :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
+          </footer>
+        </form>       
+      </div>     
     </b-modal>
     <b-modal v-model="isModalImportActive" trap-focus has-modal-card :can-cancel="false" width="1200" scroll="keep">
       <div class="modal-card" style="height:500px">
@@ -550,8 +579,10 @@
   </section>
 </template>
 <script>
+import _ from 'lodash';
 import moment from "moment";
 import Multiselect from "vue-multiselect";
+// import { ValidationObserver, ValidationProvider } from "vee-validate";
 import { getDetail, getList, createOrUpdate, deleteData, importEmployees, getRelatedData  } from "@/api/employee";
 import { getDropdown as getRoleDropdown } from "@/api/role";
 import { getDropdown as getBankDropdown } from "@/api/bank";
@@ -560,7 +591,11 @@ import { getDropdown as getDepartmentDropdown } from "@/api/department";
 import { getDropdown as getRankDropdown } from "@/api/rank";
 export default {
   name:"employee",
-  components: { Multiselect },
+  components: { 
+    Multiselect, 
+    // ValidationObserver, 
+    // ValidationProvider 
+  },
   created() {
     this.getList();
     this.getRelatedData();
@@ -577,6 +612,7 @@ export default {
       isShowImportResult:false,
       isImportLoading:false,
       errorList:[],
+      validPasswordMessages:[],
       totalRows:0,
       totalImportedRows:0,
       totalErrorRows:0,
@@ -618,14 +654,16 @@ export default {
         status:true,
         id:0,
         intranetUsername:'',
-        intranetPassword:''
+        intranetPassword:'',
+        salary:0
       },
       defaultModel:{
         name:null,
         status:true,
         id:0,
         intranetUsername:'',
-        intranetPassword:''
+        intranetPassword:'',
+        salary:0
       },
       isModalActive:false,
       isModalImportActive:false,
@@ -645,7 +683,11 @@ export default {
       selectRole:null,
     };
   },
-  watch: {},
+  watch: {
+    "model.intranetPassword":_.debounce(function(value){
+      this.validPasswordMessages=value? this.checkValidPassword(value):[]; 
+    },800)
+  },
   computed: {
     canCreate() {
       return (
@@ -722,16 +764,52 @@ export default {
       this.closeModalDialog();
     },
     createOrUpdateModel(){
-      if(this.birthDate)
-        this.model.birthDate = `${this.birthDate.getFullYear()}-${('0' + (this.birthDate.getMonth()+1)).slice(-2)}-${('0' + this.birthDate.getDate()).slice(-2)}`;
+      if(!this.model.name){
+        this.$buefy.snackbar.open({
+          message: 'Please check field Name',
+          queue: false,
+          duration: 2000,
+          type: 'is-warning'
+        });
+        return;
+      }
 
-      if(this.startDate)
-        this.model.startDate = `${this.startDate.getFullYear()}-${('0' + (this.startDate.getMonth()+1)).slice(-2)}-${('0' + this.startDate.getDate()).slice(-2)}`;
-      
-      this.model.brandIds = this.selectBrands.length>0? this.selectBrands.map((p) => p.id):[];  
+      if(!this.model.employeeCode){
+        this.$buefy.snackbar.open({
+          message: 'Please check field Employee Code',
+          queue: false,
+          duration: 2000,
+          type: 'is-warning'
+        });
+        return;
+      }
+
+      this.validPasswordMessages= this.checkValidPassword(this.model.intranetPassword);
+      if(this.validPasswordMessages.length>0){
+        this.$buefy.snackbar.open({
+          message: 'Please check field Intranet Password!',
+          queue: false,
+          duration: 1000,
+          type: 'is-danger'
+        });
+        return;
+      }
+
+      if(!this.model.roleId){
+        this.$buefy.snackbar.open({
+          message: 'Please check field Intranet Role',
+          queue: false,
+          duration: 2000,
+          type: 'is-warning'
+        });
+        return;
+      } 
+
+    this.model.birthDate =this.convertDateToString(this.birthDate);
+    this.model.startDate =this.convertDateToString(this.startDate);    
+    this.model.brandIds = this.selectBrands.length>0? this.selectBrands.map((p) => p.id):[]; 
            
-      console.log('this.model.brandIds' + this.model.brandIds);
-      createOrUpdate(this.model)
+    createOrUpdate(this.model)
       .then((response) => {
         if (response.status == 200) {
           this.$buefy.snackbar.open({
@@ -747,9 +825,12 @@ export default {
     },
     editModel(input){
       this.model= {...input};
-      this.birthDate= moment(this.model.birthDate,'YYYY-MM-DD').toDate();
-      this.startDate= moment(this.model.startDate,'YYYY-MM-DD').toDate();
-      //console.log('brandIds '+this.model.brandIds);
+      if(this.model.birthDate)
+        this.birthDate= moment(this.model.birthDate,'YYYY-MM-DD').toDate();
+
+      if(this.model.startDate)
+        this.startDate= moment(this.model.startDate,'YYYY-MM-DD').toDate();
+
       if(this.model.brandIds)
         this.selectBrands= this.brands.filter(p=> this.model.brandIds.includes(p.id));
       

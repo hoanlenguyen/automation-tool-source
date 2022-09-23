@@ -42,7 +42,7 @@
                   </div>                                  
                 </div>
               </template>
-          </b-tooltip>
+          </b-tooltip>                  
         </template>
         <b-input
           v-model.trim="form.newPassword"

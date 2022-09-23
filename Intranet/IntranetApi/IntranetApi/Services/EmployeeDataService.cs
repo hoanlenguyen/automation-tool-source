@@ -80,6 +80,9 @@ namespace IntranetApi.Services
                 if (string.IsNullOrEmpty(input.EmployeeCode))
                     throw new Exception("No valid Employee code!");
 
+                if (input.RoleId == 0)
+                    throw new Exception("Missing Intranet Role!");
+
                 var checkExisted = await db.Users.AnyAsync(p => p.EmployeeCode == input.EmployeeCode && !p.IsDeleted);
                 if (checkExisted)
                     throw new Exception($"{input.EmployeeCode} existed!");
@@ -89,7 +92,7 @@ namespace IntranetApi.Services
                     throw new Exception("Missing EmployeeCode!");
 
                 if (input.IntranetPassword.IsNullOrEmpty())
-                    throw new Exception("Missing IntranetPassword!");
+                    throw new Exception("Missing Intranet Password!");
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<User>();
                 entity.CreatorUserId = userId;
@@ -126,8 +129,8 @@ namespace IntranetApi.Services
                 if (user == null)
                     return Results.NotFound();
 
-                Console.WriteLine($"EmployeeCode {input.EmployeeCode}");
-                Console.WriteLine($"IntranetPassword {input.IntranetPassword}");
+                //Console.WriteLine($"EmployeeCode {input.EmployeeCode}");
+                //Console.WriteLine($"IntranetPassword {input.IntranetPassword}");
 
                 var currentPassword = user.IntranetPassword;
                 user.BrandEmployees.Clear();

@@ -19,6 +19,9 @@ import mixin from './utils/mixin'
 /* add filter */
 import './utils/filter';
 
+/* add validate */
+import VeeValidate from 'vee-validate';
+
 
 import { getToken } from '@/utils/auth'
 
@@ -51,13 +54,15 @@ router.afterEach(to => {
   }
 })
 
-Vue.mixin(mixin)
 
 Vue.config.productionTip = false
 Vue.config.devtools = process.env.NODE_ENV === 'development'
 Vue.use(VueSignalR, `${process.env.VUE_APP_BASE_API}/hubClient`)
 Vue.use(Buefy)
 Vue.use(VueMobileDetection)
+Vue.use(VeeValidate)
+Vue.mixin(mixin)
+
 new Vue({
   router,
   store,

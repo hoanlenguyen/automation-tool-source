@@ -24,6 +24,7 @@
     "lodash": "^4.17.20",
     "moment": "^2.29.3",
     "numeral": "^2.0.6",
+    "vee-validate": "^2.2.15",
     "vue": "^2.6.12",
     "vue-chartjs": "^4.0.5",
     "vue-loader-v15": "^0.0.1-security",

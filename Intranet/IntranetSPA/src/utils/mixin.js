@@ -105,6 +105,36 @@ var myMixin = {
             validMessages.push("Password must have at least 1 special letter");
           
           return validMessages;
+        },
+        generateRandomPassword(pwdLen = 10){
+          // var pwdChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$";
+          // var randPassword = Array(pwdLen).fill(pwdChars).map(function(x) { return x[Math.floor(Math.random() * x.length)] }).join('');
+          // return randPassword;
+
+          const lowerCase = 'abcdefghijklmnopqrstuvwxyz'
+          const upperCase = lowerCase.toUpperCase()
+          const numberChars = '0123456789'
+          const specialChars = '!#@$%+?^&*()'
+
+          let generatedPassword = ''
+          let restPassword = ''
+
+          const restLength = pwdLen % 4 
+          const usableLength = pwdLen - restLength
+          const generateLength = usableLength / 4
+
+          const randomString = (char) => {
+            return char[Math.floor(Math.random() * (char.length))]
+          }
+          for (let i = 0; i <= generateLength - 1; i++) {
+            generatedPassword += `${randomString(lowerCase)}${randomString(upperCase)}${randomString(numberChars)}${randomString(specialChars)}`
+          }
+
+          for (let i = 0; i <= restLength - 1; i++) {
+            restPassword += randomString([...lowerCase, ...upperCase, ...numberChars, ...specialChars])
+          }
+
+          return generatedPassword + restPassword
         }
     }
 }

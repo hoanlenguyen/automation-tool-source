@@ -13,7 +13,7 @@
         public string BankAccountName { get; set; }
         public string BankAccountNumber { get; set; }
         public DateTime? StartDate { get; set; }
-        public DateTime BirthDate { get; set; }
+        public DateTime? BirthDate { get; set; }
         public string? IdNumber { get; set; }
         public string? BackendUser { get; set; }
         public string? BackendPass { get; set; }

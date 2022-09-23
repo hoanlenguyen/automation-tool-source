@@ -47,7 +47,7 @@ begin
 	
 	
 	select s.Id, s.EmployeeId,  u.Name as 'EmployeeName',u.EmployeeCode  as 'EmployeeCode', 
-		s.StartDate , s.EndDate ,
+		s.StartDate , s.EndDate , s.CreationTime,
 		s.RecordType ,s.RecordDetailType, u.DeptId as 'DepartmentId', u.RankId ,
 		r.`Level`, u.CreatorUserId as 'CreatorUserId', totalCount
 	from staffrecords s

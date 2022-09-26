@@ -16,6 +16,7 @@ namespace IntranetApi.DbContext
         public override DbSet<Role> Roles { get; set; }
         public override DbSet<UserRole> UserRoles { get; set; }
         public override DbSet<RoleClaim> RoleClaims { get; set; }
+        public DbSet<RoleDepartment> RoleDepartments { get; set; }
         public DbSet<Bank> Banks { get; set; }
         public DbSet<Brand> Brands { get; set; }
         public DbSet<BrandEmployee> BrandEmployees { get; set; }
@@ -39,6 +40,7 @@ namespace IntranetApi.DbContext
             modelBuilder.Entity<StaffRecord>().Property(p=>p.Fine).HasPrecision(18, 2);
             modelBuilder.Entity<StaffRecord>().Property(p=>p.CalculationAmount).HasPrecision(18, 2);
             modelBuilder.Entity<BrandEmployee>().HasKey(p => new { p.BrandId, p.EmployeeId });
+            modelBuilder.Entity<RoleDepartment>().HasKey(p => new { p.RoleId, p.DepartmentId });
 
             modelBuilder.Entity<StaffRecordDocument>()
                     .HasOne(p=>p.StaffRecord)
@@ -74,6 +76,21 @@ namespace IntranetApi.DbContext
                     .WithMany(p => p.UserRoles)
                     .HasForeignKey(p => p.RoleId);
 
+
+            modelBuilder.Entity<RoleDepartment>()
+                    .HasOne(p => p.Role)
+                    .WithMany(p => p.RoleDepartments)
+                    .HasForeignKey(p => p.RoleId);
+
+            modelBuilder.Entity<RoleDepartment>()
+                    .HasOne(p => p.Department)
+                    .WithMany(p => p.RoleDepartments)
+                    .HasForeignKey(p => p.DepartmentId);
+
+            modelBuilder.Entity<RoleClaim>()
+                   .HasOne(p => p.Role)
+                   .WithMany(b => b.RoleClaims)
+                   .HasForeignKey(p => p.RoleId);
         }
     }
 }

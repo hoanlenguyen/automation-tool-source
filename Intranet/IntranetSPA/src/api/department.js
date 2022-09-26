@@ -34,3 +34,10 @@ export function getDropdown() {
     method: 'get'
   })
 }
+
+export function getSimpleList() {
+  return request({
+    url: '/department/SimpleList',
+    method: 'get'
+  })
+}

@@ -180,7 +180,7 @@
             v-if="canUpdate"
             title="edit"
             @click="editModel(props.row)">
-              <b-icon icon="pencil" type="is-info" :size="$isMobile()?'is-small':''"></b-icon>
+              <b-icon icon="pencil" type="is-info" ></b-icon>
           </a>
           <a 
             v-else

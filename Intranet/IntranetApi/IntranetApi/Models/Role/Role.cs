@@ -20,5 +20,7 @@ namespace IntranetApi.Models
         public bool IsSuperAddmin { get; set; } = false;
 
         public virtual ICollection<UserRole> UserRoles { get; set; } = new HashSet<UserRole>();
+        public virtual ICollection<RoleDepartment> RoleDepartments { get; set; } = new HashSet<RoleDepartment>();
+        public virtual ICollection<RoleClaim> RoleClaims { get; set; } = new HashSet<RoleClaim>();
     }
 }

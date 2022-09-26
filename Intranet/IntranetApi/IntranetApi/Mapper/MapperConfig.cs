@@ -8,7 +8,6 @@ namespace IntranetApi.Mapper
     {
         public static void AddMapperConfigs()
         {
-             
             TypeAdapterConfig<EmployeeExcelInput, EmployeeBulkInsert>.NewConfig()
                             .Map(dest => dest.Status, src => src.StatusStr.Equals(StatusValue.Active, StringComparison.OrdinalIgnoreCase))
                             .Map(dest => dest.IsDeleted, src => false)
@@ -17,7 +16,7 @@ namespace IntranetApi.Mapper
             TypeAdapterConfig<EmployeeBulkInsert, User>.NewConfig()
                             .Map(dest => dest.UserName, src => src.EmployeeCode)
                             .Map(dest => dest.Email, src => $"{src.EmployeeCode}@intranet.com")
-                            .Map(dest => dest.BrandEmployees, src => src.BrandIds.Select(p=> new BrandEmployee { BrandId = p }).ToList())
+                            .Map(dest => dest.BrandEmployees, src => src.BrandIds.Select(p => new BrandEmployee { BrandId = p }).ToList())
                             ;
 
             TypeAdapterConfig<EmployeeExcelInput, EmployeeImportError>.NewConfig()
@@ -26,11 +25,11 @@ namespace IntranetApi.Mapper
                             .Map(dest => dest.Salary, src => src.SalaryStr)
                             .Map(dest => dest.BirthDate, src => src.BirthDateStr)
                             .Map(dest => dest.StartDate, src => src.StartDateStr)
-                            .Map(dest => dest.IntranetRole, src => src.Role)                             
+                            .Map(dest => dest.IntranetRole, src => src.Role)
                             ;
 
             TypeAdapterConfig<User, EmployeeExcelInput>.NewConfig()
-                            .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p=>p.BrandId).ToList())
+                            .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p => p.BrandId).ToList())
                             //.Map(dest => dest.Brand, src => string.Join(',', src.BrandEmployees.Select(q=>q.Brand.Name)))
                             //.Map(dest => dest.Brands, src => src.BrandEmployees.Select(q => q.Brand.Name))
                             ;
@@ -41,9 +40,9 @@ namespace IntranetApi.Mapper
                            ;
 
             TypeAdapterConfig<EmployeeCreateOrEdit, User>.NewConfig()
-                           .Map(dest => dest.UserName, src=>src.EmployeeCode)
-                           .Map(dest => dest.UserRoles, src => new List<UserRole> { new UserRole {RoleId= src.RoleId } })
-                           .Map(dest => dest.BrandEmployees, src => src.BrandIds.Select(p=>new BrandEmployee { BrandId=p, EmployeeId= src.Id}))
+                           .Map(dest => dest.UserName, src => src.EmployeeCode)
+                           .Map(dest => dest.UserRoles, src => new List<UserRole> { new UserRole { RoleId = src.RoleId } })
+                           .Map(dest => dest.BrandEmployees, src => src.BrandIds.Select(p => new BrandEmployee { BrandId = p, EmployeeId = src.Id }))
                            ;
 
             TypeAdapterConfig<User, EmployeeCreateOrEdit>.NewConfig()
@@ -53,7 +52,7 @@ namespace IntranetApi.Mapper
             TypeAdapterConfig<StaffRecord, StaffRecordCreateOrEdit>.NewConfig()
                            .Map(dest => dest.RecordType, src => (int)src.RecordType)
                            .Map(dest => dest.RecordDetailType, src => (int)src.RecordDetailType)
-                           .Map(dest => dest.StaffRecordDocuments, src => src.StaffRecordDocuments.Select(p=>p.FileUrl).ToList())
+                           .Map(dest => dest.StaffRecordDocuments, src => src.StaffRecordDocuments.Select(p => p.FileUrl).ToList())
                            ;
 
             TypeAdapterConfig<StaffRecordCreateOrEdit, StaffRecord>.NewConfig()
@@ -63,7 +62,7 @@ namespace IntranetApi.Mapper
                            ;
 
             TypeAdapterConfig<StaffRecord, StaffRecordList>.NewConfig()
-                            .Map(dest => dest.EmployeeName, src => src.Employee!=null? src.Employee.Name : "")
+                            .Map(dest => dest.EmployeeName, src => src.Employee != null ? src.Employee.Name : "")
                             .Map(dest => dest.EmployeeCode, src => src.Employee != null ? src.Employee.EmployeeCode : "")
                             .Map(dest => dest.DepartmentId, src => src.Employee != null ? src.Employee.DeptId : src.DepartmentId)
                            ;
@@ -71,11 +70,22 @@ namespace IntranetApi.Mapper
             TypeAdapterConfig<StaffRecord, LeaveHistoryList>.NewConfig()
                             .Map(dest => dest.EmployeeName, src => src.Employee != null ? src.Employee.Name : "")
                             .Map(dest => dest.EmployeeCode, src => src.Employee != null ? src.Employee.EmployeeCode : "")
-                            .Map(dest => dest.BrandEmployees, src => src.Employee != null ? src.Employee.BrandEmployees.Select(p =>p.BrandId).ToList() : new List<int>())
+                            .Map(dest => dest.BrandEmployees, src => src.Employee != null ? src.Employee.BrandEmployees.Select(p => p.BrandId).ToList() : new List<int>())
                            ;
 
             TypeAdapterConfig<User, EmployeeList>.NewConfig()
-                            .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p=>p.BrandId))
+                            .Map(dest => dest.BrandIds, src => src.BrandEmployees.Select(p => p.BrandId))
+                           ;
+
+            TypeAdapterConfig<Role, RoleCreateOrEdit>.NewConfig()
+                            .Map(dest => dest.Permissions, src => src.RoleClaims.Select(p => p.ClaimValue).ToList())
+                            .Map(dest => dest.DepartmentIds, src => src.RoleDepartments.Select(p => p.DepartmentId).ToList())
+                           ;
+
+            TypeAdapterConfig<RoleCreateOrEdit, Role>.NewConfig()
+                            .Map(dest => dest.NormalizedName, src => src.Name.ToUpperInvariant())
+                            .Map(dest => dest.RoleClaims, src => src.Permissions.Select(p => new RoleClaim { ClaimType = Permissions.Type, ClaimValue = p, RoleId = src.Id }))
+                            .Map(dest => dest.RoleDepartments, src => src.DepartmentIds.Select(p => new RoleDepartment { RoleId = src.Id, DepartmentId = p }).ToList())
                            ;
         }
     }

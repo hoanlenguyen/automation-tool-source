@@ -154,6 +154,13 @@ namespace IntranetApi.Services
             {
                 return Results.Ok(cacheService.GetDepartmentsDropdown());
             });
+
+            app.MapGet("Department/SimpleList", [Authorize]
+            async Task<IResult> (
+            [FromServices] IMemoryCacheService cacheService) =>
+            {
+                return Results.Ok(cacheService.GetDepartments());
+            });
         }
     }
 }

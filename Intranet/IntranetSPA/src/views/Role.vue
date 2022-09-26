@@ -181,41 +181,52 @@
     </b-table>
     <b-modal v-model="isModalActive" trap-focus has-modal-card full-screen :can-cancel="false" scroll="keep">
       <div class="modal-card">
-            <header class="modal-card-head">
-                <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
-            </header>
-            <section class="modal-card-body">
-              <b-field>
-                <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
-              </b-field>
-              <b-field label="Name">
-                  <b-input
-                    type="Text"
-                    v-model.trim="model.name"
-                    placeholder="Name...."
-                    required>
-                  </b-input>
-              </b-field>
-                
-              <b-field label="Permissions">
-                <template #label>
-                 <span class="mr-3">Permissions</span> 
-                  <b-button label="Select all" type="is-info" size="is-small" @click="selectAllPermissions"/>
-                </template>
-                <treeselect 
-                  v-model="model.permissions" 
-                  :multiple="true" 
-                  :options="permissions"  
-                  :disable-branch-nodes="true" 
-                  search-nested 
-                  always-open/>
-              </b-field>
-                                          
-            </section>
-            <footer class="modal-card-foot">
-                <b-button label="Close" @click="cancelCreateOrUpdate" />
-                <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
-            </footer>
+        <header class="modal-card-head">
+            <p class="modal-card-title">{{model.id==0?'Create':'Update'}}</p>                 
+        </header>
+        <section class="modal-card-body">
+          <b-field>
+            <b-switch v-model="model.status" type='is-info'>{{model.status?'Active':'Inactive'}}</b-switch>
+          </b-field>
+          <b-field label="Name">
+              <b-input
+                type="Text"
+                v-model.trim="model.name"
+                placeholder="Name...."
+                required>
+              </b-input>
+          </b-field>
+
+          <b-field>
+            <template #label>
+              <span class="mr-3">Departments</span> 
+              <b-button label="Select all" type="is-info" size="is-small" @click="selectAllDepartments"/>
+            </template>
+            <div class="is-flex is-flex-wrap-wrap is-justify-content-flex-start is-align-items-stretch">
+              <b-checkbox v-for="(item,index) in departments" :key="index" :native-value="item.id" v-model="model.departmentIds" class="mr-3 p-3"
+                type="is-info">{{item.name}}
+              </b-checkbox>
+            </div>                
+          </b-field>
+            
+          <b-field>
+            <template #label>
+              <span class="mr-3">Permissions</span> 
+              <b-button label="Select all" type="is-info" size="is-small" @click="selectAllPermissions"/>
+            </template>
+            <treeselect 
+              v-model="model.permissions" 
+              :multiple="true" 
+              :options="permissions"  
+              :disable-branch-nodes="true" 
+              search-nested 
+              always-open/>
+          </b-field>
+        </section>
+        <footer class="modal-card-foot">
+            <b-button label="Close" @click="cancelCreateOrUpdate" />
+            <b-button :label="model.id==0?'Create':'Update'" type="is-primary" @click="createOrUpdateModel"/>
+        </footer>
         </div>
     </b-modal>
 
@@ -259,6 +270,7 @@
 </template>
 <script>
 import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/role";
+import { getSimpleList as getDepartments } from "@/api/department";
 import permissions from '@/utils/permissions.js'
 // import the component
 import Treeselect from '@riophae/vue-treeselect'
@@ -269,6 +281,7 @@ export default {
   components: { Treeselect },
   created() {
     this.getList();
+    this.getDepartments();
   },
   data() {
     return {
@@ -311,12 +324,14 @@ export default {
         name:null,
         status:true,
         permissions:[],
+        departmentIds:[],
         id:0
       },
       defaultModel:{
         name:null,
         status:true,
         permissions:[],
+        departmentIds:[],
         id:0
       },
       isModalActive:false,
@@ -324,7 +339,9 @@ export default {
       isEmpoyeeListModalActive: false,
       selectedId:null,
       selectedRoleName:null,
-      employeeList:[],      
+      employeeList:[],
+      departments:[],
+      selectDepartments:[],      
       permissions
     };
   },
@@ -444,7 +461,7 @@ export default {
       getDetail(id)
       .then((response) => {
         if (response.status == 200 && response.data) {
-          this.model= {...response.data};
+          this.model= {...response.data};          
           this.isModalActive= true;
           }
         })
@@ -453,7 +470,23 @@ export default {
     },
     selectAllPermissions(){
       this.model.permissions= this.permissions.flatMap(p=>p.children).map(p=>p.id);
-    }
+    },
+    selectAllDepartments(){
+      this.model.departmentIds= this.departments.map(p=>p.id);
+    },
+    getDepartments() {
+      getDepartments()
+        .then((response) => {
+          if (response.status == 200) {
+            this.departments = response.data;
+          } 
+        })
+        .catch((error) => {
+          this.notifyErrorMessage(error)
+        })
+        .finally(() => {
+        });
+    },
   }
 };
 </script>

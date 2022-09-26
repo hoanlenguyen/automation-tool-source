@@ -1,5 +1,4 @@
-﻿using Dapper;
-using IntranetApi.DbContext;
+﻿using IntranetApi.DbContext;
 using IntranetApi.Enum;
 using IntranetApi.Helper;
 using IntranetApi.Models;
@@ -9,7 +8,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using MySqlConnector;
 using System.Data;
 using System.Security.Claims;
 
@@ -32,15 +30,15 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var entity = db.Roles.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                var entity = db.Roles.Include(p => p.RoleClaims)
+                                    .Include(p => p.RoleDepartments)
+                                    .ThenInclude(p => p.Department)
+                                    .AsNoTracking()
+                                    .FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
+
                 var result = entity.Adapt<RoleCreateOrEdit>();
-                result.Permissions = await db.RoleClaims
-                                        .AsNoTracking()
-                                        .Where(p => p.RoleId == id)
-                                        .Select(p => p.ClaimValue)
-                                        .ToListAsync();
 
                 return Results.Ok(result);
             })
@@ -59,22 +57,23 @@ namespace IntranetApi.Services
                     throw new Exception("No valid role name!");
 
                 var checkExisted = await db.Roles.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
-                if(checkExisted)
+                if (checkExisted)
                     throw new Exception("Name already exists");
 
                 input.Name = input.Name.Trim();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = new Role { Name = input.Name, CreatorUserId = userId, NormalizedName = input.Name.ToUpper() };
-                await roleManager.CreateAsync(entity);
-
-                Console.WriteLine($"RoleId {entity.Id}");
-                if (input.Permissions.Any())
-                {
-                    Console.WriteLine($"permissions Count: {input.Permissions.Count}");
-                    var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
-                    await db.RoleClaims.AddRangeAsync(roleClaims);
-                }
+                var entity = input.Adapt<Role>();
+                entity.CreatorUserId = userId;
+                await db.Roles.AddAsync(entity);
+                //await roleManager.CreateAsync(entity);
+                ////Console.WriteLine($"RoleId {entity.Id}");
+                //if (input.Permissions.Any())
+                //{
+                //    Console.WriteLine($"permissions Count: {input.Permissions.Count}");
+                //    var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
+                //    await db.RoleClaims.AddRangeAsync(roleClaims);
+                //}
                 memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 await db.SaveChangesAsync();
@@ -98,24 +97,27 @@ namespace IntranetApi.Services
 
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var entity = db.Roles.FirstOrDefault(x => x.Id == input.Id);
+                var entity = db.Roles
+                            .Include(p=>p.RoleClaims)
+                            .Include(p=>p.RoleDepartments)
+                            .FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
-                entity.Name = input.Name;
-                entity.NormalizedName = input.Name.ToUpper();
-                entity.Status = input.Status;
+                entity.RoleClaims.Clear();
+                entity.RoleDepartments.Clear();
+                input.Adapt(entity);
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.Now;
-                var existedRoleClaims = await db.RoleClaims.Where(p => p.RoleId == entity.Id).ToListAsync();
-                if (existedRoleClaims.Any())
-                    db.RoleClaims.RemoveRange(existedRoleClaims);
+                //var existedRoleClaims = await db.RoleClaims.Where(p => p.RoleId == entity.Id).ToListAsync();
+                //if (existedRoleClaims.Any())
+                //    db.RoleClaims.RemoveRange(existedRoleClaims);
 
-                if (input.Permissions.Any())
-                {
-                    var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
-                    await db.RoleClaims.AddRangeAsync(roleClaims);
-                }
+                //if (input.Permissions.Any())
+                //{
+                //    var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
+                //    await db.RoleClaims.AddRangeAsync(roleClaims);
+                //}
                 memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 db.SaveChanges();
@@ -179,7 +181,7 @@ namespace IntranetApi.Services
                                             .AsNoTracking()
                                             .Where(p => roleIds.Contains(p.RoleId))
                                             .GroupBy(p => p.RoleId)
-                                            .Select(p => new RoleEmployeeList { RoleId = p.Key, Employees = p.Select(q =>new EmployeeSimpleDto { Name = q.User.Name , EmployeeCode = q.User.EmployeeCode}).ToList() })
+                                            .Select(p => new RoleEmployeeList { RoleId = p.Key, Employees = p.Select(q => new EmployeeSimpleDto { Name = q.User.Name, EmployeeCode = q.User.EmployeeCode }).ToList() })
                                             .ToListAsync();
                     foreach (var item in items)
                     {

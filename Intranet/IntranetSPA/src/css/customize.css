@@ -18,6 +18,24 @@
     font-size: 0.75rem !important;
     }
 
+    .backgroundWarning {
+        background: #FFF4A3 !important;
+        /* border-left-style: none !important;
+        border-right-style: none !important; */
+    }
+
+    .backgroundSuccess {
+        background: #a8e6cf !important;
+        /* border-left-style: none !important;
+        border-right-style: none !important; */
+    }
+
+    .backgroundPink {
+        background: 	#eecff4 !important;
+        /* border-left-style: none !important;
+        border-right-style: none !important; */
+    }
+
   .b-table .table {
       border-collapse: collapse !important;
   }

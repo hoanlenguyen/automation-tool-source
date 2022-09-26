@@ -154,7 +154,7 @@
         field="sumDaysOfPaidMCs"
         label="Paid MCs"
         width="200px"
-        header-class="is-size-7 customTableBorderHeader"
+        header-class="is-size-7 customTableBorderHeader backgroundWarning"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
@@ -165,7 +165,7 @@
         field="sumDaysOfPaidOffs"
         label="Paid Offs"
         width="200px"
-        header-class="is-size-7 customTableBorderHeader"
+        header-class="is-size-7 customTableBorderHeader backgroundWarning"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
@@ -173,10 +173,10 @@
       </b-table-column>
  
       <b-table-column
-        field="sumHoursOfExtraPay"
+        field="SumHoursOfExtraPay"
         label="Extra OTs(hours)"
         width="200px"
-        header-class="is-size-7 customTableBorderHeader"
+        header-class="is-size-7 customTableBorderHeader backgroundSuccess"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
@@ -187,7 +187,7 @@
         field="sumDaysOfExtraPay"
         label="Extra day"
         width="200px"
-        header-class="is-size-7 customTableBorderHeader"
+        header-class="is-size-7 customTableBorderHeader backgroundSuccess"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
@@ -198,7 +198,7 @@
         field="sumDaysOfDeduction"
         label="Unpaid Leaves (Amount of day)"
         width="300"
-        header-class="is-size-7 customTableBorderHeader"
+        header-class="is-size-7 customTableBorderHeader backgroundPink"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
@@ -209,7 +209,7 @@
         field="sumHoursOfDeduction"
         label="Late"
         width="200px"
-        header-class="is-size-7 customTableBorderHeader"
+        header-class="is-size-7 customTableBorderHeader backgroundPink"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
@@ -220,7 +220,7 @@
         field="lateAmount"
         label="Late amount"
         width="200px"
-        header-class="is-size-7 customTableBorderHeader"
+        header-class="is-size-7 customTableBorderHeader backgroundPink"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       
@@ -231,7 +231,7 @@
         field="fines"
         label="Fines"
         width="200px"
-        header-class="is-size-7 customTableBorderHeader"
+        header-class="is-size-7 customTableBorderHeader backgroundPink"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
       >       

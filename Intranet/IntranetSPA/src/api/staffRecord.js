@@ -28,9 +28,9 @@ export function deleteData(id) {
     method: 'delete'})
 }
 
-export function getEmployeeByBrand() {
+export function getEmployeesByCurrentUser() {
   return request({
-    url: `/StaffRecord/GetEmployeeByBrand`,
+    url: `/StaffRecord/GetEmployeesByCurrentUser`,
     method: 'get'})
 }
  

@@ -463,7 +463,7 @@
 import moment from "moment";
 import { saveAs } from 'file-saver';
 import Multiselect from "vue-multiselect";
-import { getDetail, getList, createOrUpdate, deleteData , getEmployeeByBrand } from "@/api/staffRecord";
+import { getDetail, getList, createOrUpdate, deleteData , getEmployeesByCurrentUser } from "@/api/staffRecord";
 import { getDropdown as getDepartmentDropdown } from "@/api/department";
 import { uploadFiles  } from "@/api/fileService";
 import { RecordTypes,RecordDetailTypes  } from "@/utils/enum";
@@ -471,7 +471,7 @@ export default {
   name:"staffRecord",
   components: { Multiselect },
   created() {
-    this.getEmployeeByBrand();
+    this.getEmployeesByCurrentUser();
     this.getList();
   },
   data() {
@@ -810,8 +810,8 @@ export default {
         this.selectedId= id;
       }
     },
-    getEmployeeByBrand(){
-      getEmployeeByBrand()
+    getEmployeesByCurrentUser(){
+      getEmployeesByCurrentUser()
       .then((response) => {
         if (response.status == 200) {
           this.employees= [... response.data]; 

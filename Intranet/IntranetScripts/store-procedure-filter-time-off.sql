@@ -7,7 +7,7 @@ in toTime DATETIME,
 in exportLimit INT,
 in exportOffset INT) 
 begin
-    declare deptId, rankLevel, isAllBrand, totalCount INT default 0;
+    declare deptId, rankLevel, isAllBrandCheck, totalCount INT default 0;
    	declare brandIds, employeeIds varchar(200) default '';
    
 	select u.DeptId , r.`Level` , group_concat(b.BrandId)
@@ -24,11 +24,13 @@ begin
 	
 	select  exists 
 		(select * from brands b  where IsAllBrand = 1 and Id in (brandIds))
-	into isAllBrand;
+	into isAllBrandCheck;
 
-	select group_concat(distinct (EmployeeId)) 
-	into employeeIds 
-	from brandemployees where FIND_IN_SET(BrandId, brandIds)>0;
+	if (isAllBrandCheck = 0) then 
+		select group_concat(distinct (EmployeeId)) 
+		into employeeIds 
+		from brandemployees where FIND_IN_SET(BrandId, brandIds)>0;
+	end if;
 	
 	select count(1)
 	into totalCount
@@ -40,7 +42,7 @@ begin
 	where 
 		u.DeptId  = deptId 
 		and r.`Level` <= rankLevel 
-		and (isAllBrand = 1 or FIND_IN_SET(u.Id, employeeIds)>0)
+		and (isAllBrandCheck = 1 or FIND_IN_SET(u.Id, employeeIds)>0)
 		and (if(fromTime is null, 1, s.CreationTime  >= fromTime))
 		and (if(toTime is null, 1, s.CreationTime  <= toTime))
 		and s.IsDeleted =0;
@@ -58,7 +60,7 @@ begin
 	where 
 		u.DeptId  = deptId 
 		and r.`Level` <= rankLevel 
-		and (isAllBrand = 1 or FIND_IN_SET(u.Id, employeeIds)>0)
+		and (isAllBrandCheck = 1 or FIND_IN_SET(u.Id, employeeIds)>0)
 		and (if(fromTime is null, 1, s.CreationTime  >= fromTime))
 		and (if(toTime is null, 1, s.CreationTime  <= toTime))
 		and s.IsDeleted = 0

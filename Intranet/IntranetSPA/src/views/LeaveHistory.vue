@@ -256,16 +256,7 @@
       <div slot="footer" class="is-flex 
         is-flex-direction-row
         is-align-items-center
-        is-flex-wrap-wrap">
-        <!-- <b-button
-            label="Create"
-            type="is-info"
-            class="mr-4"
-            :size="$isMobile()?'is-small':''"
-            icon-left="note-plus"
-            @click="isModalActive=true"
-            v-if="canCreate"
-          /> -->
+        is-flex-wrap-wrap">        
         <b-button
             label="Reset"
             type="is-light"

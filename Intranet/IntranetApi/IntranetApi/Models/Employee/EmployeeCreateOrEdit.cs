@@ -1,11 +1,10 @@
 ﻿namespace IntranetApi.Models
 {
-    public class EmployeeCreateOrEdit : BaseAuditEntity
+    public class EmployeeCreateOrEdit : BaseEntity
     {
         public string Name { get; set; }
-
         public string? EmployeeCode { get; set; }
-
+        public bool Status { get; set; }
         public int RoleId { get; set; }
         public int DeptId { get; set; }
         public int BankId { get; set; }

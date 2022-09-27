@@ -50,7 +50,7 @@ namespace IntranetApi.Services
                 {
                     var isAllBrand = input.BrandId != null? await db.Brands
                                .AnyAsync(p => p.Id== input.BrandId && p.IsAllBrand) : true;
-                    Console.WriteLine($"isAllBrand {isAllBrand}");
+                    //Console.WriteLine($"isAllBrand {isAllBrand}");
                     totalCount = await db.StaffRecords
                             .Include(p => p.Employee)
                             .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)

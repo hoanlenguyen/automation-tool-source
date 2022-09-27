@@ -433,7 +433,6 @@ namespace IntranetApi.Services
                                 else
                                 {
                                     rowInput.BirthDate = CheckValidDate(rowInput.BirthDateStr);
-                                    //Console.WriteLine($"rowInput.BirthDate {rowInput.BirthDate.GetValueOrDefault().ToString("yyy-MM-dd")}");
                                     if (rowInput.BirthDate == null)
                                     {
                                         errorCells.Add($"L{row}");

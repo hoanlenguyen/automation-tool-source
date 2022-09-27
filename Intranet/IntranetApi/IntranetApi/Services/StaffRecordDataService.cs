@@ -255,7 +255,7 @@ namespace IntranetApi.Services
             //.RequireAuthorization(StaffRecordPermissions.View)
             ;
 
-            app.MapGet("StaffRecord/GetEmployeeByBrand", [Authorize]
+            app.MapGet("StaffRecord/GetEmployeesByCurrentUser", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] IMemoryCacheService cacheService,
@@ -264,12 +264,12 @@ namespace IntranetApi.Services
                 var result = new List<EmployeeDropdown>();
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
-                var isAllBrand = await db.BrandEmployees
-                                .Include(p => p.Brand)
-                                .AnyAsync(p=>p.Brand.IsAllBrand);
-
                 var depts = cacheService.GetDepartments();
-                if (isAllBrand)
+                var isSuperAdmin = await db.UserRoles
+                                .Include(p => p.Role)
+                                .AnyAsync(p => p.UserId == userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
+
+                if (isSuperAdmin)
                 {
                     var employees = db.Users
                             .Where(p => !p.IsDeleted)
@@ -282,15 +282,12 @@ namespace IntranetApi.Services
                     return Results.Ok(employees);
                 }
 
-                var brandIds = db.BrandEmployees.Where(p => p.EmployeeId == userId).Select(p => p.BrandId).Distinct();
+                using var connection = new MySqlConnection(sqlConnectionStr);
+                var items = connection.Query<StaffRecordDropdown>("SP_Get_Employees_By_Current_User",
+                    new {currentUserId = userId},
+                    commandType: CommandType.StoredProcedure).ToList();
 
-                var query = from be in db.BrandEmployees
-                            join u in db.Users on be.EmployeeId equals u.Id
-                            where brandIds.Contains(be.BrandId) && u.IsDeleted==false /*&& u.UserType == UserType.Employee*/
-                            select new StaffRecordDropdown { Id = u.Id, EmployeeCode = u.EmployeeCode, Name = u.Name, DepartmentId= u.DeptId };
-
-                var items = query.ToList().DistinctBy(p => p.Id);
-                             
+                items= items.DistinctBy(p=>p.Id).ToList();
                 foreach (var item in items)
                 {
                     item.DepartmentName = depts.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;

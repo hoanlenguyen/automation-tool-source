@@ -31,7 +31,13 @@
     }
 
     .backgroundPink {
-        background: 	#eecff4 !important;
+        background: #eecff4 !important;
+        /* border-left-style: none !important;
+        border-right-style: none !important; */
+    }
+
+    .backgroundLightBlue {
+        background: #AED6F1 !important;
         /* border-left-style: none !important;
         border-right-style: none !important; */
     }

@@ -10,6 +10,8 @@
         public int RankId { get; set; }
         public string Rank { get; set; }
         public string Brand { get; set; }
+        public string Country { get; set; }
+        public string CurrencySymbol { get; set; }
         public IEnumerable<string> Brands { get; set; } = new HashSet<string>();
         public IEnumerable<int> BrandEmployees { get; set; } = new HashSet<int>();
         public int SumDaysOfExtraPay { get; set; }
@@ -18,6 +20,7 @@
         public int SumHoursOfDeduction { get; set; }
         public int SumDaysOfPaidOffs { get; set; }
         public int SumDaysOfPaidMCs { get; set; }
+        public decimal SumCalculationAmount { get; set; }
         public int LateAmount { get; set; }
         public decimal Fines { get; set; }
     }

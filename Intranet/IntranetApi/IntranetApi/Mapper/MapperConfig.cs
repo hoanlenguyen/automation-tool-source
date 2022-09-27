@@ -64,7 +64,7 @@ namespace IntranetApi.Mapper
             TypeAdapterConfig<StaffRecord, StaffRecordList>.NewConfig()
                             .Map(dest => dest.EmployeeName, src => src.Employee != null ? src.Employee.Name : "")
                             .Map(dest => dest.EmployeeCode, src => src.Employee != null ? src.Employee.EmployeeCode : "")
-                            .Map(dest => dest.DepartmentId, src => src.Employee != null ? src.Employee.DeptId : src.DepartmentId)
+                            .Map(dest => dest.DepartmentId, src => src.Employee != null ? src.Employee.DeptId : 0)
                            ;
 
             TypeAdapterConfig<StaffRecord, LeaveHistoryList>.NewConfig()

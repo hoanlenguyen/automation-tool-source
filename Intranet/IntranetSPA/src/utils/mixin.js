@@ -55,11 +55,21 @@ var myMixin = {
             let code= error.response.status;
             if(code==401){
                 setToken('');
-                this.$buefy.snackbar.open({
-                  message: 'Login failed!',
-                  queue: false,
-                  type: 'is-warning'
-                });
+                if(this.$route.name=='login'){
+                  this.$buefy.snackbar.open({
+                    message: 'Login failed!',
+                    queue: false,
+                    type: 'is-warning'
+                  });
+                }else{
+                  this.$buefy.snackbar.open({
+                    message: 'Your session has expired, please login!',
+                    queue: false,
+                    duration: 3000,
+                    type: 'is-warning'
+                  });
+                  this.$router.push({ name: 'login' });
+                }                
              }else if(code==403){
                 this.$buefy.snackbar.open({
                   message: 'No permission!',

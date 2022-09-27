@@ -236,7 +236,18 @@
         v-slot="props"
       >       
       {{ props.row.fines}}
-      </b-table-column>      
+      </b-table-column>
+
+      <b-table-column
+        field="SumCalculationAmount"
+        label="Sum Amount"
+        width="200px"
+        header-class="is-size-7 customTableBorderHeader backgroundLightBlue"
+        :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
+        v-slot="props"
+      >       
+     {{props.row.currencySymbol}} {{ props.row.sumCalculationAmount |formattedNumber}}
+      </b-table-column>         
 
       <template #empty>
         <div class="has-text-centered">No records</div>

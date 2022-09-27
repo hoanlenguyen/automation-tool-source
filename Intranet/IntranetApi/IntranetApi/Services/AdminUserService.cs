@@ -33,8 +33,6 @@ namespace IntranetApi.Services
 
                 if (result.Succeeded)
                 {
-                    //db.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = 1 });
-                    //db.SaveChanges();
                     return Results.Ok();
                 }
                 return Results.BadRequest();
@@ -84,7 +82,8 @@ namespace IntranetApi.Services
                         issuer: issuer,
                         audience: audience,
                         signingCredentials: credentials,
-                        claims: claims);
+                        claims: claims,
+                        expires: DateTime.UtcNow.AddHours(24));
 
                     var tokenHandler = new JwtSecurityTokenHandler();
                     var accessToken = tokenHandler.WriteToken(token);

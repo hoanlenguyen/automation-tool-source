@@ -10,10 +10,10 @@ namespace IntranetApi.Models
         public int DepartmentId { get; set; }
         public int RankId { get; set; }
         public string BrandIds { get; set; }
+        public string Country { get; set; }
         public StaffRecordType RecordType { get; set; }
         public StaffRecordDetailType RecordDetailType { get; set; }
         public int LateAmount { get; set; }
-
         //public string Reason { get; set; } = string.Empty;
 
         public DateTime StartDate { get; set; }

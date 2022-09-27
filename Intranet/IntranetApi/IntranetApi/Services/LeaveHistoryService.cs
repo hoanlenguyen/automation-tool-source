@@ -30,6 +30,7 @@ namespace IntranetApi.Services
                 List<BaseDropdown> brands = cacheService.GetBrands();
                 List<BaseDropdown> departments = cacheService.GetDepartments();
                 List<BaseDropdown> ranks = cacheService.GetRanks();
+                List<CurrencySimpleDto> currencies = cacheService.GetCurrencies();
                 var items = new List<LeaveHistoryList>();
                 var totalCount = 0;
                 if (!string.IsNullOrEmpty(input.Keyword))
@@ -47,6 +48,9 @@ namespace IntranetApi.Services
 
                 if (isSuperAdmin)
                 {
+                    var isAllBrand = input.BrandId != null? await db.Brands
+                               .AnyAsync(p => p.Id== input.BrandId && p.IsAllBrand) : true;
+                    Console.WriteLine($"isAllBrand {isAllBrand}");
                     totalCount = await db.StaffRecords
                             .Include(p => p.Employee)
                             .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)
@@ -60,7 +64,7 @@ namespace IntranetApi.Services
                             .ThenInclude(q => q.BrandEmployees)
                             .AsNoTracking()
                             .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)
-                            .WhereIf(input.BrandId != null, p => p.Employee.BrandEmployees.Any(p => p.BrandId == input.BrandId))
+                            .WhereIf(!isAllBrand, p => p.Employee.BrandEmployees.Any(p => p.BrandId == input.BrandId ))
                             .ToList()
                             .GroupBy(p => p.EmployeeId)
                             .Select(p => new LeaveHistoryList
@@ -70,6 +74,7 @@ namespace IntranetApi.Services
                                 EmployeeCode = p.FirstOrDefault().Employee.EmployeeCode,
                                 DepartmentId = p.FirstOrDefault().Employee.DeptId,
                                 RankId = p.FirstOrDefault().Employee.RankId,
+                                Country = p.FirstOrDefault().Employee.Country,
                                 BrandEmployees = p.FirstOrDefault().Employee.BrandEmployees.Select(p => p.BrandId),
                                 SumDaysOfPaidOffs = p.Where(p => p.RecordType == StaffRecordType.PaidOffs).Sum(p => p.NumberOfDays),
                                 SumDaysOfPaidMCs = p.Where(p => p.RecordType == StaffRecordType.PaidMCs).Sum(p => p.NumberOfDays),
@@ -78,6 +83,7 @@ namespace IntranetApi.Services
                                 SumDaysOfExtraPay = p.Where(p => p.RecordType == StaffRecordType.ExtraPay).Sum(p => p.NumberOfDays),
                                 SumHoursOfExtraPay = p.Where(p => p.RecordType == StaffRecordType.ExtraPay).Sum(p => p.NumberOfHours),
                                 LateAmount = p.Sum(p => p.LateAmount),
+                                SumCalculationAmount= p.Sum(p=>p.CalculationAmount),
                                 Fines = p.Sum(p => p.Fine)
                             });
                     ;
@@ -91,6 +97,7 @@ namespace IntranetApi.Services
                         item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
                         item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
                         item.Brands = brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name);
+                        item.CurrencySymbol = currencies.FirstOrDefault(p=>p.Name.Equals(item.Country, StringComparison.OrdinalIgnoreCase))?.CurrencySymbol;
                     }
                 }
                 else
@@ -115,6 +122,7 @@ namespace IntranetApi.Services
                                 EmployeeCode = p.FirstOrDefault().EmployeeCode,
                                 DepartmentId = p.FirstOrDefault().DepartmentId,
                                 RankId = p.FirstOrDefault().RankId,
+                                Country= p.FirstOrDefault().Country,
                                 SumDaysOfPaidOffs = p.Where(p => p.RecordType == StaffRecordType.PaidOffs).Sum(p => p.NumberOfDays),
                                 SumDaysOfPaidMCs = p.Where(p => p.RecordType == StaffRecordType.PaidMCs).Sum(p => p.NumberOfDays),
                                 SumDaysOfDeduction = p.Where(p => p.RecordType == StaffRecordType.Deduction).Sum(p => p.NumberOfDays),
@@ -122,6 +130,7 @@ namespace IntranetApi.Services
                                 SumDaysOfExtraPay = p.Where(p => p.RecordType == StaffRecordType.ExtraPay).Sum(p => p.NumberOfDays),
                                 SumHoursOfExtraPay = p.Where(p => p.RecordType == StaffRecordType.ExtraPay).Sum(p => p.NumberOfHours),
                                 LateAmount = p.Sum(p => p.LateAmount),
+                                SumCalculationAmount = p.Sum(p => p.CalculationAmount),
                                 Fines = p.Sum(p => p.Fine)
                             })
                             .Skip(input.SkipCount)
@@ -140,6 +149,7 @@ namespace IntranetApi.Services
                         item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
                         item.BrandEmployees = brandEmployees.FirstOrDefault(p => p.EmployeeId == item.EmployeeId).BrandIds;
                         item.Brands = brands.Where(p => item.BrandEmployees.Contains(p.Id)).Select(p => p.Name);
+                        item.CurrencySymbol = currencies.FirstOrDefault(p => p.Name.Equals(item.Country, StringComparison.OrdinalIgnoreCase))?.CurrencySymbol;
                     }
                 }
 

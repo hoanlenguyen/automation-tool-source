@@ -240,13 +240,18 @@
 
       <b-table-column
         field="SumCalculationAmount"
-        label="Sum Amount"
+        label="Total Extra/ Fines"
         width="200px"
         header-class="is-size-7 customTableBorderHeader backgroundLightBlue"
         :cell-class="$isMobile()?'customTableCellOnMobile':'customTableCell'"
         v-slot="props"
-      >       
-     {{props.row.currencySymbol}} {{ props.row.sumCalculationAmount |formattedNumber}}
+      > 
+      <span class="has-text-success" v-if="props.row.sumCalculationAmount>=0">
+        {{props.row.currencySymbol}} {{ props.row.sumCalculationAmount |formattedNumber}}
+      </span>  
+      <span class="has-text-danger" v-else>
+        ({{props.row.currencySymbol}} {{Math.abs(props.row.sumCalculationAmount) |formattedNumber}})
+      </span>     
       </b-table-column>         
 
       <template #empty>
@@ -339,8 +344,9 @@ export default {
   name:"LeaveHistory",
   components: { Multiselect },
   created() {
+    this.selectMonth= this.getCurrentMonth();
+    this.onSelectDateFilter(this.selectYear,this.selectMonth);
     this.getBrandDropdownByUser();
-    this.onSelectDateFilter(this.selectYear);
     this.getList();
   },
   data() {
@@ -413,7 +419,7 @@ export default {
         years.push(index);
       }
       return years;
-    }, 
+    },   
     canCreate() {
       return (
         this.$store.state.userPermissions &&
@@ -441,10 +447,11 @@ export default {
    },
   methods: {
     resetFilter() {
+      this.selectBrand= null;
       this.selectYear=new Date().getFullYear();
-      this.selectMonth= null;
+      this.selectMonth= this.getCurrentMonth();
       this.filter = { ...this.defaultFilter }; 
-      this.onSelectDateFilter(this.selectYear);
+      this.onSelectDateFilter(this.selectYear,this.selectMonth);
       this.getList();
     },
     onChangePageSize(){
@@ -559,6 +566,10 @@ export default {
         })
       .finally(() => {});
     },
+    getCurrentMonth(){
+      let monthIndex = (new Date()).getMonth();
+      return this.months[monthIndex];
+    }, 
   }
 };
 </script>

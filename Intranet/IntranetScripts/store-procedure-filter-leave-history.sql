@@ -7,7 +7,7 @@ in fromTime DATETIME,
 in toTime DATETIME) 
 begin
     declare deptId, rankLevel, isAllBrandCheck int default 0;
-   	declare brandIds, employeeIds varchar(200) default '';
+   	declare brandIds, deptIds, employeeIds varchar(200) default '';
    
 	select u.DeptId , r.`Level` , group_concat(b.BrandId)
 	into 
@@ -19,7 +19,19 @@ begin
 	on b.EmployeeId = u.Id 
 	where u.Id = currentUserId
 	group by u.Id;
-	 
+
+	select  group_concat(rd.DepartmentId)
+	into 
+		deptIds
+	from roles r  
+	inner join userroles ur 
+	on ur.RoleId = r.Id
+	inner join roledepartments rd
+	on rd.RoleId = r.Id 
+	where ur.UserId = currentUserId
+	group by ur.UserId;
+	
+	-- set deptIds = concat(deptIds,',',  deptId);
 	
 	select  exists 		
 		(select * from brands where IsAllBrand = 1 and (if(inputBrandId is null, FIND_IN_SET(Id, brandIds)>0, Id = inputBrandId)))		
@@ -41,7 +53,7 @@ begin
 	left join ranks r 
 	on u.RankId = r.Id
 	where 
-		u.DeptId  = deptId 
+			(FIND_IN_SET(u.DeptId  , deptIds)>0)
 		and r.`Level` <= rankLevel 
 		and (isAllBrandCheck >0 or FIND_IN_SET(s.EmployeeId , employeeIds)>0)
 		and (if(fromTime is null, 1, s.CreationTime  >= fromTime))

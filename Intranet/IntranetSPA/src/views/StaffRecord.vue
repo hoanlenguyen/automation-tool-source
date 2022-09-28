@@ -1,6 +1,6 @@
 <template>
   <section class="section is-main-section">
-    <div class="p-2" v-if="$isMobile()">
+    <div class="p-2">
       <b-button
         label="Create"
         type="is-info"
@@ -27,7 +27,7 @@
     hoverable    
     >
       <b-table-column
-        field="DepartmentId"
+        field="Employee.DeptId"
         label="Dept"
         sortable        
         width="200px"
@@ -39,7 +39,7 @@
       </b-table-column>
 
       <b-table-column
-        field="EmployeeId"
+        field="Employee.Name"
         label="Employee Name"
         v-slot="props"
         width="300px"
@@ -184,8 +184,8 @@
               icon="calendar-today"
               :icon-right="fromTime ? 'close-circle' : ''"
               icon-right-clickable
-              @icon-right-click="fromTime=null"
-              @input="period=null;onChangeTimeFilter()"
+              @icon-right-click="fromTime=null;onChangeTimeFilter()"
+              @input="onChangeTimeFilter()"
               trap-focus>
             </b-datepicker>
           </b-field>
@@ -198,8 +198,8 @@
               icon="calendar-today"
               :icon-right="toTime ? 'close-circle' : ''"
               icon-right-clickable
-              @icon-right-click="toTime=null"
-              @input="period=null;onChangeTimeFilter()"
+              @icon-right-click="toTime=null;onChangeTimeFilter()"
+              @input="onChangeTimeFilter()"
               :min-date="fromTime"
               trap-focus>
             </b-datepicker>
@@ -249,6 +249,7 @@
           <b-field label="Name of staff">
             <multiselect
               ref="multiselectStaff"
+              :disabled="!((canCreate && model.id==0)||(canUpdate && model.id>0))"
               v-model="selectEmployee"
               tag-placeholder=""
               placeholder="Select staff"             

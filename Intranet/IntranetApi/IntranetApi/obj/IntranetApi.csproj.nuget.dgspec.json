@@ -1,23 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "F:\\DotNet\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\IntranetApi.csproj": {}
+    "C:\\STS\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\IntranetApi.csproj": {}
   },
   "projects": {
-    "F:\\DotNet\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\IntranetApi.csproj": {
+    "C:\\STS\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\IntranetApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\DotNet\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\IntranetApi.csproj",
+        "projectUniqueName": "C:\\STS\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\IntranetApi.csproj",
         "projectName": "IntranetApi",
-        "projectPath": "F:\\DotNet\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\IntranetApi.csproj",
-        "packagesPath": "C:\\Users\\Admins\\.nuget\\packages\\",
-        "outputPath": "F:\\DotNet\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\obj\\",
+        "projectPath": "C:\\STS\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\IntranetApi.csproj",
+        "packagesPath": "C:\\Users\\hoan.le\\.nuget\\packages\\",
+        "outputPath": "C:\\STS\\automation-tool-source\\Intranet\\IntranetApi\\IntranetApi\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
-        ],
         "configFilePaths": [
-          "C:\\Users\\Admins\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\hoan.le\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -104,7 +101,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.109\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.302\\RuntimeIdentifierGraph.json"
         }
       }
     }

@@ -25,6 +25,9 @@ namespace IntranetApi.Services
 
             if (string.IsNullOrEmpty(input.SortDirection))
                 input.SortDirection = SortDirection.DESC;
+
+            if (input.ToTime != null)
+                input.ToTime = input.ToTime.Value.Date.AddDays(1).AddTicks(-1);
         }
 
         public static void AddStaffRecordDataService(this WebApplication app, string sqlConnectionStr)
@@ -82,13 +85,17 @@ namespace IntranetApi.Services
                             break;
                         }
                     case StaffRecordDetailType.ExtraPayOTs:
-                    case StaffRecordDetailType.DeductionLate:
                         {
                             entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
                             if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayOTs && workingHours > 0)
                             {
                                 entity.CalculationAmount = entity.NumberOfHours * (salary / (365 * workingHours));
                             }
+                            break;
+                        }
+                    case StaffRecordDetailType.DeductionLate:
+                        {
+                            entity.CalculationAmount = -entity.LateAmount;
                             break;
                         }
                     default: break;
@@ -150,13 +157,17 @@ namespace IntranetApi.Services
                             break;
                         }
                     case StaffRecordDetailType.ExtraPayOTs:
-                    case StaffRecordDetailType.DeductionLate:
                         {
                             entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
                             if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayOTs && workingHours > 0)
                             {
                                 entity.CalculationAmount = entity.NumberOfHours * (salary / (365 * workingHours));
                             }
+                            break;
+                        }
+                    case StaffRecordDetailType.DeductionLate:
+                        {
+                            entity.CalculationAmount = -entity.LateAmount;
                             break;
                         }
                     default: break;
@@ -195,7 +206,7 @@ namespace IntranetApi.Services
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCacheService cacheService,
             [FromServices] IHttpContextAccessor httpContextAccessor,
-            [FromBody] StaffRecordFilter input             
+            [FromBody] StaffRecordFilter input
             ) =>
             {
                 ProcessFilterValues(ref input);
@@ -209,15 +220,15 @@ namespace IntranetApi.Services
                 var isSuperAdmin = await db.UserRoles
                                 .Include(p => p.Role)
                                 .AnyAsync(p => p.UserId == userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
-                             
+
                 if (isSuperAdmin)
                 {
                     var query = db.StaffRecords
                                 .Include(p => p.Employee)
                                 .AsNoTracking()
                                 .Where(p => !p.IsDeleted)
-                                .WhereIf(input.FromTime!=null, p=>p.CreationTime>= input.FromTime)
-                                .WhereIf(input.ToTime!=null, p=>p.CreationTime <= input.ToTime)
+                                .WhereIf(input.FromTime != null, p => p.CreationTime >= input.FromTime)
+                                .WhereIf(input.ToTime != null, p => p.CreationTime <= input.ToTime)
                                 ;
                     totalCount = await query.CountAsync();
                     items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
@@ -229,18 +240,19 @@ namespace IntranetApi.Services
                 else
                 {
                     using var connection = new MySqlConnection(sqlConnectionStr);
-                    items = connection.Query<StaffRecordList>("SP_Filter_Time_Off", 
-                        new { 
-                              currentUserId = userId,
-                              fromTime = input.FromTime,
-                              toTime= input.ToTime,
-                              exportLimit=input.RowsPerPage,
-                              exportOffset= input.SkipCount},
+                    items = connection.Query<StaffRecordList>("SP_Filter_Time_Off",
+                        new
+                        {
+                            currentUserId = userId,
+                            fromTime = input.FromTime,
+                            toTime = input.ToTime,
+                            exportLimit = input.RowsPerPage,
+                            exportOffset = input.SkipCount
+                        },
                         commandType: CommandType.StoredProcedure).ToList();
 
-                    totalCount = items.Any() ? items.FirstOrDefault().TotalCount : 0;                     
+                    totalCount = items.Any() ? items.FirstOrDefault().TotalCount : 0;
                 }
-
 
                 var creatorIds = items.Select(p => p.CreatorUserId);
                 var creators = await db.Users.Where(p => creatorIds.Contains(p.Id)).Select(p => new BaseDropdown { Id = p.Id, Name = p.Name }).ToListAsync();
@@ -284,10 +296,10 @@ namespace IntranetApi.Services
 
                 using var connection = new MySqlConnection(sqlConnectionStr);
                 var items = connection.Query<StaffRecordDropdown>("SP_Get_Employees_By_Current_User",
-                    new {currentUserId = userId},
+                    new { currentUserId = userId },
                     commandType: CommandType.StoredProcedure).ToList();
 
-                items= items.DistinctBy(p=>p.Id).ToList();
+                items = items.DistinctBy(p => p.Id).ToList();
                 foreach (var item in items)
                 {
                     item.DepartmentName = depts.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
@@ -295,7 +307,7 @@ namespace IntranetApi.Services
                 return Results.Ok(items);
             })
             .RequireAuthorization(StaffRecordPermissions.View)
-            ;            
+            ;
         }
     }
 }

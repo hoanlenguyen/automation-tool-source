@@ -28,7 +28,7 @@ begin
 	where ur.UserId = currentUserId
 	group by ur.UserId;
 
-	set deptIds = concat(deptIds,',',  deptId);
+	-- set deptIds = concat(deptIds,',',  deptId);
 	 
 	 
 	
@@ -49,6 +49,7 @@ begin
 	where 
 		    (isAllBrandCheck = 1 or FIND_IN_SET(u.Id  , employeeIds)>0)
 		and FIND_IN_SET(u.DeptId  , deptIds)>0
+		and u.UserType = 0
 		and u.IsDeleted = 0
 	-- group by u.Id, u.EmployeeCode , u.Name , u.DeptId as 'DepartmentId'
 	;

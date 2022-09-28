@@ -100,6 +100,8 @@ export default {
               permissions:userInfo.permissions
               });
 
+            this.$router.replace({'query': null});
+            
             if(userInfo.isFirstTimeLogin)
               this.$router.push({ name: 'change-password' });
             else

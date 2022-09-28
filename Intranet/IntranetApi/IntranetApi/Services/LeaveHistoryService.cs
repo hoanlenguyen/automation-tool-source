@@ -42,6 +42,9 @@ namespace IntranetApi.Services
                 if (string.IsNullOrEmpty(input.SortDirection))
                     input.SortDirection = SortDirection.DESC;
 
+                if (input.ToTime != null)
+                    input.ToTime = input.ToTime.Value.Date.AddDays(1).AddTicks(-1);
+
                 var isSuperAdmin = await db.UserRoles
                                 .Include(p => p.Role)
                                 .AnyAsync(p => p.UserId == userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
@@ -56,6 +59,7 @@ namespace IntranetApi.Services
                             .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)
                             .WhereIf(input.FromTime != null, p => p.CreationTime >= input.FromTime.Value)
                             .WhereIf(input.ToTime != null, p => p.CreationTime <= input.ToTime.Value)
+                            .WhereIf(!isAllBrand, p => p.Employee.BrandEmployees.Any(p => p.BrandId == input.BrandId ))
                             .Select(p => p.EmployeeId)
                             .Distinct()
                             .CountAsync();
@@ -64,6 +68,8 @@ namespace IntranetApi.Services
                             .ThenInclude(q => q.BrandEmployees)
                             .AsNoTracking()
                             .Where(p => !p.IsDeleted && p.Employee.UserType == UserType.Employee)
+                            .WhereIf(input.FromTime != null, p => p.CreationTime >= input.FromTime.Value)
+                            .WhereIf(input.ToTime != null, p => p.CreationTime <= input.ToTime.Value)
                             .WhereIf(!isAllBrand, p => p.Employee.BrandEmployees.Any(p => p.BrandId == input.BrandId ))
                             .ToList()
                             .GroupBy(p => p.EmployeeId)

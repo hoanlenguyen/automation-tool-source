@@ -44,7 +44,7 @@ begin
 	end if;
 	
 	select 
-		s.EmployeeId,  u.Name as 'EmployeeName', u.EmployeeCode  as 'EmployeeCode', u.DeptId as 'DepartmentId', u.RankId ,
+		s.EmployeeId,  u.Name as 'EmployeeName', u.EmployeeCode  as 'EmployeeCode', u.DeptId as 'DepartmentId', u.RankId , u.Country ,
 		s.RecordType, s.RecordDetailType, s.LateAmount, s.StartDate, s.EndDate,
 		s.NumberOfDays, s.NumberOfHours, s.Fine , s.CalculationAmount 
 	from staffrecords s

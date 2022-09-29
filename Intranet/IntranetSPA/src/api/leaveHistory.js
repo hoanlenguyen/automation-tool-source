@@ -34,4 +34,8 @@ export function getBrandDropdownByUser() {
     method: 'get'})
 }
 
- 
+export function getBrandAndDepartmentDropdownByUser() {
+  return request({
+    url: 'LeaveHistory/GetBrandAndDepartmentDropdownByUser',
+    method: 'get'})
+}

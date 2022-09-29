@@ -464,7 +464,7 @@
 import moment from "moment";
 import { saveAs } from 'file-saver';
 import Multiselect from "vue-multiselect";
-import { getDetail, getList, createOrUpdate, deleteData , getEmployeesByCurrentUser } from "@/api/staffRecord";
+import { getDetail, getList, createOrUpdate, deleteData ,  getEmployeesByCurrentUser }  from "@/api/staffRecord";
 import { getDropdown as getDepartmentDropdown } from "@/api/department";
 import { uploadFiles  } from "@/api/fileService";
 import { RecordTypes,RecordDetailTypes  } from "@/utils/enum";
@@ -496,7 +496,6 @@ export default {
       importTimeFrom:null,
       importTimeTo:null,
       employees:[],
-      filterEmployees:[],
       departments:[],
       filter:{
         page:1,
@@ -815,8 +814,7 @@ export default {
       getEmployeesByCurrentUser()
       .then((response) => {
         if (response.status == 200) {
-          this.employees= [... response.data]; 
-          this.filterEmployees= [... response.data]; 
+          this.employees= response.data; 
           }
         })
       .catch((error) => {

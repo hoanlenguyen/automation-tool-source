@@ -71,6 +71,7 @@ namespace IntranetApi.Services
                             .WhereIf(input.FromTime != null, p => p.CreationTime >= input.FromTime.Value)
                             .WhereIf(input.ToTime != null, p => p.CreationTime <= input.ToTime.Value)
                             .WhereIf(!isAllBrand, p => p.Employee.BrandEmployees.Any(p => p.BrandId == input.BrandId ))
+                            .WhereIf(input.DepartmentId!= null, p => p.Employee.DeptId == input.DepartmentId)
                             .ToList()
                             .GroupBy(p => p.EmployeeId)
                             .Select(p => new LeaveHistoryList
@@ -114,6 +115,7 @@ namespace IntranetApi.Services
                         {
                             currentUserId = userId,
                             inputBrandId = input.BrandId,
+                            inputDepartmentId = input.DepartmentId,
                             fromTime = input.FromTime,
                             toTime = input.ToTime,
                         },
@@ -185,6 +187,45 @@ namespace IntranetApi.Services
                             .Where(p => p.EmployeeId == userId && !p.Brand.IsDeleted && p.Brand.Status)
                             .Select(p => new BaseDropdown { Id = p.Brand.Id, Name = p.Brand.Name });
                 return Results.Ok(items);
+            });
+
+            app.MapGet("LeaveHistory/GetBrandAndDepartmentDropdownByUser", [Authorize]
+            async Task<IResult> (
+            [FromServices] ApplicationDbContext db,
+            [FromServices] IMemoryCacheService cacheService,
+            [FromServices] IHttpContextAccessor httpContextAccessor) =>
+            {
+                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(userIdStr, out var userId);
+                var role = await db.UserRoles
+                                .Include(p => p.Role)
+                                .Where(p => p.UserId == userId && !p.Role.IsDeleted)
+                                .Select(p=>new { UserId= userId, RoleId= p.RoleId, IsSuperAddmin= p.Role.IsSuperAddmin})
+                                .FirstOrDefaultAsync();
+
+                if(role == null || role.RoleId==0)
+                    return Results.Ok();
+
+                if (role.IsSuperAddmin)
+                {
+                    return Results.Ok(new { 
+                        brands = cacheService.GetBrands(),
+                        departments= cacheService.GetDepartments()
+                    });
+                }
+                var brands = db.BrandEmployees
+                           .Include(p => p.Brand)
+                           .Where(p => p.EmployeeId == userId && !p.Brand.IsDeleted && p.Brand.Status)
+                           .Select(p => new BaseDropdown { Id = p.Brand.Id, Name = p.Brand.Name });
+
+                var query = from rd in db.RoleDepartments
+                            join d in db.Departments on rd.DepartmentId equals d.Id
+                            where rd.RoleId == role.RoleId
+                            select new BaseDropdown { Id = d.Id, Name = d.Name };
+
+                var departments = await query.ToListAsync();
+
+                return Results.Ok(new {brands, departments});
             });
         }
     }

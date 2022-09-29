@@ -3,6 +3,7 @@ DELIMITER $$
 CREATE PROCEDURE `SP_Filter_Leave_History`(
 in currentUserId int,
 in inputBrandId int,
+in inputDepartmentId int,
 in fromTime DATETIME,
 in toTime DATETIME) 
 begin
@@ -20,16 +21,18 @@ begin
 	where u.Id = currentUserId
 	group by u.Id;
 
-	select  group_concat(rd.DepartmentId)
-	into 
-		deptIds
-	from roles r  
-	inner join userroles ur 
-	on ur.RoleId = r.Id
-	inner join roledepartments rd
-	on rd.RoleId = r.Id 
-	where ur.UserId = currentUserId
-	group by ur.UserId;
+	if (inputDepartmentId is null) then 
+		select  group_concat(rd.DepartmentId)
+		into 
+			deptIds
+		from roles r  
+		inner join userroles ur 
+		on ur.RoleId = r.Id
+		inner join roledepartments rd
+		on rd.RoleId = r.Id 
+		where ur.UserId = currentUserId
+		group by ur.UserId;
+	end if;
 	
 	-- set deptIds = concat(deptIds,',',  deptId);
 	
@@ -53,7 +56,7 @@ begin
 	left join ranks r 
 	on u.RankId = r.Id
 	where 
-			(FIND_IN_SET(u.DeptId  , deptIds)>0)
+			(if(inputDepartmentId is null, (FIND_IN_SET(u.DeptId  , deptIds)>0), u.DeptId = inputDepartmentId))
 		and r.`Level` <= rankLevel 
 		and (isAllBrandCheck >0 or FIND_IN_SET(s.EmployeeId , employeeIds)>0)
 		and (if(fromTime is null, 1, s.CreationTime  >= fromTime))

@@ -3,6 +3,34 @@
     <div class="columns is-desktop">
       <div class="column is-2-desktop">
         <multiselect
+            ref="multiSelectLeaveHistoryDepartment"
+            v-model="selectDepartment"
+            tag-placeholder=""
+            placeholder="Select department"             
+            :options="departments"
+            label="name"
+            track-by="id"
+            :multiple="false"
+            :taggable="false"
+            :close-on-select="true"
+            :clear-on-select="true"
+            selectLabel=""
+            deselectLabel="Remove"
+            @select="(selectedOption, id)=>{ 
+              filter.departmentId=selectedOption.id; getList(); }"
+            @remove="(removedOption, id)=>{ filter.departmentId=null; getList(); }">
+            <!-- <template slot="tag" slot-scope="{ option, remove }">
+              <span class="custom__tag"><span>{{ option.name }}</span>
+              <span class="custom__remove" @click="remove(option)">❌</span></span>
+            </template>
+            <template slot="clear" slot-scope="props">
+              <div class="multiselect__clear" v-if="selectBrand" @mousedown.prevent.stop="selectBrand=null"></div>
+            </template> -->
+            <span  slot="noResult">No result found</span>
+        </multiselect>
+      </div>
+      <div class="column is-2-desktop">
+        <multiselect
             ref="multiSelectLeaveHistoryBrand"
             v-model="selectBrand"
             tag-placeholder=""
@@ -339,14 +367,14 @@
 </template>
 <script>
 import Multiselect from "vue-multiselect";
-import { getDetail, getList, createOrUpdate, deleteData, getBrandDropdownByUser  } from "@/api/leaveHistory";
+import { getDetail, getList, createOrUpdate, deleteData, getBrandDropdownByUser, getBrandAndDepartmentDropdownByUser  } from "@/api/leaveHistory";
 export default {
   name:"LeaveHistory",
   components: { Multiselect },
   created() {
     this.selectMonth= this.getCurrentMonth();
     this.onSelectDateFilter(this.selectYear,this.selectMonth);
-    this.getBrandDropdownByUser();
+    this.getBrandAndDepartmentDropdownByUser();
     this.getList();
   },
   data() {
@@ -377,7 +405,8 @@ export default {
         sortDirection:'desc',
         keyword:null,
         status:null,
-        brandId:null
+        brandId:null,
+        departmentId:null
       },
       defaultFilter:{
         page:1,
@@ -386,7 +415,8 @@ export default {
         sortDirection:'desc',
         keyword:null,
         status:null,
-        brandId:null
+        brandId:null,
+        departmentId:null
       },
       model:{
         name:null,
@@ -402,7 +432,9 @@ export default {
       isDeleteModalActive:false,
       selectedId:null,
       selectBrand:null,
+      selectDepartment:null,
       brands:[],
+      departments:[],
       selectMonth:null,
       selectYear:new Date().getFullYear(),
       months:["January","February","March","April","May","June","July",
@@ -448,6 +480,7 @@ export default {
   methods: {
     resetFilter() {
       this.selectBrand= null;
+      this.selectDepartment= null;
       this.selectYear=new Date().getFullYear();
       this.selectMonth= this.getCurrentMonth();
       this.filter = { ...this.defaultFilter }; 
@@ -559,6 +592,23 @@ export default {
       .then((response) => {
         if (response.status == 200) {
           this.brands= [... response.data]; 
+          }
+        })
+      .catch((error) => {
+          this.notifyErrorMessage(error)
+        })
+      .finally(() => {});
+    },
+
+    getBrandAndDepartmentDropdownByUser(){
+      getBrandAndDepartmentDropdownByUser()
+      .then((response) => {
+        if (response.status == 200) {
+          if(response.data.brands)
+            this.brands= response.data.brands; 
+          
+          if(response.data.departments)
+            this.departments= response.data.departments; 
           }
         })
       .catch((error) => {

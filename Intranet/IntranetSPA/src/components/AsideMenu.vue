@@ -2,6 +2,7 @@
   <aside
     v-show="isAsideVisible"
     class="aside is-placed-left"
+    :style="isDesktopScreenAndBelow?'width: 4rem !important;': ''"
   >
     <div class="aside-tools">
       <a
@@ -10,7 +11,7 @@
       >
         <b-icon icon="menu" />
       </a>
-      <div class="aside-tools-label">
+      <div class="aside-tools-label" v-if="!isDesktopScreenAndBelow">
         <span><b>Intranet</b></span>
       </div>
     </div>
@@ -25,8 +26,9 @@
         </p>
         <aside-menu-list
           v-else
-          :key="index"
+          :key="index "
           :menu="menuGroup"
+          :isDesktopScreenAndBelow="isDesktopScreenAndBelow"
           @menu-click="menuClick"
         />
       </template>
@@ -47,6 +49,18 @@ export default {
       default: () => []
     }
   },
+  data () {
+    return {
+      isDesktopScreenAndBelow:false
+    }
+  },
+  created() {
+      window.addEventListener('resize', this.handleResize);
+      this.handleResize();
+    },
+  destroyed() {
+      window.removeEventListener('resize', this.handleResize);
+  },
   computed: {
     ...mapState([
       'isAsideVisible'
@@ -63,6 +77,9 @@ export default {
     },
     menuClick (item) {
       //
+    },
+    handleResize(){
+      this.isDesktopScreenAndBelow= window.innerWidth <= 1240;
     }
   }
 }

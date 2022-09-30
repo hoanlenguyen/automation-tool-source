@@ -4,6 +4,7 @@
       v-for="(item, index) in menu"
       :key="index"
       :item="item"
+      :isDesktopScreenAndBelow="isDesktopScreenAndBelow"
       @menu-click="menuClick"
     />
   </ul>
@@ -19,6 +20,10 @@ export default {
   },
   props: {
     isSubmenuList: Boolean,
+    isDesktopScreenAndBelow:{
+      type: Boolean,
+      default: () => false
+    },
     menu: {
       type: Array,
       default: () => []

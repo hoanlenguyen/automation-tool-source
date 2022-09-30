@@ -12,14 +12,14 @@
       <b-icon
         v-if="item.icon"
         :icon="item.icon"
-        :class="{ 'has-update-mark': item.updateMark }"
-        custom-size="default"
-      />
+        :class="isDesktopScreenAndBelow?'isFontSize24px':''"
+        :title="item.label"
+        />      
       <span
-        v-if="item.label"
+        v-if="item.label && !isDesktopScreenAndBelow"
         :class="{ 'menu-item-label': !!item.icon }"
       >
-        {{ item.label }}
+        {{ item.label }} 
       </span>
       <div
         v-if="hasDropdown"
@@ -27,15 +27,16 @@
       >
         <b-icon
           :icon="dropdownIcon"
-          custom-size="default"
+          :class="isDesktopScreenAndBelow?'isFontSize24px':''"
         />
       </div>
     </component>
     <aside-menu-list
-      class="pl-3"
+      :class="isDesktopScreenAndBelow? '':'pl-3'"
       v-if="hasDropdown"
       :menu="item.menu"
       is-submenu-list
+      :isDesktopScreenAndBelow="isDesktopScreenAndBelow"
     />
   </li>
 </template>
@@ -50,6 +51,10 @@ export default {
     item: {
       type: Object,
       required: true
+    },
+    isDesktopScreenAndBelow:{
+      type: Boolean,
+      default: () => false
     }
   },
   emits: ['menu-click'],
@@ -57,7 +62,7 @@ export default {
     return {
       isDropdownActive: false
     }
-  },
+  }, 
   computed: {
     componentIs () {
       return this.item.to ? 'router-link' : 'a'
@@ -76,7 +81,7 @@ export default {
       if (this.hasDropdown) {
         this.isDropdownActive = !this.isDropdownActive
       }
-    }
+    } 
   }
 }
 </script>

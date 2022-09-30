@@ -45,7 +45,7 @@
         </div>
       </div>
     </div>
-    <div class="navbar-brand is-right"></div>
+    <div class="navbar-brand is-right">
       <a
         class="navbar-item navbar-item-menu-toggle is-hidden-desktop"
         @click.prevent="menuToggle"

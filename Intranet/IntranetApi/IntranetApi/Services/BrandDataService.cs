@@ -83,7 +83,7 @@ namespace IntranetApi.Services
 
                 input.Adapt(entity);
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBrands);
                 memoryCache.Remove(CacheKeys.GetBrandsDropdown);
@@ -107,7 +107,7 @@ namespace IntranetApi.Services
 
                 entity.IsDeleted = true;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBrands);
                 memoryCache.Remove(CacheKeys.GetBrandsDropdown);

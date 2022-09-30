@@ -137,7 +137,7 @@ namespace IntranetApi.Services
                 user.UserRoles.Clear();
                 input.Adapt(user);
                 user.LastModifierUserId = userId;
-                user.LastModificationTime = DateTime.Now;
+                user.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 user.NormalizedUserName = user.UserName.ToUpperInvariant();
                 if (!user.IntranetPassword.Equals(currentPassword)
                                     && user.IntranetPassword.IsNotNullOrEmpty())
@@ -166,7 +166,7 @@ namespace IntranetApi.Services
 
                 entity.IsDeleted = true;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 return Results.Ok();
             })
@@ -271,7 +271,7 @@ namespace IntranetApi.Services
 
                             totalRows += rowCount - 1;
                             //read excel file data and add data
-                            var now = DateTime.Now;
+                            var now = DateTime.UtcNow.AddHours(1);
                             var errorCells = new List<string>();
                             var errorDetails = new List<string>();
                             var brandNames = new List<string>();

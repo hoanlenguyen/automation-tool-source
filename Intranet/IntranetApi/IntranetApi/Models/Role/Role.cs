@@ -5,7 +5,7 @@ namespace IntranetApi.Models
 {
     public class Role : IdentityRole<int>
     {
-        public DateTime CreationTime { get; set; } = DateTime.Now;
+        public DateTime CreationTime { get; set; } = DateTime.UtcNow.AddHours(1);
         public int? CreatorUserId { get; set; }
         [MaxLength(100)]
         public override string Name { get; set; }

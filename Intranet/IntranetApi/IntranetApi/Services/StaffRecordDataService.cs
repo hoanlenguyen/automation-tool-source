@@ -173,7 +173,7 @@ namespace IntranetApi.Services
                     default: break;
                 }
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 return Results.Ok();
             })
@@ -194,7 +194,7 @@ namespace IntranetApi.Services
 
                 entity.IsDeleted = true;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 return Results.Ok();
             })

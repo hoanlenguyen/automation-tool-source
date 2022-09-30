@@ -33,7 +33,7 @@ namespace IntranetApi.Services
         public async Task<string> SaveAndGetShortUrl(byte[] fileBytes, string fileOriginName, string folder = "", bool isAddAppfix = false)
         {
             var fileExtension = Path.GetExtension(fileOriginName).ToLower();
-            var fileName = isAddAppfix ? $"{Path.GetFileNameWithoutExtension(fileOriginName)}-{DateTime.Now.ToFileTime()}{fileExtension}" : fileOriginName;
+            var fileName = isAddAppfix ? $"{Path.GetFileNameWithoutExtension(fileOriginName)}-{DateTime.UtcNow.AddHours(1).ToFileTime()}{fileExtension}" : fileOriginName;
             //var filePath = folder.IsNotNullOrEmpty() ? $"{folder}/{fileName}" : fileName;
             var blobClient = containerClient.GetBlobClient($"{folder}/{fileName}");
             var stream = new MemoryStream(fileBytes);
@@ -45,7 +45,7 @@ namespace IntranetApi.Services
         public async Task<string> SaveAndGetFullUrl(byte[] fileBytes, string fileOriginName, string folder = "", bool isAddAppfix = false)
         {
             var fileExtension = Path.GetExtension(fileOriginName).ToLower();
-            var fileName = isAddAppfix ? $"{Path.GetFileNameWithoutExtension(fileOriginName)}-{DateTime.Now.ToFileTime()}{fileExtension}" : fileOriginName;
+            var fileName = isAddAppfix ? $"{Path.GetFileNameWithoutExtension(fileOriginName)}-{DateTime.UtcNow.AddHours(1).ToFileTime()}{fileExtension}" : fileOriginName;
             var filePath = folder.IsNotNullOrEmpty() ? $"{folder}/{fileName}" : fileName;
             var blobClient = containerClient.GetBlobClient($"{folder}/{fileName}");
             var stream = new MemoryStream(fileBytes);

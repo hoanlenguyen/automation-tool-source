@@ -13,7 +13,7 @@ namespace IntranetApi.Models
         public UserType UserType { get; set; } = UserType.Employee;
         public bool IsDeleted { get; set; } = false;
         public bool IsFirstTimeLogin { get; set; } = true;
-        public DateTime CreationTime { get; set; } = DateTime.Now;
+        public DateTime CreationTime { get; set; } = DateTime.UtcNow.AddHours(1);
         public int? CreatorUserId { get; set; }
         public DateTime? LastModificationTime { get; set; }
         public int? LastModifierUserId { get; set; }

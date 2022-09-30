@@ -85,7 +85,7 @@ namespace IntranetApi.Services
                 entity.Name = input.Name;
                 entity.Status = input.Status;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 memoryCache.Remove(CacheKeys.GetBanks);
                 memoryCache.Remove(CacheKeys.GetBanksDropdown);
                 db.SaveChanges();
@@ -109,7 +109,7 @@ namespace IntranetApi.Services
 
                 entity.IsDeleted = true;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetBanks);
                 memoryCache.Remove(CacheKeys.GetBanksDropdown);

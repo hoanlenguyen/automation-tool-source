@@ -108,7 +108,7 @@ namespace IntranetApi.Services
                 entity.RoleDepartments.Clear();
                 input.Adapt(entity);
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 //var existedRoleClaims = await db.RoleClaims.Where(p => p.RoleId == entity.Id).ToListAsync();
                 //if (existedRoleClaims.Any())
                 //    db.RoleClaims.RemoveRange(existedRoleClaims);
@@ -141,7 +141,7 @@ namespace IntranetApi.Services
 
                 entity.IsDeleted = true;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);

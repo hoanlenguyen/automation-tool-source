@@ -220,7 +220,7 @@ namespace IntranetApi.Services
 
                 var query = from rd in db.RoleDepartments
                             join d in db.Departments on rd.DepartmentId equals d.Id
-                            where rd.RoleId == role.RoleId
+                            where rd.RoleId == role.RoleId && !rd.Department.IsDeleted
                             select new BaseDropdown { Id = d.Id, Name = d.Name };
 
                 var departments = await query.ToListAsync();

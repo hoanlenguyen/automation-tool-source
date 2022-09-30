@@ -34,7 +34,7 @@ namespace IntranetApi.Models
 
         public int? UserId { get; set; }
 
-        public DateTime CreationTime { get; set; } = DateTime.Now;
+        public DateTime CreationTime { get; set; } = DateTime.UtcNow.AddHours(1);
         public int? CreatorUserId { get; set; }
         public DateTime? LastModificationTime { get; set; }
         public int? LastModifierUserId { get; set; }

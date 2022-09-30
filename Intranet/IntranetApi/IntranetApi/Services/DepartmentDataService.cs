@@ -93,7 +93,7 @@ namespace IntranetApi.Services
                 entity.Status = input.Status;
                 entity.WorkingHours = input.WorkingHours;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetDepartments);
                 memoryCache.Remove(CacheKeys.GetDepartmentsDropdown);
@@ -117,7 +117,7 @@ namespace IntranetApi.Services
 
                 entity.IsDeleted = true;
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.Now;
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetDepartments);
                 memoryCache.Remove(CacheKeys.GetDepartmentsDropdown);

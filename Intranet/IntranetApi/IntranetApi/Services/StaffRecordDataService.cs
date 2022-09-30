@@ -231,7 +231,20 @@ namespace IntranetApi.Services
                                 .WhereIf(input.ToTime != null, p => p.CreationTime <= input.ToTime)
                                 ;
                     totalCount = await query.CountAsync();
-                    items = await query.OrderByDynamic(input.SortBy, input.SortDirection)
+                    var isDESC = input.SortDirection.Equals(SortDirection.DESC, StringComparison.OrdinalIgnoreCase);
+                    query = input.SortBy switch
+                    {
+                        nameof(User.DeptId) => isDESC? query.OrderByDescending(p=>p.Employee.DeptId):query.OrderBy(p=>p.Employee.DeptId),
+                        nameof(User.Name) => isDESC ? query.OrderByDescending(p=>p.Employee.Name):query.OrderBy(p=>p.Employee.Name),
+                        nameof(User.EmployeeCode) => isDESC ? query.OrderByDescending(p=>p.Employee.EmployeeCode) :query.OrderBy(p=>p.Employee.EmployeeCode),
+                        nameof(StaffRecord.RecordType) => isDESC ? query.OrderByDescending(p=>p.RecordType) :query.OrderBy(p=>p.RecordType),
+                        nameof(StaffRecord.StartDate) => isDESC ? query.OrderByDescending(p=>p.StartDate) :query.OrderBy(p=>p.StartDate),
+                        nameof(StaffRecord.EndDate) => isDESC ? query.OrderByDescending(p=>p.EndDate) :query.OrderBy(p=>p.EndDate),
+                        nameof(StaffRecord.CreationTime) => isDESC ? query.OrderByDescending(p=>p.CreationTime) :query.OrderBy(p=>p.CreationTime),
+                        nameof(StaffRecord.CreatorUserId) => isDESC ? query.OrderByDescending(p=>p.CreatorUserId) : query.OrderBy(p=>p.CreatorUserId),
+                        _ => isDESC ? query.OrderByDescending(p => p.Id) : query.OrderBy(p => p.Id)
+                    };
+                    items = await query/*.OrderByDynamic(input.SortBy, input.SortDirection)*/
                                         .Skip(input.SkipCount)
                                         .Take(input.RowsPerPage)
                                         .ProjectToType<StaffRecordList>()
@@ -245,6 +258,8 @@ namespace IntranetApi.Services
                         {
                             currentUserId = userId,
                             fromTime = input.FromTime,
+                            sortBy = input.SortBy,
+                            sortDirection = input.SortDirection,
                             toTime = input.ToTime,
                             exportLimit = input.RowsPerPage,
                             exportOffset = input.SkipCount
@@ -254,7 +269,7 @@ namespace IntranetApi.Services
                     totalCount = items.Any() ? items.FirstOrDefault().TotalCount : 0;
                 }
 
-                var creatorIds = items.Select(p => p.CreatorUserId);
+                var creatorIds = items.Select(p => p.CreatorUserId).Distinct().ToList();
                 var creators = await db.Users.Where(p => creatorIds.Contains(p.Id)).Select(p => new BaseDropdown { Id = p.Id, Name = p.Name }).ToListAsync();
                 foreach (var item in items)
                 {

@@ -27,7 +27,7 @@
     hoverable    
     >
       <b-table-column
-        field="Employee.DeptId"
+        field="DeptId"
         label="Dept"
         sortable        
         width="200px"
@@ -39,8 +39,9 @@
       </b-table-column>
 
       <b-table-column
-        field="Employee.Name"
+        field="Name"
         label="Employee Name"
+        sortable        
         v-slot="props"
         width="300px"
         header-class="is-size-7 customTableBorderHeader"
@@ -49,8 +50,9 @@
       </b-table-column>
 
       <b-table-column
-        field="EmployeeId"
+        field="EmployeeCode"
         label="Employee Code"
+        sortable        
         v-slot="props"
         width="300px"
         header-class="is-size-7 customTableBorderHeader"
@@ -59,8 +61,9 @@
       </b-table-column>
 
       <b-table-column
-        field="recordType"
+        field="RecordType"
         label="Record type"
+        sortable        
         v-slot="props"
         width="300px"
         header-class="is-size-7 customTableBorderHeader"
@@ -69,7 +72,7 @@
       </b-table-column>
 
       <b-table-column
-        field="startDate"
+        field="StartDate"
         label="Start Date"
         sortable
         v-slot="props"
@@ -80,7 +83,7 @@
       </b-table-column>
 
       <b-table-column
-        field="endDate"
+        field="EndDate"
         label="End Date"
         sortable
         v-slot="props"
@@ -91,7 +94,7 @@
       </b-table-column>
 
       <b-table-column
-        field="creationTime"
+        field="CreationTime"
         label="Creation Time"
         sortable
         v-slot="props"
@@ -102,8 +105,9 @@
       </b-table-column>
 
       <b-table-column
-        field="creatorUserId"
+        field="CreatorUserId"
         label="Created by"
+        sortable        
         v-slot="props"
         width="250"
         header-class="is-size-7 customTableBorderHeader"

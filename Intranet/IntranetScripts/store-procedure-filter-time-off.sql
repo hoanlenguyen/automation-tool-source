@@ -4,6 +4,8 @@ CREATE PROCEDURE `SP_Filter_Time_Off`(
 in currentUserId INT,
 in fromTime DATETIME,
 in toTime DATETIME,
+IN sortBy varchar(200),
+IN sortDirection varchar(200),
 in exportLimit INT,
 in exportOffset INT) 
 begin
@@ -77,6 +79,34 @@ begin
 		and (if(fromTime is null, 1, s.CreationTime  >= fromTime))
 		and (if(toTime is null, 1, s.CreationTime  <= toTime))
 		and s.IsDeleted = 0
+		
+	ORDER BY
+		CASE WHEN sortDirection = 'ASC' THEN
+		    CASE 
+		       WHEN sortBy = 'DeptId' THEN u.DeptId
+		       WHEN sortBy = 'Name' THEN u.Name
+		       WHEN sortBy = 'EmployeeCode' THEN u.EmployeeCode 
+		       WHEN sortBy = 'RecordType' THEN s.RecordType
+		       WHEN sortBy = 'StartDate' THEN s.StartDate
+		       WHEN sortBy = 'EndDate' THEN s.EndDate
+		       WHEN sortBy = 'CreationTime' THEN s.CreationTime
+		       WHEN sortBy = 'CreatorUserId' THEN s.CreatorUserId
+		       ELSE s.Id 
+		    END
+		END ASC
+		, CASE WHEN sortDirection = 'DESC' THEN
+		    CASE 
+		       WHEN sortBy = 'DeptId' THEN u.DeptId
+		       WHEN sortBy = 'Name' THEN u.Name
+		       WHEN sortBy = 'EmployeeCode' THEN u.EmployeeCode 
+		       WHEN sortBy = 'RecordType' THEN s.RecordType
+		       WHEN sortBy = 'StartDate' THEN s.StartDate
+		       WHEN sortBy = 'EndDate' THEN s.EndDate
+		       WHEN sortBy = 'CreationTime' THEN s.CreationTime
+		       WHEN sortBy = 'CreatorUserId' THEN s.CreatorUserId
+		       ELSE s.Id 
+		    END
+		END DESC
    	LIMIT exportOffset, exportLimit;
 END$$
 DELIMITER

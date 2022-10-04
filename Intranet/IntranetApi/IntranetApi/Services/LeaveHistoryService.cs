@@ -227,10 +227,60 @@ namespace IntranetApi.Services
                                 SumCalculationAmount = p.Sum(p => p.CalculationAmount),
                                 Fines = p.Sum(p => p.Fine)
                             })
-                            .Skip(input.SkipCount)
-                            .Take(input.RowsPerPage)
+                            //.Skip(input.SkipCount)
+                            //.Take(input.RowsPerPage)
                             .ToList();
 
+                    //Get Leave History import
+                    var leaveRecords = connection.Query<LeaveHistoryList>("SP_Filter_Import_Leave_History",
+                        new
+                        {
+                            currentUserId = userId,
+                            inputBrandId = input.BrandId,
+                            inputDepartmentId = input.DepartmentId,
+                            fromTime = input.FromTime,
+                            toTime = input.ToTime,
+                        },
+                        commandType: CommandType.StoredProcedure).ToList();
+
+                    totalCount += leaveRecords.Select(p => p.EmployeeId).Distinct().Count();
+                    //Console.WriteLine($"leaveRecords {leaveRecords.FirstOrDefault()?.SumDaysOfPaidMCs.ToString()}");
+                    leaveRecords = leaveRecords.GroupBy(p => p.EmployeeId)
+                                .Select(p => new LeaveHistoryList
+                                {
+                                    EmployeeId = p.Key,
+                                    EmployeeName = p.FirstOrDefault().EmployeeCode,
+                                    EmployeeCode = p.FirstOrDefault().EmployeeCode,
+                                    DepartmentId = p.FirstOrDefault().DepartmentId,
+                                    RankId = p.FirstOrDefault().RankId,
+                                    Country = p.FirstOrDefault().Country,
+                                    SumDaysOfPaidOffs = p.Sum(p => p.SumDaysOfPaidOffs),
+                                    SumDaysOfPaidMCs = p.Sum(p => p.SumDaysOfPaidMCs),
+                                    SumHoursOfDeduction = p.Sum(p => p.SumHoursOfDeduction)                                    
+                                })
+                                //.Skip(input.SkipCount)
+                                //.Take(input.RowsPerPage)
+                                .ToList();
+                    //Console.WriteLine($"leaveRecords {leaveRecords.Count}");
+                    //Console.WriteLine($"leaveRecords {leaveRecords.FirstOrDefault()?.SumDaysOfPaidMCs.ToString()}");
+                    if (leaveRecords.Any())
+                    {
+                        foreach (var item in items)
+                        {
+                            var leaveHistory = leaveRecords.FirstOrDefault(p => p.EmployeeId == item.EmployeeId);
+                            if (leaveHistory != null)
+                            {
+                                item.SumDaysOfPaidOffs += leaveHistory.SumDaysOfPaidOffs;
+                                item.SumDaysOfPaidMCs += leaveHistory.SumDaysOfPaidMCs;
+                                item.SumHoursOfDeduction += leaveHistory.SumHoursOfDeduction;
+                            }
+                        }
+                        var existEmployeeIds = items.Select(p => p.EmployeeId);
+                        items.AddRange(leaveRecords.Where(p => !existEmployeeIds.Contains(p.EmployeeId)));
+                    }
+                    items = items.Skip(input.SkipCount)
+                                .Take(input.RowsPerPage)
+                                .ToList();
                     var employeeIds = items.Select(p => p.EmployeeId);
                     var brandEmployees = await db.BrandEmployees
                                 .Where(p => employeeIds.Contains(p.EmployeeId))

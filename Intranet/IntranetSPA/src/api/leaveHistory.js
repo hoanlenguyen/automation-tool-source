@@ -2,13 +2,13 @@ import request from '@/utils/request'
 
 export function getDetail(id) {
   return request({
-    url: `/LeaveHistory/${id}`,
+    url: `LeaveHistory/${id}`,
     method: 'get'})
 }
 
 export function createOrUpdate(input) {
   return request({
-    url: '/LeaveHistory',
+    url: 'LeaveHistory',
     method:input.id==0? 'post':'put',
     data:input    
   })
@@ -16,7 +16,7 @@ export function createOrUpdate(input) {
 
 export function getList(input) {
   return request({
-    url: '/LeaveHistory/list',
+    url: 'LeaveHistory/list',
     method: 'post',
     data:input    
   })
@@ -24,7 +24,7 @@ export function getList(input) {
 
 export function deleteData(id) {
   return request({
-    url: `/LeaveHistory/${id}`,
+    url: `LeaveHistory/${id}`,
     method: 'delete'})
 }
 
@@ -38,4 +38,15 @@ export function getBrandAndDepartmentDropdownByUser() {
   return request({
     url: 'LeaveHistory/GetBrandAndDepartmentDropdownByUser',
     method: 'get'})
+}
+
+
+export function importLeaveHistories(inputParams, inputData) {
+  return request({
+    url: 'LeaveHistory/importExcel',
+    method: 'post',
+    data: inputData,
+    params:inputParams,
+    headers: {'Content-Type': 'multipart/form-data'}
+    })
 }

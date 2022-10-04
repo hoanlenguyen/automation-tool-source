@@ -3,6 +3,7 @@ using System;
 using IntranetApi.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IntranetApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221003033501_add_LeaveHistories")]
+    partial class add_LeaveHistories
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -257,8 +259,6 @@ namespace IntranetApi.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId");
 
                     b.ToTable("LeaveHistories");
                 });
@@ -745,16 +745,6 @@ namespace IntranetApi.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("IntranetApi.Models.LeaveHistory", b =>
-                {
-                    b.HasOne("IntranetApi.Models.User", "Employee")
-                        .WithMany("LeaveHistories")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Employee");
-                });
-
             modelBuilder.Entity("IntranetApi.Models.RoleClaim", b =>
                 {
                     b.HasOne("IntranetApi.Models.Role", "Role")
@@ -790,7 +780,7 @@ namespace IntranetApi.Migrations
                     b.HasOne("IntranetApi.Models.User", "Employee")
                         .WithMany("StaffRecords")
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Employee");
                 });
@@ -879,8 +869,6 @@ namespace IntranetApi.Migrations
             modelBuilder.Entity("IntranetApi.Models.User", b =>
                 {
                     b.Navigation("BrandEmployees");
-
-                    b.Navigation("LeaveHistories");
 
                     b.Navigation("StaffRecords");
 

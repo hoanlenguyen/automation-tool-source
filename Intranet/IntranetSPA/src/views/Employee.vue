@@ -598,12 +598,7 @@ export default {
   },
   created() {
     this.getList();
-    this.getRelatedData();
-    // this.getRoleDropdown();
-    // this.getDepartmentDropdown();
-    // this.getBankDropdown();
-    // this.getBrandDropdown();
-    // this.getRankDropdown();
+    this.getRelatedData(); 
   },
   data() {
     return {
@@ -913,7 +908,6 @@ export default {
         });
     },
     downloadErrorListExcel() {
-      console.log("downloadErrorListExcel");
       if (this.errorList.length > 0) 
          this.exportExcelData(this.errorList, "ErrorList", 30);
     },

@@ -26,6 +26,9 @@ namespace IntranetApi.Services
             if (string.IsNullOrEmpty(input.SortDirection))
                 input.SortDirection = SortDirection.DESC;
 
+            if (input.FromTime != null)
+                input.FromTime = input.FromTime.Value.Date;
+
             if (input.ToTime != null)
                 input.ToTime = input.ToTime.Value.Date.AddDays(1).AddTicks(-1);
         }
@@ -48,7 +51,7 @@ namespace IntranetApi.Services
             .RequireAuthorization(StaffRecordPermissions.View)
             ;
 
-            app.MapPost("StaffRecord", [AllowAnonymous]
+            app.MapPost("StaffRecord", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
@@ -58,49 +61,13 @@ namespace IntranetApi.Services
                 var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<StaffRecord>();
-                var workingHours = await db.Departments
-                                        .Where(p => p.Id == entity.DepartmentId)
-                                        .Select(p => p.WorkingHours)
-                                        .FirstOrDefaultAsync();
-                var salary = await db.Users.Where(p => p.Id == entity.EmployeeId)
-                                         .Select(p => p.Salary)
-                                         .FirstOrDefaultAsync();
-                switch (entity.RecordDetailType)
-                {
-                    case StaffRecordDetailType.PaidMCs:
-                    case StaffRecordDetailType.PaidOffs:
-                    case StaffRecordDetailType.ExtraPayCoverShift:
-                    case StaffRecordDetailType.DeductionUnpaidLeave:
-                        {
-                            entity.NumberOfDays = (entity.EndDate - entity.StartDate).Days + 1;
-                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayCoverShift)
-                            {
-                                entity.CalculationAmount = entity.NumberOfDays * (salary / 365);
-                            }
+                var employeeDetail = await (from u in db.Users
+                                            join d in db.Departments on u.DeptId equals d.Id
+                                            where u.Id == entity.EmployeeId
+                                            select new { u.Id, u.Salary, d.WorkingHours })
+                                            .FirstOrDefaultAsync();
 
-                            if (entity.RecordDetailType == StaffRecordDetailType.DeductionUnpaidLeave)
-                            {
-                                entity.CalculationAmount = -entity.NumberOfDays * (salary / 365);
-                            }
-                            break;
-                        }
-                    case StaffRecordDetailType.ExtraPayOTs:
-                        {
-                            entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
-                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayOTs && workingHours > 0)
-                            {
-                                entity.CalculationAmount = entity.NumberOfHours * (salary / (365 * workingHours));
-                            }
-                            break;
-                        }
-                    case StaffRecordDetailType.DeductionLate:
-                        {
-                            entity.CalculationAmount = -entity.LateAmount;
-                            break;
-                        }
-                    default: break;
-                }
-
+                entity.UpdateCalculationAmount(salary: employeeDetail?.Salary??0, workingHours: employeeDetail?.WorkingHours ?? 0);
                 entity.CreatorUserId = userId;
                 db.StaffRecords.Add(entity);
                 db.SaveChanges();
@@ -125,53 +92,13 @@ namespace IntranetApi.Services
 
                 entity.StaffRecordDocuments.Clear();
                 input.Adapt(entity);
-                entity.NumberOfDays = 0;
-                entity.NumberOfHours = 0;
-                entity.CalculationAmount = 0;
-                var workingHours = await db.Departments
-                                        .Where(p => p.Id == entity.DepartmentId)
-                                        .Select(p => p.WorkingHours)
-                                        .FirstOrDefaultAsync();
+                var employeeDetail = await (from u in db.Users
+                                            join d in db.Departments on u.DeptId equals d.Id
+                                            where u.Id == entity.EmployeeId
+                                            select new { u.Id, u.Salary, d.WorkingHours })
+                                            .FirstOrDefaultAsync();
 
-                var salary = await db.Users.Where(p => p.Id == entity.EmployeeId)
-                                         .Select(p => p.Salary)
-                                         .FirstOrDefaultAsync();
-
-                switch (entity.RecordDetailType)
-                {
-                    case StaffRecordDetailType.PaidMCs:
-                    case StaffRecordDetailType.PaidOffs:
-                    case StaffRecordDetailType.ExtraPayCoverShift:
-                    case StaffRecordDetailType.DeductionUnpaidLeave:
-                        {
-                            entity.NumberOfDays = (entity.EndDate - entity.StartDate).Days + 1;
-                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayCoverShift)
-                            {
-                                entity.CalculationAmount = entity.NumberOfDays * (salary / 365);
-                            }
-
-                            if (entity.RecordDetailType == StaffRecordDetailType.DeductionUnpaidLeave)
-                            {
-                                entity.CalculationAmount = -entity.NumberOfDays * (salary / 365);
-                            }
-                            break;
-                        }
-                    case StaffRecordDetailType.ExtraPayOTs:
-                        {
-                            entity.NumberOfHours = (int)Math.Round((entity.EndDate - entity.StartDate).TotalHours);
-                            if (entity.RecordDetailType == StaffRecordDetailType.ExtraPayOTs && workingHours > 0)
-                            {
-                                entity.CalculationAmount = entity.NumberOfHours * (salary / (365 * workingHours));
-                            }
-                            break;
-                        }
-                    case StaffRecordDetailType.DeductionLate:
-                        {
-                            entity.CalculationAmount = -entity.LateAmount;
-                            break;
-                        }
-                    default: break;
-                }
+                entity.UpdateCalculationAmount(salary: employeeDetail?.Salary ?? 0, workingHours: employeeDetail?.WorkingHours ?? 0);
                 entity.LastModifierUserId = userId;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
@@ -179,7 +106,6 @@ namespace IntranetApi.Services
             })
             .RequireAuthorization(StaffRecordPermissions.Update)
             ;
-
             app.MapDelete("StaffRecord/{id:int}", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,

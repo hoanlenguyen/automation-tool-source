@@ -100,7 +100,7 @@ namespace IntranetApi.Models
     public static class LeaveHistoryPermissions
     {
         public const string View = "LeaveHistory.View";
-        //public const string Create = "StaffRecord.Create";
+        public const string Create = "LeaveHistory.Create";
         //public const string Update = "StaffRecord.Update";
         //public const string Delete = "StaffRecord.Delete";
     }

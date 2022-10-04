@@ -203,7 +203,7 @@ namespace IntranetApi.Services
             .RequireAuthorization(RolePermissions.View)
             ;
 
-            app.MapGet("Role/dropdown", [AllowAnonymous]
+            app.MapGet("Role/dropdown", [Authorize]
             async Task<IResult> (
             /*[FromServices] IMemoryCache memoryCache*/
             IMemoryCacheService memoryCacheService) =>
@@ -219,7 +219,7 @@ namespace IntranetApi.Services
                 return Results.Ok(/*GetBaseDropdown(sqlConnectionStr)*/ memoryCacheService.GetRolesDropdown());
             });
 
-            app.MapPost("Role/addPermission", [AllowAnonymous]
+            app.MapPost("Role/addPermission", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,

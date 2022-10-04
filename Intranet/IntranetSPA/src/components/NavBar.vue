@@ -66,7 +66,7 @@
             <b-icon class="mt-4" :icon="unReadNotiCount? `bell-ring-outline`: `bell-outline`" :type="unReadNotiCount? `is-primary`: `is-dark`"></b-icon>
             <span v-if="unReadNotiCount" class="mt-0 pt-0 mb-5 pb-5"><b-tag rounded type="is-primary" style="width:14px; height:14px; font-size: 10px; border-radius: 50%;" >{{unReadNotiCount}}</b-tag></span>
           </template>
-          <b-dropdown-item :expanded="true" custom :focusable="false" paddingless aria-role="listitem" v-for="(message, index) in $store.state.notificationMessages" class="py-1" style="text-align: left;">
+          <b-dropdown-item :expanded="true" custom :focusable="false" paddingless aria-role="listitem" v-for="(message, index) in $store.state.notificationMessages" :key="index" class="py-1" style="text-align: left;">
             <b-message size="is-small" :type="!message.isRead?`is-success`: `is-dark`" class="m-0 p-0" :style="message.isRead?`cursor: context-menu`: `cursor: pointer`" @click.native="readNotificationMessages(index)">
               <div class="columns">
                 <div class="column is-11"><span v-html="message.content"></span></div>

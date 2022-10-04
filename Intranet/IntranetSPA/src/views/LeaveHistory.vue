@@ -289,7 +289,17 @@
       <div slot="footer" class="is-flex 
         is-flex-direction-row
         is-align-items-center
-        is-flex-wrap-wrap">        
+        is-flex-wrap-wrap">
+        <b-button
+          v-if="canCreate"
+          label="Import"
+          type="is-primary"
+          class="mr-4"
+          icon-left="note-plus"
+          :size="$isMobile()?'is-small':''"
+          @click="isModalImportActive=true"
+          :loading="isImportLoading"          
+        />        
         <b-button
             label="Reset"
             type="is-light"
@@ -363,11 +373,49 @@
         </footer>
         </div>
     </b-modal>
+
+    <b-modal v-model="isModalImportActive" trap-focus has-modal-card :can-cancel="false" width="1200" scroll="keep">
+      <div class="modal-card" style="height:500px">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Import Leave Histories</p>                 
+        </header>
+        <section class="modal-card-body">
+          <b-field class="file is-primary" :class="{ 'has-name': !!file }" >
+           <b-upload v-model="file" class="file-label" @change.native="isShowImportResult=false; fileName=file?file.name:''" 
+            accept=".xlsx, .xls, .csv" required validationMessage="Please select correct file type">
+            <span class="file-cta">
+              <b-icon class="file-icon" icon="upload" ></b-icon>
+              <span class="file-label" >Click to upload</span>
+            </span>
+            <span class="file-name" v-if="file">
+              {{ fileName }}
+            </span>
+          </b-upload>
+        </b-field> 
+        <b-field class="mt-5" v-show="isShowImportResult">
+          <h5 class="subtitle is-6">Import {{fileName}} successfully!</h5>
+        </b-field>
+        <div class="mt-5" v-show="isShowImportResult">
+          <h5 class="subtitle is-6" >Total rows: <strong>{{totalRows}}</strong></h5>
+          <h5 class="subtitle is-6" >Total imported rows: <strong>{{totalImportedRows}}</strong></h5>
+          <h5 class="subtitle is-6" >Total error rows: <strong>{{totalErrorRows}}</strong></h5>
+        </div>
+        <b-field class="mt-5"  v-show="errorList.length>0 &&isShowImportResult">
+          <b-button label="Download error list" class="mr-3" type="is-primary" @click="downloadErrorListExcel"/>
+        </b-field>                
+        </section>
+        <footer class="modal-card-foot">
+          <b-button label="Close" @click="file=null;isShowImportResult=false;isModalImportActive=false" />
+          <b-button label="Import Data" type="is-primary" :disabled="file==null" @click="importLeaveHistories" :loading="isImportLoading"/>
+        </footer>
+        </div>
+    </b-modal>
   </section>
 </template>
 <script>
 import Multiselect from "vue-multiselect";
-import { getDetail, getList, createOrUpdate, deleteData, getBrandDropdownByUser, getBrandAndDepartmentDropdownByUser  } from "@/api/leaveHistory";
+import { getDetail, getList, createOrUpdate, deleteData, getBrandDropdownByUser, 
+         getBrandAndDepartmentDropdownByUser,importLeaveHistories  } from "@/api/leaveHistory";
 export default {
   name:"LeaveHistory",
   components: { Multiselect },
@@ -430,6 +478,15 @@ export default {
       },
       isModalActive:false,
       isDeleteModalActive:false,
+      isModalImportActive:false,
+      isImportLoading:false,
+      isShowImportResult:false, 
+      file: null,
+      fileName:'',
+      errorList:[],
+      totalRows:0,
+      totalImportedRows:0,
+      totalErrorRows:0,     
       selectedId:null,
       selectBrand:null,
       selectDepartment:null,
@@ -456,7 +513,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "StaffRecord.Create"
+          "LeaveHistory.Create"
         )
       );
     },
@@ -464,7 +521,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "StaffRecord.Update"
+          "LeaveHistory.Update"
         )
       );
     },
@@ -472,7 +529,7 @@ export default {
       return (
         this.$store.state.userPermissions &&
         this.$store.state.userPermissions.includes(
-          "StaffRecord.Delete"
+          "LeaveHistory.Delete"
         )
       );
     }
@@ -620,6 +677,50 @@ export default {
       let monthIndex = (new Date()).getMonth();
       return this.months[monthIndex];
     }, 
+    importLeaveHistories(){
+      this.isImportLoading=true;
+      this.isShowImportResult=false;
+      this.errorList=[];
+      let formData = new FormData();
+      formData.append('file', this.file);
+      importLeaveHistories({},formData)
+      .then((response) => {
+          if (response.status == 200) {
+            var data = response.data;
+            if(data){
+              this.errorList= data.errorList;
+              this.totalRows= data.totalRows;
+              this.totalErrorRows= this.errorList.length;
+              this.totalImportedRows= this.totalRows- this.totalErrorRows;
+              this.isShowImportResult=true;
+              if(!data.shouldSendEmail){
+                this.$buefy.snackbar.open({
+                message: `Import ${this.fileName} successfully!`,
+                queue: false,
+                });
+              }else{
+                this.$buefy.snackbar.open({
+                  message: `Import ${this.fileName} successfully!\nSystem will send email to inform when the new export data is ready`,
+                  queue: false,
+                  duration: 6000
+                });
+              }
+              this.getList();
+            }  
+          }
+        })
+        .catch((error) => {
+          this.notifyErrorMessage(error)
+        })
+        .finally(() => {
+          this.isImportLoading = false;
+          this.file=null;
+        });
+    },
+    downloadErrorListExcel() {
+      if (this.errorList.length > 0) 
+         this.exportExcelData(this.errorList, "ErrorList", 30);
+    },
   }
 };
 </script>

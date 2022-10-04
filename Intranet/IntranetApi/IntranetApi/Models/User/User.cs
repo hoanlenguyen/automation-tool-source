@@ -18,15 +18,12 @@ namespace IntranetApi.Models
         public DateTime? LastModificationTime { get; set; }
         public int? LastModifierUserId { get; set; }
         public bool Status { get; set; } = true;
-        //[NotMapped]
-
-        //public override string? Email { get; set; }
+ 
 
         #region Employee
 
         [MaxLength(50)]
         public string EmployeeCode { get; set; } = string.Empty;
-
         public int RoleId { get; set; }
         public int RankId { get; set; }
         public int DeptId { get; set; }
@@ -63,21 +60,9 @@ namespace IntranetApi.Models
         public string? Country { get; set; }
 
         public virtual ICollection<StaffRecord> StaffRecords { get; set; } = new HashSet<StaffRecord>();
+        public virtual ICollection<LeaveHistory> LeaveHistories { get; set; } = new HashSet<LeaveHistory>();
         public virtual ICollection<BrandEmployee> BrandEmployees { get; set; } = new HashSet<BrandEmployee>();
-        public virtual ICollection<UserRole> UserRoles { get; set; } = new HashSet<UserRole>();
-
-        //[ForeignKey(nameof(RankId))]
-        //public virtual Rank Rank { get; set; }
-
-        //[ForeignKey(nameof(DeptId))]
-        //public virtual Department Department { get; set; }
-
-        //[ForeignKey(nameof(BankId))]
-        //public virtual Bank Bank { get; set; }
-
-        //[ForeignKey(nameof(RoleId))]
-        //public virtual Role Role { get; set; }
-
+        public virtual ICollection<UserRole> UserRoles { get; set; } = new HashSet<UserRole>();         
         #endregion Employee
     }
 }

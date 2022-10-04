@@ -26,6 +26,7 @@ namespace IntranetApi.DbContext
         public DbSet<StaffRecordDocument> StaffRecordDocuments { get; set; }
         public DbSet<EmployeeImportHistory> EmployeeImportHistories { get; set; }
         public DbSet<Currency> Currencies { get; set; }
+        public DbSet<LeaveHistory> LeaveHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,13 +36,11 @@ namespace IntranetApi.DbContext
             modelBuilder.Entity<Role>().ToTable("Roles");
             modelBuilder.Entity<UserRole>().ToTable("UserRoles");
             modelBuilder.Entity<RoleClaim>().ToTable("RoleClaims");
-
             modelBuilder.Entity<User>().HasIndex(p => p.EmployeeCode).IsUnique();
             modelBuilder.Entity<StaffRecord>().Property(p=>p.Fine).HasPrecision(18, 2);
             modelBuilder.Entity<StaffRecord>().Property(p=>p.CalculationAmount).HasPrecision(18, 2);
             modelBuilder.Entity<BrandEmployee>().HasKey(p => new { p.BrandId, p.EmployeeId });
             modelBuilder.Entity<RoleDepartment>().HasKey(p => new { p.RoleId, p.DepartmentId });
-
             modelBuilder.Entity<StaffRecordDocument>()
                     .HasOne(p=>p.StaffRecord)
                     .WithMany(p=>p.StaffRecordDocuments)
@@ -53,7 +52,14 @@ namespace IntranetApi.DbContext
                     .WithMany(p => p.StaffRecords)
                     .HasForeignKey(p => p.EmployeeId)
                     .IsRequired(false)
-                    .OnDelete(DeleteBehavior.NoAction);
+                    .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LeaveHistory>()
+                    .HasOne(p => p.Employee)
+                    .WithMany(p => p.LeaveHistories)
+                    .HasForeignKey(p => p.EmployeeId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<BrandEmployee>()
                     .HasOne(bc => bc.Brand)

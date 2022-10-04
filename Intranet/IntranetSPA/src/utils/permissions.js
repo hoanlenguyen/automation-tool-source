@@ -160,6 +160,10 @@ export default [
             {
                 id: 'LeaveHistory.View',
                 label: 'LeaveHistory.View'
+            },
+            {
+                id: 'LeaveHistory.Create',
+                label: 'LeaveHistory.Create'
             }
         ]
     },

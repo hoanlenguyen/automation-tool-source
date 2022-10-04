@@ -14,14 +14,14 @@
         public string CurrencySymbol { get; set; }
         public IEnumerable<string> Brands { get; set; } = new HashSet<string>();
         public IEnumerable<int> BrandEmployees { get; set; } = new HashSet<int>();
-        public int SumDaysOfExtraPay { get; set; }
-        public int SumHoursOfExtraPay { get; set; }
-        public int SumDaysOfDeduction { get; set; }
-        public int SumHoursOfDeduction { get; set; }
-        public int SumDaysOfPaidOffs { get; set; }
-        public int SumDaysOfPaidMCs { get; set; }
+        public float SumDaysOfExtraPay { get; set; }
+        public float SumHoursOfExtraPay { get; set; }
+        public float SumDaysOfDeduction { get; set; }
+        public float SumHoursOfDeduction { get; set; }
+        public float SumDaysOfPaidOffs { get; set; }
+        public float SumDaysOfPaidMCs { get; set; }
         public decimal SumCalculationAmount { get; set; }
-        public int LateAmount { get; set; }
+        public float LateAmount { get; set; }
         public decimal Fines { get; set; }
     }
 }

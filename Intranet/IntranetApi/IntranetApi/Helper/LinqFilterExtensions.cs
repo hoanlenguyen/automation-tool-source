@@ -29,7 +29,7 @@ namespace IntranetApi.Helper
 
         public static IQueryable<T> OrderByDynamic<T>(this IQueryable<T> query, string sortColumn, string sortDirection) /*where T : class*/
         {
-            return query.OrderByDynamic(sortColumn, sortDirection.Equals(SortDirection.ASC,StringComparison.OrdinalIgnoreCase));
+            return query.OrderByDynamic(sortColumn, sortDirection.Equals(SortDirection.ASC, StringComparison.OrdinalIgnoreCase));
         }
 
         public static IQueryable<T> OrderByDynamic<T>(this IQueryable<T> query, string sortValue) /*where T : class*/

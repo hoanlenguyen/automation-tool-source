@@ -59,6 +59,10 @@
       font-size: 24px !important;
   }
 
+  .isFontSize10px {
+    font-size: 10px !important;
+}
+
   @media screen and (max-width: 1240px) {
 
       html.has-aside-left nav.navbar,

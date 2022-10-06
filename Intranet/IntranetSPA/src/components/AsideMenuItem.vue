@@ -1,43 +1,23 @@
 <template>
   <li :class="{ 'is-active': isDropdownActive }">
-    <component
-      :is="componentIs"
-      :to="item.to"
-      :href="item.href"
-      :target="item.target"
-      exact-active-class="is-active"
-      :class="{ 'has-icon': !!item.icon, 'has-dropdown-icon': hasDropdown }"
-      @click="menuClick"
-    >
-      <b-icon
-        v-if="item.icon"
-        :icon="item.icon"
-        :class="isDesktopScreenAndBelow?'isFontSize24px':''"
-        :title="item.label"
-        />      
-      <span
-        v-if="item.label && !isDesktopScreenAndBelow"
-        :class="{ 'menu-item-label': !!item.icon }"
-      >
-        {{ item.label }} 
-      </span>
-      <div
-        v-if="hasDropdown"
-        class="dropdown-icon"
-      >
-        <b-icon
-          :icon="dropdownIcon"
-          :class="isDesktopScreenAndBelow?'isFontSize24px':''"
-        />
+    <component :is="componentIs" :to="item.to" :href="item.href" :target="item.target" exact-active-class="is-active"
+      :class="{ 'has-icon': !!item.icon, 'has-dropdown-icon': hasDropdown }" @click="menuClick">
+      <div :class="isDesktopScreenAndBelow? 'has-text-centered':''">
+        <b-icon v-if="item.icon" :icon="item.icon" :class="isDesktopScreenAndBelow?'isFontSize24px':''"
+          :title="item.label" />
+        <p v-if="isDesktopScreenAndBelow" class="menu-item-label isFontSize10px has-text-centered">
+          {{ item.label }}
+        </p>
+        <span v-else :class="{ 'menu-item-label': !!item.icon }">
+          {{ item.label }}
+        </span>
+      </div>
+      <div v-if="hasDropdown" class="dropdown-icon">
+        <b-icon :icon="dropdownIcon" :class="isDesktopScreenAndBelow?'isFontSize24px':''" />
       </div>
     </component>
-    <aside-menu-list
-      :class="isDesktopScreenAndBelow? '':'pl-3'"
-      v-if="hasDropdown"
-      :menu="item.menu"
-      is-submenu-list
-      :isDesktopScreenAndBelow="isDesktopScreenAndBelow"
-    />
+    <aside-menu-list :class="isDesktopScreenAndBelow? '':'pl-3'" v-if="hasDropdown" :menu="item.menu" is-submenu-list
+      :isDesktopScreenAndBelow="isDesktopScreenAndBelow" />
   </li>
 </template>
 
@@ -52,36 +32,36 @@ export default {
       type: Object,
       required: true
     },
-    isDesktopScreenAndBelow:{
+    isDesktopScreenAndBelow: {
       type: Boolean,
       default: () => false
     }
   },
   emits: ['menu-click'],
-  data () {
+  data() {
     return {
       isDropdownActive: false
     }
-  }, 
+  },
   computed: {
-    componentIs () {
+    componentIs() {
       return this.item.to ? 'router-link' : 'a'
     },
-    hasDropdown () {
+    hasDropdown() {
       return !!this.item.menu
     },
-    dropdownIcon () {
+    dropdownIcon() {
       return this.isDropdownActive ? 'minus' : 'plus'
     }
   },
   methods: {
-    menuClick () {
+    menuClick() {
       this.$emit('menu-click', this.item)
 
       if (this.hasDropdown) {
         this.isDropdownActive = !this.isDropdownActive
       }
-    } 
+    }
   }
 }
 </script>

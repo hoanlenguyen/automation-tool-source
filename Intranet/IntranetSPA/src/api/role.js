@@ -34,3 +34,10 @@ export function getDropdown() {
     method: 'get'
   })
 }
+
+export function getAllPermissions() {
+  return request({
+    url: '/role/AllPermissions',
+    method: 'get'
+  })
+}

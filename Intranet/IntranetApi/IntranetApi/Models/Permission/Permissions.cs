@@ -5,17 +5,20 @@ namespace IntranetApi.Models
 {
     public static class Permissions
     {
-        public const string Bank = "Bank";
-        public const string Brand = "Brand";
-        public const string Department = "Department";
-        public const string Rank = "Rank";
-        public const string Role = "Role";
-        public const string Currency = "Currency";
-        public const string StaffRecord = "StaffRecord";
-        public const string LeaveHistory = "LeaveHistory";
-        public const string Employee = "Employee";
-
         public const string Type = "Permission";
+        public static readonly List<string> AllPermissionModules = new List<string>
+        {
+            "Bank",
+            "Brand",
+            "Department",
+            "Rank",
+            "Role",
+            "Currency",
+            "TimeOff",
+            "LeaveHistory",
+            "Employee",
+            // add more Permissons here
+        };
         public static List<string> GeneratePermissionsForModule(string module)
         {
             return new List<string>()
@@ -27,9 +30,9 @@ namespace IntranetApi.Models
             };
         }
 
-        public static void AddCustomizedAuthorizationOptions(this AuthorizationOptions option, params string[] modules)
+        public static void AddCustomizedAuthorizationOptions(this AuthorizationOptions option)
         {
-            foreach (var module in modules)
+            foreach (var module in AllPermissionModules)
             {
                 var allPermissions = GeneratePermissionsForModule(module);
                 foreach (var permission in allPermissions)
@@ -72,7 +75,6 @@ namespace IntranetApi.Models
         public const string Delete = "Department.Delete";
     }
 
-
     public static class EmployeePermissions
     {
         public const string View = "Employee.View";
@@ -89,12 +91,12 @@ namespace IntranetApi.Models
         public const string Delete = "Role.Delete";
     }
 
-    public static class StaffRecordPermissions
+    public static class TimeOffPermissions
     {
-        public const string View = "StaffRecord.View";
-        public const string Create = "StaffRecord.Create";
-        public const string Update = "StaffRecord.Update";
-        public const string Delete = "StaffRecord.Delete";
+        public const string View = "TimeOff.View";
+        public const string Create = "TimeOff.Create";
+        public const string Update = "TimeOff.Update";
+        public const string Delete = "TimeOff.Delete";
     }
 
     public static class LeaveHistoryPermissions
@@ -112,4 +114,6 @@ namespace IntranetApi.Models
         public const string Update = "Currency.Update";
         public const string Delete = "Currency.Delete";
     }
+
+    // add more Permissons class here
 }

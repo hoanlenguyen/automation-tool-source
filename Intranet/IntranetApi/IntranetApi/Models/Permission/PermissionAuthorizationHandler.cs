@@ -24,31 +24,16 @@ namespace IntranetApi.Models.Permission
                 {
                     return Task.CompletedTask;
                 }
-
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                //Console.WriteLine($"PermissionRequirement {requirement.Permission
-
                 var userId = Convert.ToInt32(userIdClaim.Value);
-                //Console.WriteLine($"userId {userId}");
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var query = from s in db.UserRoles
                             join sa in db.RoleClaims on s.RoleId equals sa.RoleId
-                            where s.UserId == userId && sa.ClaimType == Permissions.Type
-                            select sa.ClaimValue;
-                //Console.WriteLine(query);
-                var claims = query.ToList();
-                if (claims.Any(p => p.Equals(requirement.Permission, StringComparison.OrdinalIgnoreCase)))
+                            where s.UserId == userId && sa.ClaimType == Permissions.Type && sa.ClaimValue == requirement.Permission
+                            select 1;
+                if (query.Any())
                     context.Succeed(requirement);
                 else
-                {
-                    //var filterContext = context.Resource as AuthorizationFilterContext;
-                    //var response = filterContext?.HttpContext.Response;
-                    //response?.OnStarting(async () =>
-                    //{
-                    //    filterContext.HttpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    //    //await response.Body.WriteAsync(message, 0, message.Length); only when you want to pass a message
-                    //});
                     context.Fail();
-                }
 
                 return Task.CompletedTask;
             }

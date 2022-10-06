@@ -269,9 +269,9 @@
   </section>
 </template>
 <script>
-import { getDetail, getList, createOrUpdate, deleteData  } from "@/api/role";
+import { getDetail, getList, createOrUpdate, deleteData, getAllPermissions  } from "@/api/role";
 import { getSimpleList as getDepartments } from "@/api/department";
-import permissions from '@/utils/permissions.js'
+// import permissions from '@/utils/permissions.js'
 // import the component
 import Treeselect from '@riophae/vue-treeselect'
 // import the styles
@@ -281,6 +281,7 @@ export default {
   components: { Treeselect },
   created() {
     this.getList();
+    this.getAllPermissions();
     this.getDepartments();
   },
   data() {
@@ -342,7 +343,7 @@ export default {
       employeeList:[],
       departments:[],
       selectDepartments:[],      
-      permissions
+      permissions:[]
     };
   },
   watch: {},
@@ -390,8 +391,7 @@ export default {
       this.getList();
     },
     getList() {
-      this.isLoading = true;     
-
+      this.isLoading = true;
       getList(this.filter)
         .then((response) => {
           if (response.status == 200 && response.data) {
@@ -485,6 +485,20 @@ export default {
           this.notifyErrorMessage(error)
         })
         .finally(() => {
+        });
+    },
+    getAllPermissions() {
+      getAllPermissions()
+        .then((response) => {
+          if (response.status == 200) {
+            this.permissions = response.data;            
+          }
+        })
+        .catch((error) => {
+          this.notifyErrorMessage(error)
+        })
+        .finally(() => {
+          this.isLoading = false;
         });
     },
   }

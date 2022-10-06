@@ -109,18 +109,7 @@ builder.Services
     });
 
 //add claims- permissions
-builder.Services.AddAuthorization(
-    options => options.AddCustomizedAuthorizationOptions(
-       Permissions.Bank,
-       Permissions.Brand,
-       Permissions.Department,
-       Permissions.Rank,
-       Permissions.Role,
-       Permissions.Currency,
-       Permissions.StaffRecord,
-       Permissions.LeaveHistory,
-       Permissions.Employee
-    ));
+builder.Services.AddAuthorization(options => options.AddCustomizedAuthorizationOptions());
 
 // add Swagger & JWT authen to Swagger
 var securityScheme = new OpenApiSecurityScheme()

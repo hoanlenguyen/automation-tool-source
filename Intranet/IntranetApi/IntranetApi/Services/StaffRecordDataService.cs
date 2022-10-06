@@ -48,7 +48,7 @@ namespace IntranetApi.Services
                     return Results.NotFound();
                 return Results.Ok(entity.Adapt<StaffRecordCreateOrEdit>());
             })
-            .RequireAuthorization(StaffRecordPermissions.View)
+            .RequireAuthorization(TimeOffPermissions.View)
             ;
 
             app.MapPost("StaffRecord", [Authorize]
@@ -104,7 +104,7 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 return Results.Ok();
             })
-            .RequireAuthorization(StaffRecordPermissions.Update)
+            .RequireAuthorization(TimeOffPermissions.Update)
             ;
             app.MapDelete("StaffRecord/{id:int}", [Authorize]
             async Task<IResult> (
@@ -124,7 +124,7 @@ namespace IntranetApi.Services
                 db.SaveChanges();
                 return Results.Ok();
             })
-            .RequireAuthorization(StaffRecordPermissions.Delete)
+            .RequireAuthorization(TimeOffPermissions.Delete)
             ;
 
             app.MapPost("StaffRecord/list", [AllowAnonymous]
@@ -247,7 +247,7 @@ namespace IntranetApi.Services
                 }
                 return Results.Ok(items);
             })
-            .RequireAuthorization(StaffRecordPermissions.View)
+            .RequireAuthorization(TimeOffPermissions.View)
             ;
         }
     }

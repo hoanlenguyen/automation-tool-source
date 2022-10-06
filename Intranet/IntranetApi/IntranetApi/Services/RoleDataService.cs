@@ -45,7 +45,7 @@ namespace IntranetApi.Services
             .RequireAuthorization(RolePermissions.View)
             ;
 
-            app.MapPost("Role", [AllowAnonymous]
+            app.MapPost("Role", [Authorize]
             async Task<IResult> (
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
@@ -65,15 +65,7 @@ namespace IntranetApi.Services
                 int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<Role>();
                 entity.CreatorUserId = userId;
-                await db.Roles.AddAsync(entity);
-                //await roleManager.CreateAsync(entity);
-                ////Console.WriteLine($"RoleId {entity.Id}");
-                //if (input.Permissions.Any())
-                //{
-                //    Console.WriteLine($"permissions Count: {input.Permissions.Count}");
-                //    var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
-                //    await db.RoleClaims.AddRangeAsync(roleClaims);
-                //}
+                await db.Roles.AddAsync(entity); 
                 memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 await db.SaveChangesAsync();
@@ -108,16 +100,7 @@ namespace IntranetApi.Services
                 entity.RoleDepartments.Clear();
                 input.Adapt(entity);
                 entity.LastModifierUserId = userId;
-                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
-                //var existedRoleClaims = await db.RoleClaims.Where(p => p.RoleId == entity.Id).ToListAsync();
-                //if (existedRoleClaims.Any())
-                //    db.RoleClaims.RemoveRange(existedRoleClaims);
-
-                //if (input.Permissions.Any())
-                //{
-                //    var roleClaims = input.Permissions.Select(p => new RoleClaim { RoleId = entity.Id, ClaimType = Permissions.Type, ClaimValue = p });
-                //    await db.RoleClaims.AddRangeAsync(roleClaims);
-                //}
+                entity.LastModificationTime = DateTime.UtcNow.AddHours(1);                 
                 memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
                 db.SaveChanges();
@@ -267,7 +250,6 @@ namespace IntranetApi.Services
             [FromQuery] string id
             ) =>
             {
-                Console.WriteLine(id);
                 var user = await userManager.FindByIdAsync(id);
                 var roles = await userManager.GetRolesAsync(user);
                 var permissions = new List<string>();
@@ -281,6 +263,25 @@ namespace IntranetApi.Services
                     }
                 }
                 return Results.Ok(permissions);
+            });
+
+            app.MapGet("Role/AllPermissions", [AllowAnonymous]
+            async Task<IResult> () =>
+            {
+                List<PermissionUIDto> items = new();
+                foreach (var value in Permissions.AllPermissionModules)
+                {
+                    var item = new PermissionUIDto { Id = value, Label = value };
+                    item.Children = Permissions.GeneratePermissionsForModule(value)
+                                    .Select(p=>new PermissionBaseUIDto
+                                    {
+                                        Id= p,
+                                        Label= p
+                                    }).ToList();
+                    
+                    items.Add(item);
+                }
+                return Results.Ok(items);
             });
         }
     }

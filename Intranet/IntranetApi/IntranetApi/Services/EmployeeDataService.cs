@@ -173,14 +173,13 @@ namespace IntranetApi.Services
             .RequireAuthorization(EmployeePermissions.Delete)
             ;
 
-            app.MapPost("employee/list", [AllowAnonymous]
+            app.MapPost("employee/list", [Authorize]
             async Task<IResult> (
             [FromServices] IMemoryCacheService cacheService,
             [FromServices] ApplicationDbContext db,
             [FromBody] EmployeeFilterDto input) =>
             {
                 ProcessFilterValues(ref input);
-                //List<BaseDropdown> roles = cacheService.GetRoles();
                 List<BaseDropdown> banks = cacheService.GetBanks();
                 List<BaseDropdown> brands = cacheService.GetBrands();
                 List<BaseDropdown> departments = cacheService.GetDepartments();
@@ -190,7 +189,6 @@ namespace IntranetApi.Services
 
                 var query = db.Users
                            .Include(p => p.BrandEmployees)
-                           //.ThenInclude(p => p.Brand)
                            .AsNoTracking()
                            .Where(p => !p.IsDeleted && p.UserType == UserType.Employee)
                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))

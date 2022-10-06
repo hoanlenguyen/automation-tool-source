@@ -44,7 +44,7 @@ export default {
         });
 
       if(this.$store.state.userPermissions.includes(
-        "StaffRecord.View"
+        "TimeOff.View"
       ))
         items.push(  {
         to: '/time-off',

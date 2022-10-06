@@ -101,8 +101,8 @@ namespace IntranetApi.Models
     {
         public const string View = "LeaveHistory.View";
         public const string Create = "LeaveHistory.Create";
-        //public const string Update = "StaffRecord.Update";
-        //public const string Delete = "StaffRecord.Delete";
+        public const string Update = "LeaveHistory.Update";
+        public const string Delete = "LeaveHistory.Delete";
     }
 
     public static class CurrencyPermissions

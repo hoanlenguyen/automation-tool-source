@@ -3,8 +3,6 @@
     <nav-bar :title-stack="currentRouteName" />
     <aside-menu :menu="filteredMenu" />
     <router-view />
-    <!-- <footer-bar /> -->
-    <!-- {{filteredMenu}} -->
   </div>
 </template>
 
@@ -32,7 +30,7 @@ export default {
       var items=[];
       var settings=[];
       if(!this.$store.state.userPermissions)
-        return [items];
+        return items;
 
       if(this.$store.state.userPermissions.includes(
         "Employee.View"
@@ -120,13 +118,12 @@ export default {
         items.push(
         {
           label: 'Settings',
-          subLabel: 'Settings',
-          icon: 'format-list-bulleted',
+          icon: 'settings',
           menu: settings
         }
       )
 
-       return [items];
+       return items;
     },
  }
   

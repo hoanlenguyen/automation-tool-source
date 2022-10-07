@@ -148,16 +148,10 @@ builder.Services.AddMemoryCache();
 //builder.Services.AddSingleton<ISendMailService, SendMailService>();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
-builder.Services.AddSingleton<IMemoryCacheService>(sp => new MemoryCacheService(sp.GetService<IMemoryCache>(), mySQLConnection.ConnectionString));
+builder.Services.AddSingleton<IMemoryCacheService>(provider => new MemoryCacheService(provider.GetService<IMemoryCache>(), mySQLConnection.ConnectionString));
 
-//add Queue job in background
-//builder.Services.AddHostedService<QueuedHostedService>();
-//builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
-//{
-//    if (!int.TryParse(builder.Configuration["QueueCapacity"], out var queueCapacity))
-//        queueCapacity = 100;
-//    return new BackgroundTaskQueue(queueCapacity);
-//});
+//builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<IUserPrincipal>(provider => new UserPrincipal( provider.GetService<IHttpContextAccessor>().HttpContext.User));
 
 //add extra mapp config
 MapperConfig.AddMapperConfigs();

@@ -265,7 +265,7 @@ namespace IntranetApi.Services
                 return Results.Ok(permissions);
             });
 
-            app.MapGet("Role/AllPermissions", [AllowAnonymous]
+            app.MapGet("Role/AllPermissions", [Authorize]
             async Task<IResult> () =>
             {
                 List<PermissionUIDto> items = new();
@@ -282,6 +282,13 @@ namespace IntranetApi.Services
                     items.Add(item);
                 }
                 return Results.Ok(items);
+            });
+
+            app.MapGet("Role/UserPrincipal", [Authorize]
+            async Task<IResult> (IUserPrincipal user) =>
+            {
+                
+                return Results.Ok(new { user });
             });
         }
     }

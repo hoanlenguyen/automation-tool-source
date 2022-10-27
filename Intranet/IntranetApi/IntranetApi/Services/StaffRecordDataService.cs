@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using System.Data;
-using System.Security.Claims;
 
 namespace IntranetApi.Services
 {
@@ -65,7 +64,7 @@ namespace IntranetApi.Services
                                             select new { u.Id, u.Salary, d.WorkingHours })
                                             .FirstOrDefaultAsync();
 
-                entity.UpdateCalculationAmount(salary: employeeDetail?.Salary??0, workingHours: employeeDetail?.WorkingHours ?? 0);
+                entity.UpdateCalculationAmount(salary: employeeDetail?.Salary ?? 0, workingHours: employeeDetail?.WorkingHours ?? 0);
                 entity.CreatorUserId = loggedUser.Id;
                 db.StaffRecords.Add(entity);
                 db.SaveChanges();
@@ -150,14 +149,14 @@ namespace IntranetApi.Services
                     var isDESC = input.SortDirection.Equals(SortDirection.DESC, StringComparison.OrdinalIgnoreCase);
                     query = input.SortBy switch
                     {
-                        nameof(User.DeptId) => isDESC? query.OrderByDescending(p=>p.Employee.DeptId):query.OrderBy(p=>p.Employee.DeptId),
-                        nameof(User.Name) => isDESC ? query.OrderByDescending(p=>p.Employee.Name):query.OrderBy(p=>p.Employee.Name),
-                        nameof(User.EmployeeCode) => isDESC ? query.OrderByDescending(p=>p.Employee.EmployeeCode) :query.OrderBy(p=>p.Employee.EmployeeCode),
-                        nameof(StaffRecord.RecordType) => isDESC ? query.OrderByDescending(p=>p.RecordType) :query.OrderBy(p=>p.RecordType),
-                        nameof(StaffRecord.StartDate) => isDESC ? query.OrderByDescending(p=>p.StartDate) :query.OrderBy(p=>p.StartDate),
-                        nameof(StaffRecord.EndDate) => isDESC ? query.OrderByDescending(p=>p.EndDate) :query.OrderBy(p=>p.EndDate),
-                        nameof(StaffRecord.CreationTime) => isDESC ? query.OrderByDescending(p=>p.CreationTime) :query.OrderBy(p=>p.CreationTime),
-                        nameof(StaffRecord.CreatorUserId) => isDESC ? query.OrderByDescending(p=>p.CreatorUserId) : query.OrderBy(p=>p.CreatorUserId),
+                        nameof(User.DeptId) => isDESC ? query.OrderByDescending(p => p.Employee.DeptId) : query.OrderBy(p => p.Employee.DeptId),
+                        nameof(User.Name) => isDESC ? query.OrderByDescending(p => p.Employee.Name) : query.OrderBy(p => p.Employee.Name),
+                        nameof(User.EmployeeCode) => isDESC ? query.OrderByDescending(p => p.Employee.EmployeeCode) : query.OrderBy(p => p.Employee.EmployeeCode),
+                        nameof(StaffRecord.RecordType) => isDESC ? query.OrderByDescending(p => p.RecordType) : query.OrderBy(p => p.RecordType),
+                        nameof(StaffRecord.StartDate) => isDESC ? query.OrderByDescending(p => p.StartDate) : query.OrderBy(p => p.StartDate),
+                        nameof(StaffRecord.EndDate) => isDESC ? query.OrderByDescending(p => p.EndDate) : query.OrderBy(p => p.EndDate),
+                        nameof(StaffRecord.CreationTime) => isDESC ? query.OrderByDescending(p => p.CreationTime) : query.OrderBy(p => p.CreationTime),
+                        nameof(StaffRecord.CreatorUserId) => isDESC ? query.OrderByDescending(p => p.CreatorUserId) : query.OrderBy(p => p.CreatorUserId),
                         _ => isDESC ? query.OrderByDescending(p => p.Id) : query.OrderBy(p => p.Id)
                     };
                     items = await query/*.OrderByDynamic(input.SortBy, input.SortDirection)*/
@@ -189,7 +188,6 @@ namespace IntranetApi.Services
                 var creators = await db.Users.Where(p => creatorIds.Contains(p.Id)).Select(p => new BaseDropdown { Id = p.Id, Name = p.Name }).ToListAsync();
                 foreach (var item in items)
                 {
-                    //item.Rank = ranks.FirstOrDefault(p => p.Id == item.RankId)?.Name;
                     item.Department = departments.FirstOrDefault(p => p.Id == item.DepartmentId)?.Name;
                     item.CreatorName = creators.FirstOrDefault(p => p.Id == item.CreatorUserId)?.Name;
                 }

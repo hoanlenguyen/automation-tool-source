@@ -37,7 +37,6 @@ namespace IntranetApi.Services
 
         private List<BaseDropdown> GetDataList(string tableName)
         {
-            //Console.WriteLine($"CacheService - Get data from query {tableName}");
             using var connection = new MySqlConnection(sqlConnectionStr);
             return connection.Query<BaseDropdown>($"select Id, Name from {tableName}s where IsDeleted = 0")
                              .ToList();

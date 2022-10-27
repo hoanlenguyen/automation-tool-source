@@ -39,7 +39,7 @@ namespace IntranetApi.Services
 
             app.MapPost("Currency", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             [FromBody] CurrencyCreateOrEdit input
@@ -51,9 +51,8 @@ namespace IntranetApi.Services
                 var checkExisted = await db.Currencies.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
                 if (checkExisted)
                     throw new Exception("Name already exists");
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<Currency>();
+                entity.CreatorUserId = loggedUser.Id;
                 db.Currencies.Add(entity);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetCurrencies);
@@ -65,7 +64,7 @@ namespace IntranetApi.Services
 
             app.MapPut("Currency", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             [FromBody] CurrencyCreateOrEdit input) =>
@@ -76,14 +75,12 @@ namespace IntranetApi.Services
                 var checkExisted = await db.Currencies.AnyAsync(p => p.Name == input.Name && input.Id != p.Id && !p.IsDeleted);
                 if (checkExisted)
                     throw new Exception("Name already exists");
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.Currencies.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
                 input.Adapt(entity);
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 memoryCache.Remove(CacheKeys.GetCurrencies);
                 memoryCache.Remove(CacheKeys.GetCurrenciesDropdown);
@@ -95,19 +92,17 @@ namespace IntranetApi.Services
 
             app.MapDelete("Currency/{id:int}", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             int id) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.Currencies.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
                 entity.IsDeleted = true;
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetCurrencies);

@@ -69,7 +69,7 @@ namespace IntranetApi.Services
 
             app.MapPost("employee", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] UserManager<User> userManager,
             [FromBody] EmployeeCreateOrEdit input) =>
@@ -87,15 +87,14 @@ namespace IntranetApi.Services
                 if (checkExisted)
                     throw new Exception($"{input.EmployeeCode} existed!");
 
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (input.EmployeeCode.IsNullOrEmpty())
                     throw new Exception("Missing EmployeeCode!");
 
                 if (input.IntranetPassword.IsNullOrEmpty())
                     throw new Exception("Missing Intranet Password!");
-                int.TryParse(userIdStr, out var userId);
+
                 var entity = input.Adapt<User>();
-                entity.CreatorUserId = userId;
+                entity.CreatorUserId = loggedUser.Id;
                 entity.IsFirstTimeLogin = true;
                 var result = await userManager.CreateAsync(entity, entity.IntranetPassword);
                 Console.WriteLine($"UserId: {entity.Id}");
@@ -106,7 +105,7 @@ namespace IntranetApi.Services
 
             app.MapPut("employee", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] UserManager<User> userManager,
             [FromBody] EmployeeCreateOrEdit input) =>
@@ -121,22 +120,17 @@ namespace IntranetApi.Services
                 if (checkExisted)
                     throw new Exception($"Employee code already exists");
 
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var user = db.Users.Include(p => p.BrandEmployees)
                                    .Include(p => p.UserRoles)
                                    .FirstOrDefault(x => x.Id == input.Id);
                 if (user == null)
                     return Results.NotFound();
 
-                //Console.WriteLine($"EmployeeCode {input.EmployeeCode}");
-                //Console.WriteLine($"IntranetPassword {input.IntranetPassword}");
-
                 var currentPassword = user.IntranetPassword;
                 user.BrandEmployees.Clear();
                 user.UserRoles.Clear();
                 input.Adapt(user);
-                user.LastModifierUserId = userId;
+                user.LastModifierUserId = loggedUser.Id;
                 user.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 user.NormalizedUserName = user.UserName.ToUpperInvariant();
                 if (!user.IntranetPassword.Equals(currentPassword)
@@ -154,18 +148,16 @@ namespace IntranetApi.Services
 
             app.MapDelete("employee/{id:int}", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.Users.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
                 entity.IsDeleted = true;
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 return Results.Ok();
@@ -220,7 +212,7 @@ namespace IntranetApi.Services
             app.MapPost("employee/importExcel", [Authorize][DisableRequestSizeLimit]
             async Task<IResult> (
                 [FromServices] IMemoryCacheService cacheService,
-                [FromServices] IHttpContextAccessor httpContextAccessor,
+                [FromServices] IUserPrincipal loggedUser,
                 [FromServices] IConfiguration config,
                 [FromServices] UserManager<User> userManager,
                 [FromServices] ApplicationDbContext db,
@@ -231,9 +223,7 @@ namespace IntranetApi.Services
                 if (!request.Form.Files.Any())
                     throw new Exception("No file found!");
 
-                var userEmail = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-                var userIdSr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdSr, out var userId);
+                var userId = loggedUser.Id;
                 List<BaseDropdown> roles = cacheService.GetRoles();
                 List<BaseDropdown> banks = cacheService.GetBanks();
                 List<BaseDropdown> brands = cacheService.GetBrands();
@@ -247,7 +237,6 @@ namespace IntranetApi.Services
                 //foreach (var formFile in request.Form.Files)
                 {
                     if (formFile is null || formFile.Length == 0)
-                        //continue;
                         throw new Exception("No file found!");
                     var employees = new List<EmployeeBulkInsert>();
                     var brandEmployees = new List<BrandEmployee>();
@@ -260,11 +249,11 @@ namespace IntranetApi.Services
                         using (ExcelPackage package = new ExcelPackage(stream))
                         {
                             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                            if (worksheet == null) //continue;
+                            if (worksheet == null)
                                 throw new Exception("No worksheet found!");
 
-                            rowCount = worksheet.Dimension.Rows; //include header
-                            if (rowCount <= 1) //continue;
+                            rowCount = worksheet.Dimension.Rows;
+                            if (rowCount <= 1)
                                 throw new Exception("No Data in worksheet found!");
 
                             totalRows += rowCount - 1;
@@ -275,7 +264,6 @@ namespace IntranetApi.Services
                             var brandNames = new List<string>();
                             EmployeeBulkInsert newEmployee;
                             EmployeeImportError importError;
-                            //int i = 0;
                             worksheet.Columns[10].Style.Numberformat.Format= "@";
                             worksheet.Columns[12].Style.Numberformat.Format= "@";
                             for (int row = 2; row <= rowCount; row++)
@@ -322,7 +310,6 @@ namespace IntranetApi.Services
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"rowInput.Rank {rowInput.Rank}");
                                     rowInput.RankId = ranks.FirstOrDefault(p => p.Name.Equals(rowInput.Rank, StringComparison.OrdinalIgnoreCase))?.Id;
                                     if (rowInput.RankId == null)
                                     {
@@ -338,9 +325,7 @@ namespace IntranetApi.Services
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"rowInput.Dept {rowInput.Dept}");
                                     rowInput.DeptId = departments.FirstOrDefault(p => p.Name.Equals(rowInput.Dept, StringComparison.OrdinalIgnoreCase))?.Id;
-                                    Console.WriteLine($"rowInput.DeptId {rowInput.DeptId}");
                                     if (rowInput.DeptId == null)
                                     {
                                         errorCells.Add($"D{row}");
@@ -355,8 +340,6 @@ namespace IntranetApi.Services
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"{rowInput.Brand}");
-                                    Console.WriteLine($"brands.Count {brands.Count}");
                                     brandNames = rowInput.Brand.Split(',').Select(p => (p?.ToLower() ?? string.Empty).Trim()).ToList();
                                     rowInput.BrandIds = brands.Where(p => brandNames.Contains(p.Name.ToLower())).Select(p => p.Id).ToList();
 
@@ -396,7 +379,6 @@ namespace IntranetApi.Services
                                 else
                                 {
                                     rowInput.StartDate = CheckValidDate(rowInput.StartDateStr);
-                                    //Console.WriteLine($"rowInput.StartDate {rowInput.StartDate.GetValueOrDefault().ToString("yyy-MM-dd")}");
                                     if (rowInput.StartDate == null)
                                     {
                                         errorCells.Add($"J{row}");
@@ -445,8 +427,6 @@ namespace IntranetApi.Services
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"roles {roles.Count}");
-                                    Console.WriteLine($"rowInput.Role {rowInput.Role}");
                                     rowInput.RoleId = roles.FirstOrDefault(p => p.Name.Equals(rowInput.Role, StringComparison.OrdinalIgnoreCase))?.Id;
                                     if (rowInput.RoleId == null)
                                     {

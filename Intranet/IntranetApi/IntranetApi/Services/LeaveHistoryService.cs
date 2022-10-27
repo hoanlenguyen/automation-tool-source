@@ -55,13 +55,11 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCacheService cacheService,
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromBody] LeaveHistoryFilter input
             ) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
-
+                var userId = loggedUser.Id;
                 List<BaseDropdown> brands = cacheService.GetBrands();
                 List<BaseDropdown> departments = cacheService.GetDepartments();
                 List<BaseDropdown> ranks = cacheService.GetRanks();
@@ -307,10 +305,9 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCacheService cacheService,
-            [FromServices] IHttpContextAccessor httpContextAccessor) =>
+            [FromServices] IUserPrincipal loggedUser) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
+                var userId = loggedUser.Id;
                 var isSuperAdmin = await db.UserRoles
                                 .Include(p => p.Role)
                                 .AnyAsync(p => p.UserId == userId && p.Role.IsSuperAddmin && !p.Role.IsDeleted);
@@ -330,10 +327,9 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCacheService cacheService,
-            [FromServices] IHttpContextAccessor httpContextAccessor) =>
+            [FromServices] IUserPrincipal loggedUser) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
+                var userId = loggedUser.Id;
                 var role = await db.UserRoles
                                 .Include(p => p.Role)
                                 .Where(p => p.UserId == userId && !p.Role.IsDeleted)
@@ -369,7 +365,7 @@ namespace IntranetApi.Services
             app.MapPost("LeaveHistory/importExcel", [Authorize][DisableRequestSizeLimit]
             async Task<IResult> (
                 [FromServices] IMemoryCacheService cacheService,
-                [FromServices] IHttpContextAccessor httpContextAccessor,
+                [FromServices] IUserPrincipal loggedUser,
                 [FromServices] IConfiguration config,
                 [FromServices] ApplicationDbContext db,
                 HttpRequest request) =>
@@ -378,24 +374,14 @@ namespace IntranetApi.Services
 
                 if (!request.Form.Files.Any())
                     throw new Exception("No file found!");
-
-                var userEmail = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-                var userIdSr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdSr, out var userId);
-
-                var totalRows = 0;
+                var userId = loggedUser.Id;
                 var inputList = new List<LeaveHistoryImportDto>();
                 var leaveHistories = new List<LeaveHistory>();
-
-                //var shouldSendEmail = false;
                 var formFile = request.Form.Files.FirstOrDefault();
-                //foreach (var formFile in request.Form.Files)
-                //{
                 if (formFile is null || formFile.Length == 0)
                     throw new Exception("No file found!");
 
                 var rowCount = 0;
-                //Process excel file
                 using (var stream = new MemoryStream())
                 {
                     await formFile.CopyToAsync(stream);

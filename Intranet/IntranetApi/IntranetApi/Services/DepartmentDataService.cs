@@ -41,7 +41,7 @@ namespace IntranetApi.Services
 
             app.MapPost("Department", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             [FromBody] DepartmentCreateOrEdit input) =>
@@ -55,9 +55,7 @@ namespace IntranetApi.Services
                 var checkExisted = await db.Departments.AnyAsync(p => p.Name == input.Name && !p.IsDeleted);
                 if (checkExisted)
                     throw new Exception("Name already exists");
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
-                var entity = new Department { Name = input.Name, CreatorUserId = userId, WorkingHours = input.WorkingHours };
+                var entity = new Department { Name = input.Name, CreatorUserId = loggedUser.Id, WorkingHours = input.WorkingHours };
                 db.Add(entity);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetDepartments);
@@ -69,7 +67,7 @@ namespace IntranetApi.Services
 
             app.MapPut("Department", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             [FromBody] DepartmentCreateOrEdit input) =>
@@ -83,8 +81,6 @@ namespace IntranetApi.Services
                 var checkExisted = await db.Departments.AnyAsync(p => p.Name == input.Name && input.Id != p.Id && !p.IsDeleted);
                 if (checkExisted)
                     throw new Exception("Name already exists");
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.Departments.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
@@ -92,7 +88,7 @@ namespace IntranetApi.Services
                 entity.Name = input.Name;
                 entity.Status = input.Status;
                 entity.WorkingHours = input.WorkingHours;
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetDepartments);
@@ -104,19 +100,17 @@ namespace IntranetApi.Services
 
             app.MapDelete("Department/{id:int}", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             int id) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.Departments.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
                 entity.IsDeleted = true;
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetDepartments);

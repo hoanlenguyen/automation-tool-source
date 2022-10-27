@@ -137,13 +137,13 @@ namespace IntranetApi.Services
                 });
             });
 
-            app.MapPost("auth/changePassword", [Authorize] async ([FromServices] IHttpContextAccessor httpContextAccessor, [FromServices] UserManager<User> userManager, [FromBody] UserChangePassword input) =>
+            app.MapPost("auth/changePassword", [Authorize] 
+            async Task<IResult>(
+                [FromServices] IUserPrincipal loggedUser, 
+                [FromServices] UserManager<User> userManager, 
+                [FromBody] UserChangePassword input) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdStr))
-                    return Results.Unauthorized();
-
-                var user = await userManager.FindByIdAsync(userIdStr);
+                var user = await userManager.FindByIdAsync(loggedUser.Id.ToString());
                 if (user is null)
                     return Results.Unauthorized();
 

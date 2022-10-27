@@ -47,7 +47,7 @@ namespace IntranetApi.Services
 
             app.MapPost("Role", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             [FromServices] RoleManager<Role> roleManager,
@@ -61,10 +61,8 @@ namespace IntranetApi.Services
                     throw new Exception("Name already exists");
 
                 input.Name = input.Name.Trim();
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<Role>();
-                entity.CreatorUserId = userId;
+                entity.CreatorUserId = loggedUser.Id;
                 await db.Roles.AddAsync(entity); 
                 memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
@@ -76,7 +74,7 @@ namespace IntranetApi.Services
 
             app.MapPut("Role", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             [FromBody] RoleCreateOrEdit input) =>
@@ -87,8 +85,6 @@ namespace IntranetApi.Services
                 if (await db.Roles.AnyAsync(p => p.Name == input.Name && p.Id != input.Id && !p.IsDeleted))
                     throw new Exception("Name already exists");
 
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.Roles
                             .Include(p=>p.RoleClaims)
                             .Include(p=>p.RoleDepartments)
@@ -99,7 +95,7 @@ namespace IntranetApi.Services
                 entity.RoleClaims.Clear();
                 entity.RoleDepartments.Clear();
                 input.Adapt(entity);
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);                 
                 memoryCache.Remove(CacheKeys.GetRoles);
                 memoryCache.Remove(CacheKeys.GetRolesDropdown);
@@ -111,19 +107,17 @@ namespace IntranetApi.Services
 
             app.MapDelete("Role/{id:int}", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             int id) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.Roles.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
                 entity.IsDeleted = true;
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetRoles);
@@ -188,18 +182,9 @@ namespace IntranetApi.Services
 
             app.MapGet("Role/dropdown", [Authorize]
             async Task<IResult> (
-            /*[FromServices] IMemoryCache memoryCache*/
             IMemoryCacheService memoryCacheService) =>
             {
-                //List<BaseDropdown> items = null;
-                //var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
-                //if (!memoryCache.TryGetValue(CacheKeys.GetRolesDropdown, out items))
-                //{
-                //    items = GetBaseDropdown(sqlConnectionStr);
-                //    memoryCache.Set(CacheKeys.GetRolesDropdown, items, cacheOptions);
-                //}
-                //return Results.Ok(items);
-                return Results.Ok(/*GetBaseDropdown(sqlConnectionStr)*/ memoryCacheService.GetRolesDropdown());
+                return Results.Ok(memoryCacheService.GetRolesDropdown());
             });
 
             app.MapPost("Role/addPermission", [Authorize]
@@ -243,7 +228,6 @@ namespace IntranetApi.Services
 
             app.MapGet("Role/claims", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] ApplicationDbContext db,
             [FromServices] RoleManager<Role> roleManager,
             [FromServices] UserManager<User> userManager,

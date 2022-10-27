@@ -53,13 +53,11 @@ namespace IntranetApi.Services
 
             app.MapPost("StaffRecord", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromBody] StaffRecordCreateOrEdit input
             ) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<StaffRecord>();
                 var employeeDetail = await (from u in db.Users
                                             join d in db.Departments on u.DeptId equals d.Id
@@ -68,7 +66,7 @@ namespace IntranetApi.Services
                                             .FirstOrDefaultAsync();
 
                 entity.UpdateCalculationAmount(salary: employeeDetail?.Salary??0, workingHours: employeeDetail?.WorkingHours ?? 0);
-                entity.CreatorUserId = userId;
+                entity.CreatorUserId = loggedUser.Id;
                 db.StaffRecords.Add(entity);
                 db.SaveChanges();
                 return Results.Ok();
@@ -78,14 +76,11 @@ namespace IntranetApi.Services
 
             app.MapPut("StaffRecord", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromBody] StaffRecordCreateOrEdit input
             ) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
-
                 var entity = db.StaffRecords.Include(p => p.StaffRecordDocuments).FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
@@ -99,7 +94,7 @@ namespace IntranetApi.Services
                                             .FirstOrDefaultAsync();
 
                 entity.UpdateCalculationAmount(salary: employeeDetail?.Salary ?? 0, workingHours: employeeDetail?.WorkingHours ?? 0);
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 return Results.Ok();
@@ -108,18 +103,16 @@ namespace IntranetApi.Services
             ;
             app.MapDelete("StaffRecord/{id:int}", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             int id) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.StaffRecords.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
                 entity.IsDeleted = true;
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 return Results.Ok();
@@ -131,16 +124,13 @@ namespace IntranetApi.Services
             async Task<IResult> (
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCacheService cacheService,
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromBody] StaffRecordFilter input
             ) =>
             {
                 ProcessFilterValues(ref input);
-                //List<BaseDropdown> brands = cacheService.GetBrands();
                 List<BaseDropdown> departments = cacheService.GetDepartments();
-                //List<BaseDropdown> ranks = cacheService.GetRanks();
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
+                var userId = loggedUser.Id;
                 var totalCount = 0;
                 var items = new List<StaffRecordList>();
                 var isSuperAdmin = await db.UserRoles
@@ -210,13 +200,12 @@ namespace IntranetApi.Services
 
             app.MapGet("StaffRecord/GetEmployeesByCurrentUser", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] IMemoryCacheService cacheService,
             [FromServices] ApplicationDbContext db) =>
             {
                 var result = new List<EmployeeDropdown>();
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
+                var userId = loggedUser.Id;
                 var depts = cacheService.GetDepartments();
                 var isSuperAdmin = await db.UserRoles
                                 .Include(p => p.Role)

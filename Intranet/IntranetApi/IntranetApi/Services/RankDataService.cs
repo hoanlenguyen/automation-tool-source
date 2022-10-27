@@ -44,7 +44,7 @@ namespace IntranetApi.Services
 
             app.MapPost("Rank", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             [FromBody] RankCreateOrEdit input
@@ -57,10 +57,8 @@ namespace IntranetApi.Services
                 if (checkExisted)
                     throw new Exception("Name already exists");
 
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = input.Adapt<Rank>();
-                entity.CreatorUserId = userId;
+                entity.CreatorUserId = loggedUser.Id;
                 db.Add(entity);
                 db.SaveChanges();
                 input.Id = entity.Id;                
@@ -73,7 +71,7 @@ namespace IntranetApi.Services
 
             app.MapPut("Rank", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             [FromBody] RankCreateOrEdit input) =>
@@ -85,14 +83,12 @@ namespace IntranetApi.Services
                 if (checkExisted)
                     throw new Exception("Name already exists");
 
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.Ranks.FirstOrDefault(x => x.Id == input.Id);
                 if (entity == null)
                     return Results.NotFound();
 
                 input.Adapt(entity);
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 memoryCache.Remove(CacheKeys.GetRanks);
                 memoryCache.Remove(CacheKeys.GetRanksDropdown);
@@ -104,19 +100,17 @@ namespace IntranetApi.Services
 
             app.MapDelete("Rank/{id:int}", [Authorize]
             async Task<IResult> (
-            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserPrincipal loggedUser,
             [FromServices] ApplicationDbContext db,
             [FromServices] IMemoryCache memoryCache,
             int id) =>
             {
-                var userIdStr = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(userIdStr, out var userId);
                 var entity = db.Ranks.FirstOrDefault(x => x.Id == id);
                 if (entity == null)
                     return Results.NotFound();
 
                 entity.IsDeleted = true;
-                entity.LastModifierUserId = userId;
+                entity.LastModifierUserId = loggedUser.Id;
                 entity.LastModificationTime = DateTime.UtcNow.AddHours(1);
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetRanks);

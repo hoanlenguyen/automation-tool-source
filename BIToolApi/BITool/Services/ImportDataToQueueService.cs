@@ -7,8 +7,8 @@ using BITool.Models.SignalR;
 using Dapper;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
-using MySqlConnector;
 using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics;
 
 namespace BITool.Services
@@ -74,9 +74,9 @@ namespace BITool.Services
             {
                 //Console.WriteLine($"ImportDataHistory-FileName: {item.FileName}");
                 var dataTable = input.ToDataTable();
-                using var connection = new MySqlConnection(connectionStr);
+                using var connection = new SqlConnection(connectionStr);
                 connection.Open();
-                var bulkCopy = new MySqlBulkCopy(connection);
+                var bulkCopy = new SqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = TableName.ImportDataHistory;
                 bulkCopy.BulkCopyTimeout = 0;
                 await bulkCopy.WriteToServerAsync(dataTable);
@@ -168,10 +168,10 @@ namespace BITool.Services
                 if (input.Count() == 0) return;
                 var watch = Stopwatch.StartNew();
                 var dataTable = input.ToDataTable();
-                using var connection = new MySqlConnection(connectionStr);
+                using var connection = new SqlConnection(connectionStr);
                 connection.Open();
 
-                var bulkCopy = new MySqlBulkCopy(connection);
+                var bulkCopy = new SqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = TableName.CleanDataHistory;
                 bulkCopy.BulkCopyTimeout = 0;
                 await bulkCopy.WriteToServerAsync(dataTable);
@@ -193,7 +193,7 @@ namespace BITool.Services
             List<CustomerImportDto> customerImports)
         {
             int index = 0;
-            var leadManagementReports = GetLeadManagementReports(sqlConnectionStr, customerImports.Select(p => new TempLeadManagementReport { CustomerMobileNo = p.CustomerMobileNo }));
+            var leadManagementReports = await GetLeadManagementReportsAsync(sqlConnectionStr, customerImports.Select(p => new TempLeadManagementReport { CustomerMobileNo = p.CustomerMobileNo }));
             var newLeadManagementReports = new List<LeadManagementReport>();
             foreach (var item in customerImports)
             {
@@ -245,16 +245,16 @@ namespace BITool.Services
             if (leadManagementReports.Any())
             {
                 var dataTable = leadManagementReports.ToDataTable();
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 connection.Open();
                 var commandStr = "CREATE TEMPORARY TABLE IF NOT EXISTS temp_leadmanagementreport SELECT * FROM leadmanagementreport LIMIT 0;";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     myCmd.ExecuteNonQuery();
                 }
 
-                var bulkCopy = new MySqlBulkCopy(connection);
+                var bulkCopy = new SqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = "temp_leadmanagementreport";
                 bulkCopy.BulkCopyTimeout = 0;
                 await bulkCopy.WriteToServerAsync(dataTable);
@@ -280,14 +280,14 @@ namespace BITool.Services
                              "l.ExportVsPointsPercentage = t.ExportVsPointsPercentage, " +
                              "l.ExportVsPointsNumber = t.ExportVsPointsNumber"
                              ;
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     myCmd.ExecuteNonQuery();
                 }
 
                 commandStr = "DROP TEMPORARY TABLE IF EXISTS temp_leadmanagementreport";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     myCmd.ExecuteNonQuery();
@@ -297,11 +297,11 @@ namespace BITool.Services
             if (newLeadManagementReports.Any())
             {
                 var dataTable = newLeadManagementReports.ToDataTable();
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 connection.Open();
-                var bulkCopy = new MySqlBulkCopy(connection);
+                var bulkCopy = new SqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = TableName.LeadManagementReport;
-                //bulkCopy.ColumnMappings.AddRange(dataTable.GetMySqlColumnMapping());
+                //bulkCopy.ColumnMappings.AddRange(dataTable.GetSqlColumnMapping());
                 bulkCopy.BulkCopyTimeout = 0;
                 await bulkCopy.WriteToServerAsync(dataTable);
             }
@@ -309,28 +309,28 @@ namespace BITool.Services
 
         private List<AdminScoreDto> GetAdminScores(string sqlConnectionStr)
         {
-            using var connection = new MySqlConnection(sqlConnectionStr);
+            using var connection = new SqlConnection(sqlConnectionStr);
             return connection.Query<AdminScoreDto>("SELECT * FROM adminscore").ToList();
         }
 
-        private List<LeadManagementReport> GetLeadManagementReports(string sqlConnectionStr, IEnumerable<TempLeadManagementReport> items)
+        private async Task<List<LeadManagementReport>> GetLeadManagementReportsAsync(string sqlConnectionStr, IEnumerable<TempLeadManagementReport> items)
         {
             if (items is null || !items.Any())
                 return new List<LeadManagementReport>();
 
             var dataTable = items.ToDataTable();
-            using var connection = new MySqlConnection(sqlConnectionStr);
+            using var connection = new SqlConnection(sqlConnectionStr);
             connection.Open();
             var commandStr = "create temporary table IF NOT EXISTS TempLeadManagementReport(CustomerMobileNo BIGINT NOT NULL);";
-            using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+            using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
             {
                 myCmd.CommandType = CommandType.Text;
                 myCmd.ExecuteNonQuery();
             }
 
-            var bulkCopy = new MySqlBulkCopy(connection);
+            var bulkCopy = new SqlBulkCopy(connection);
             bulkCopy.DestinationTableName = "TempLeadManagementReport";
-            var result = bulkCopy.WriteToServer(dataTable);
+            await bulkCopy.WriteToServerAsync(dataTable);
 
             commandStr = "select l.* " +
                          "from leadmanagementreport  l " +
@@ -340,7 +340,7 @@ namespace BITool.Services
             var data = connection.Query<LeadManagementReport>(commandStr).ToList();
 
             commandStr = "DROP TEMPORARY TABLE IF EXISTS TempLeadManagementReport";
-            using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+            using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
             {
                 myCmd.CommandType = CommandType.Text;
                 myCmd.ExecuteNonQuery();

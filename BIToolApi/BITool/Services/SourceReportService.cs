@@ -1,7 +1,7 @@
 ﻿using BITool.Models;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
-using MySqlConnector;
+using System.Data.SqlClient;
 
 namespace BITool.Services
 {
@@ -11,7 +11,7 @@ namespace BITool.Services
         {
             app.MapGet("sourceReport/getSummary", [AllowAnonymous] async Task<IResult> () =>
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 var items = connection.Query<SourceReport>(
                     "select Source, count(1) as 'TotalNumbers', AVG(TotalPoints) as 'AveragePoints' " +
                     "from LeadManagementReport " +

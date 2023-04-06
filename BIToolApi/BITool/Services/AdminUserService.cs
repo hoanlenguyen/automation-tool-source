@@ -76,11 +76,11 @@ namespace BITool.Services
                 {
                     //conn = connectionString,
                     CheckConfigEnv= config["CheckConfigEnv"],
-                    serverDB = config["Mysql:Server"],
-                    database = config["Mysql:Database"],
+                    serverDB = config["SQL:Server"],
+                    database = config["SQL:Database"],
                     EMAIL_IS_SEND_SPECIFIC_MAIL = config["EMAIL_IS_SEND_SPECIFIC_MAIL"],
-                    //user = config["Mysql:User"],
-                    //password = config["Mysql:Password"],
+                    //user = config["SQL:User"],
+                    //password = config["SQL:Password"],
                     userId= httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier),
                     email= httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email)
                 });

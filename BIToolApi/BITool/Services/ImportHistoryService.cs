@@ -4,8 +4,8 @@ using BITool.Models;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
 using System.Data;
+using System.Data.SqlClient;
 
 namespace BITool.Services
 {
@@ -29,20 +29,20 @@ namespace BITool.Services
 
             static int GetTotalCountByFilter(string sqlConnectionStr, ref ImportDataHistoryFilter input)
             {
-                using (var conn = new MySqlConnection(sqlConnectionStr))
+                using (var conn = new SqlConnection(sqlConnectionStr))
                 {
                     conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetImportDataHistoryCountByFilter, conn);
+                    var cmd = new SqlCommand(StoredProcedureName.GetImportDataHistoryCountByFilter, conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@source", input.Source);
 
                     cmd.Parameters.AddWithValue("@importTimeFrom", input.ImportTimeFrom);
                     cmd.Parameters.AddWithValue("@importTimeTo", input.ImportTimeTo);
 
-                    MySqlDataReader rdr = cmd.ExecuteReader();
+                    SqlDataReader rdr = cmd.ExecuteReader();
                     int count = 0;
                     while (rdr.Read())
-                        count =(int)rdr.GetInt64(0);
+                        count = (int)rdr.GetInt64(0);
                     rdr.Close();
                     conn.Close();
                     return count;
@@ -51,7 +51,7 @@ namespace BITool.Services
 
             app.MapGet("importHistory/getSource", [Authorize] async Task<IResult> () =>
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 var result = connection.Query<string>("select distinct Source from importdatahistory where Source is not null;");
                 return Results.Ok(result);
             });
@@ -62,10 +62,10 @@ namespace BITool.Services
                 //Console.WriteLine(input.SortBy);
                 //Console.WriteLine(input.SortDirection);
                 var totalCount = GetTotalCountByFilter(sqlConnectionStr, ref input);
-                using (var conn = new MySqlConnection(sqlConnectionStr))
+                using (var conn = new SqlConnection(sqlConnectionStr))
                 {
                     conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetImportDataHistoryByFilter, conn);
+                    var cmd = new SqlCommand(StoredProcedureName.GetImportDataHistoryByFilter, conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@source", input.Source);
 
@@ -78,7 +78,7 @@ namespace BITool.Services
                     cmd.Parameters.AddWithValue("@exportOffset", input.SkipCount);
                     cmd.Parameters.AddWithValue("@exportLimit", input.RowsPerPage);
 
-                    MySqlDataReader rdr = cmd.ExecuteReader();
+                    SqlDataReader rdr = cmd.ExecuteReader();
                     var items = new List<ImportDataHistory>();
                     while (rdr.Read())
                     {

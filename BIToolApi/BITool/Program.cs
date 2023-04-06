@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MySqlConnector;
+using OfficeOpenXml;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,31 +23,8 @@ builder.WebHost.UseKestrel(options =>
 }).UseIIS();
 
 //add db context
-var mySQLConnection = new MySqlConnectionStringBuilder
-{
-    Server = builder.Configuration["MySql:Server"],
-    Database = builder.Configuration["MySql:Database"],
-    UserID = builder.Configuration["MySql:User"],
-    Password = builder.Configuration["MySql:Password"],
-    SslMode = MySqlSslMode.None,
-    ConnectionLifeTime = 0,
-    ConnectionTimeout = 900,
-    DefaultCommandTimeout = 900,
-    AllowUserVariables = true,
-    AllowLoadLocalInfile = true
-};
-
-builder.Services.AddDbContext<ApplicationDbContext>(
-                options => options.UseMySql(
-                    connectionString: mySQLConnection.ConnectionString,
-                    serverVersion: new MySqlServerVersion(builder.Configuration["MySql:Version"]),
-                    mySqlOptionsAction: sqlOptions =>
-                    {
-                        sqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 3,
-                            maxRetryDelay: TimeSpan.FromSeconds(10),
-                            errorNumbersToAdd: null);
-                    }));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
 //add identity
 builder.Services.AddIdentity<AdminUser, AdminUserRole>()
@@ -149,6 +126,9 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
 //add extra config
 MapperConfig.AddCustomConfigs();
 
+// ExcelPackage License
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
 var app = builder.Build();
 
 // response ExceptionHandler
@@ -181,16 +161,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapHub<HubClient>("/hubClient");
 
-
 //add Services
 app.AddAdminUserService();
-app.AddImportDataService(mySQLConnection.ConnectionString);
-app.AddExportDataService(mySQLConnection.ConnectionString);
-app.AddImportHistoryService(mySQLConnection.ConnectionString);
-app.AddCleanDataHistoryService(mySQLConnection.ConnectionString);
-app.AddOverallReportService(mySQLConnection.ConnectionString);
-app.AddSourceReportService(mySQLConnection.ConnectionString);
-app.AddCampaignDataService(mySQLConnection.ConnectionString);
+app.AddImportDataService(connectionString);
+app.AddExportDataService(connectionString);
+app.AddImportHistoryService(connectionString);
+app.AddCleanDataHistoryService(connectionString);
+app.AddOverallReportService(connectionString);
+app.AddSourceReportService(connectionString);
+app.AddCampaignDataService(connectionString);
 app.AddSignalRService();
 
 app.Run();

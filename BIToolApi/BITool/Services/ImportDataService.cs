@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
-using MySqlConnector;
 using OfficeOpenXml;
 using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security.Claims;
@@ -28,7 +28,7 @@ namespace BITool.Services
 
         private static readonly string[] Valid_First_Phone_Characters = { "666", "668", "669" };
 
-        public static void AddImportDataService(this WebApplication app, string sqlConnectionStr)
+        public static void AddImportDataService(this WebApplication app, string SqlConnectionStr)
         {
             #region Private
 
@@ -57,90 +57,90 @@ namespace BITool.Services
                 return long.TryParse(input, out var result)? result:null;
             }
 
-            async Task BulkInsertCustomerModelToMySQL(IEnumerable<CustomerDto> items)
+            async Task BulkInsertCustomerModelToSql(IEnumerable<CustomerDto> items)
             {
                 var watch = Stopwatch.StartNew();
                 if (items.Count() == 0) return;
-                Console.WriteLine($"BulkInsertCustomerModelToMySQL: count {items.Count()}");
+                Console.WriteLine($"BulkInsertCustomerModelToSql: count {items.Count()}");
                 var dataTable = items.ToDataTable();
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(SqlConnectionStr);
                 connection.Open();
                 var commandStr = "CREATE TEMPORARY TABLE IF NOT EXISTS temp_cutomer SELECT * FROM customer LIMIT 0;";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     await myCmd.ExecuteNonQueryAsync();
                 }
 
-                var bulkCopy = new MySqlBulkCopy(connection);
+                var bulkCopy = new SqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = "temp_cutomer";
                 bulkCopy.BulkCopyTimeout = 0;
-                var result = await bulkCopy.WriteToServerAsync(dataTable);
+                await bulkCopy.WriteToServerAsync(dataTable);
 
                 commandStr = "INSERT IGNORE INTO customer (DateFirstAdded, Source, CustomerMobileNo, Status, LastUpdatedBy, LastUpdatedON) " +
                              "SELECT temp_cutomer.DateFirstAdded, temp_cutomer.Source, temp_cutomer.CustomerMobileNo, temp_cutomer.Status, temp_cutomer.LastUpdatedBy, temp_cutomer.LastUpdatedON  " +
                              "FROM temp_cutomer;";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     await myCmd.ExecuteNonQueryAsync();
                 }
 
                 commandStr = "DROP TEMPORARY TABLE IF EXISTS temp_cutomer";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     await myCmd.ExecuteNonQueryAsync();
                 }
 
                 watch.Stop();
-                Console.WriteLine($"Complete BulkInsertCustomerModelToMySQL: time {watch.Elapsed.TotalSeconds} s");
+                Console.WriteLine($"Complete BulkInsertCustomerModelToSql: time {watch.Elapsed.TotalSeconds} s");
             }
 
-            async Task BulkInsertCustomerScoreToMySQL(IEnumerable<CustomerScoreDto> items)
+            async Task BulkInsertCustomerScoreToSql(IEnumerable<CustomerScoreDto> items)
             {
-                Console.WriteLine($"BulkInsertCustomerScoreToMySQL: count {items.Count()}");
+                Console.WriteLine($"BulkInsertCustomerScoreToSql: count {items.Count()}");
                 if (items.Count() == 0) return;
                 var watch = Stopwatch.StartNew();
                 var dataTable = items.ToDataTable();
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(SqlConnectionStr);
                 connection.Open();
 
-                var bulkCopy = new MySqlBulkCopy(connection);
+                var bulkCopy = new SqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = TableName.CustomerScore;
                 bulkCopy.BulkCopyTimeout = 0;
                 await bulkCopy.WriteToServerAsync(dataTable);
 
                 watch.Stop();
-                Console.WriteLine($"Complete BulkInsertCustomerScoreToMySQL: time {watch.Elapsed.TotalSeconds} s");
+                Console.WriteLine($"Complete BulkInsertCustomerScoreToSql: time {watch.Elapsed.TotalSeconds} s");
             }
 
-            async Task BulkInsertCleaningDataHistoryToMySQL(IEnumerable<CleanDataHistory> items)
+            async Task BulkInsertCleaningDataHistoryToSql(IEnumerable<CleanDataHistory> items)
             {
-                Console.WriteLine($"{nameof(BulkInsertCleaningDataHistoryToMySQL)}: count {items.Count()}");
+                Console.WriteLine($"{nameof(BulkInsertCleaningDataHistoryToSql)}: count {items.Count()}");
                 if (items.Count() == 0) return;
                 var watch = Stopwatch.StartNew();
                 var dataTable = items.ToDataTable();
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(SqlConnectionStr);
                 connection.Open();
 
-                var bulkCopy = new MySqlBulkCopy(connection);
+                var bulkCopy = new SqlBulkCopy(connection);
                 bulkCopy.DestinationTableName = TableName.CleanDataHistory;
                 bulkCopy.BulkCopyTimeout = 0;
                 await bulkCopy.WriteToServerAsync(dataTable);
 
                 watch.Stop();
-                Console.WriteLine($"Complete {nameof(BulkInsertCleaningDataHistoryToMySQL)}: time {watch.Elapsed.TotalSeconds} s");
+                Console.WriteLine($"Complete {nameof(BulkInsertCleaningDataHistoryToSql)}: time {watch.Elapsed.TotalSeconds} s");
             }
             List<AdminScoreDto> GetAdminScores()
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(SqlConnectionStr);
                 return connection.Query<AdminScoreDto>("SELECT * FROM adminscore").ToList();
             }
 
             List<BaseDropdown> GetAdminCampaigns()
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(SqlConnectionStr);
                 return connection.Query<BaseDropdown>("select Id, Name from Campaign where IsDeleted = 0").ToList();
             }
 
@@ -284,15 +284,15 @@ namespace BITool.Services
                         }
                     }
                     Console.WriteLine($"Complete valid data from excel: time {watch.Elapsed.TotalSeconds} s");
-                    Task insertCustomerModelTask = Task.Run(() => BulkInsertCustomerModelToMySQL(customerRows));
-                    Task insertCustomerScoreTask = Task.Run(() => BulkInsertCustomerScoreToMySQL(customerScoreRows));
+                    Task insertCustomerModelTask = BulkInsertCustomerModelToSql(customerRows);
+                    Task insertCustomerScoreTask = BulkInsertCustomerScoreToSql(customerScoreRows);
                     await Task.WhenAll(insertCustomerModelTask, insertCustomerScoreTask);
                     var importHistories = customerRows.GroupBy(p => p.Source)
                                     .Select(p => new ImportDataHistory { ImportName = ImportNames.ImportCustomerScore, Source = p.Key, FileName = formFile.FileName, ImportByEmail = userEmail, TotalRows = p.Count() });
-                    importDataToQueueService.InsertImportHistory(sqlConnectionStr, importHistories);
+                    importDataToQueueService.InsertImportHistory(SqlConnectionStr, importHistories);
                     importProcess.ShouldSendEmail = importProcess.CustomerImports.Count > shouldSendEmailWhenReachLimit;
                     shouldSendEmail = shouldSendEmail || importProcess.ShouldSendEmail;
-                    importDataToQueueService.InsertOrUpdateLeadManagementReport(sqlConnectionStr, importProcess);
+                    importDataToQueueService.InsertOrUpdateLeadManagementReport(SqlConnectionStr, importProcess);
                     watch.Stop();
                     Console.WriteLine($"Complete Import data: time {watch.Elapsed.TotalSeconds} s");
                 }
@@ -390,16 +390,16 @@ namespace BITool.Services
                 if (customerTotalPoints.Any())
                 {
                     var dataTable = customerTotalPoints.ToDataTable();                    
-                    using var connection = new MySqlConnection(sqlConnectionStr);
+                    using var connection = new SqlConnection(SqlConnectionStr);
                     connection.Open();
                     var commandStr = "CREATE TEMPORARY TABLE IF NOT EXISTS temp_customerTotalPoints (CustomerMobileNo BIGINT NOT NULL,  TotalPoints INT NOT NULL, PRIMARY KEY (CustomerMobileNo));";
-                    using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                    using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                     {
                         myCmd.CommandType = CommandType.Text;
                         myCmd.ExecuteNonQuery();
                     }
 
-                    var bulkCopy = new MySqlBulkCopy(connection);
+                    var bulkCopy = new SqlBulkCopy(connection);
                     bulkCopy.DestinationTableName = "temp_customerTotalPoints";
                     bulkCopy.BulkCopyTimeout = 0;
                     await bulkCopy.WriteToServerAsync(dataTable);
@@ -409,14 +409,14 @@ namespace BITool.Services
                                  "SET " +
                                  "l.TotalPoints = (l.TotalPoints + t.TotalPoints)"
                                  ;
-                    using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                    using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                     {
                         myCmd.CommandType = CommandType.Text;
                         myCmd.ExecuteNonQuery();
                     }
 
                     commandStr = "DROP TEMPORARY TABLE IF EXISTS temp_customerTotalPoints";
-                    using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                    using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                     {
                         myCmd.CommandType = CommandType.Text;
                         myCmd.ExecuteNonQuery();
@@ -497,16 +497,16 @@ namespace BITool.Services
                         Console.WriteLine($"Source: {sourceItem.Source}, Total records to table: {sourceItem.MobileList.Count}, time: {watch.Elapsed.TotalSeconds}");
                         watch.Restart();
                         var dataTable = sourceItem.MobileList.Select(p => new CleanCustomerOutput { Source = sourceItem.Source, CustomerMobileNo = long.Parse(p) }).ToDataTable();
-                        using var connection = new MySqlConnection(sqlConnectionStr);
+                        using var connection = new SqlConnection(SqlConnectionStr);
                         connection.Open();
                         var commandStr = "create temporary table IF NOT EXISTS TempCustomerMobileList(Source VARCHAR(100) NOT NULL, CustomerMobileNo BIGINT NOT NULL, INDEX(CustomerMobileNo), PRIMARY KEY(CustomerMobileNo));";
-                        using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                        using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                         {
                             myCmd.CommandType = CommandType.Text;
                             myCmd.ExecuteNonQuery();
                         }
                         Console.WriteLine($"create temporary table TempCustomerMobileList");                       
-                        var bulkCopy = new MySqlBulkCopy(connection);
+                        var bulkCopy = new SqlBulkCopy(connection);
                         bulkCopy.DestinationTableName = "TempCustomerMobileList";
                         bulkCopy.BulkCopyTimeout = 0;
                         await bulkCopy.WriteToServerAsync(dataTable);
@@ -526,7 +526,7 @@ namespace BITool.Services
                         recordItem.TotalDuplicateNumbersWithSystem = tempTotal - noDuplicate.Count;
                         result.AddRange(noDuplicate);
                         commandStr = "DROP TEMPORARY TABLE IF EXISTS TempCustomerMobileList";
-                        using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                        using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                         {
                             myCmd.CommandType = CommandType.Text;
                             myCmd.ExecuteNonQuery();
@@ -534,8 +534,8 @@ namespace BITool.Services
                         records.Add(recordItem);
                     }
                 }
-                //await BulkInsertCleaningDataHistoryToMySQL(records);
-                importDataToQueueService.BulkInsertCleaningDataHistory(sqlConnectionStr, records);
+                //await BulkInsertCleaningDataHistoryToSql(records);
+                importDataToQueueService.BulkInsertCleaningDataHistory(SqlConnectionStr, records);
                 watch.Stop();
                 Console.WriteLine($"compareCustomerMobiles: time {watch.Elapsed.TotalSeconds} s");
                 return Results.Ok(new { TotalRows = rowCount, mobileNumberList = result });
@@ -558,12 +558,12 @@ namespace BITool.Services
                 int.TryParse(userIdSr, out var userId);
                 var importProcess = new ProcessImportedData { FileName = fileName, UserEmail = userEmail, SignalRConnectionId = signalRConnectionId };
                 importProcess.CustomerImports = input.Select(p => new CustomerImportDto { CustomerMobileNo = long.Parse(p.CustomerMobileNo), Source = p.Source, DateOccurred = now }).ToList();
-                await BulkInsertCustomerModelToMySQL(input.Select(p => new CustomerDto { CustomerMobileNo = long.Parse(p.CustomerMobileNo), Source = p.Source, LastUpdatedBy = userId }));
+                await BulkInsertCustomerModelToSql(input.Select(p => new CustomerDto { CustomerMobileNo = long.Parse(p.CustomerMobileNo), Source = p.Source, LastUpdatedBy = userId }));
                 var importHistories = input.GroupBy(p => p.Source)
                                 .Select(p => new ImportDataHistory { ImportName = ImportNames.ImportCleanedCustomerMobileNumber, Source = p.Key, FileName = fileName, ImportByEmail = userEmail, TotalRows = p.Count() });
-                importDataToQueueService.InsertImportHistory(sqlConnectionStr, importHistories);
+                importDataToQueueService.InsertImportHistory(SqlConnectionStr, importHistories);
                 importProcess.ShouldSendEmail = importProcess.CustomerImports.Count > config.GetValue<int>("ShouldSendEmailWhenReachLimit");
-                importDataToQueueService.InsertOrUpdateLeadManagementReport(sqlConnectionStr, importProcess);
+                importDataToQueueService.InsertOrUpdateLeadManagementReport(SqlConnectionStr, importProcess);
                 watch.Stop();
                 Console.WriteLine($"Complete importCleanedMobileNumberList: time {watch.Elapsed.TotalSeconds} s");
                 return Results.Ok(new { TotalRows = input.Count, importProcess.ShouldSendEmail });

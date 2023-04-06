@@ -1,5 +1,5 @@
-﻿using MimeKit;
-using MySqlConnector;
+﻿using Microsoft.Data.SqlClient;
+using MimeKit;
 using System.ComponentModel;
 using System.Data;
 
@@ -23,13 +23,13 @@ namespace BITool.Helpers
             return table;
         }
 
-        public static IEnumerable<MySqlBulkCopyColumnMapping> GetMySqlColumnMapping(this DataTable dataTable)
+        public static IEnumerable<SqlBulkCopyColumnMapping> GetMySqlColumnMapping(this DataTable dataTable)
         {
-            List<MySqlBulkCopyColumnMapping> colMappings = new List<MySqlBulkCopyColumnMapping>();
+            List<SqlBulkCopyColumnMapping> colMappings = new List<SqlBulkCopyColumnMapping>();
             int i = 0;
             foreach (DataColumn col in dataTable.Columns)
             {
-                colMappings.Add(new MySqlBulkCopyColumnMapping(i, col.ColumnName));
+                colMappings.Add(new SqlBulkCopyColumnMapping(i, col.ColumnName));
                 i++;
             }
             return colMappings;

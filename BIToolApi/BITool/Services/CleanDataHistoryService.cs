@@ -4,14 +4,14 @@ using BITool.Models;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
 using System.Data;
+using System.Data.SqlClient;
 
 namespace BITool.Services
 {
     public static class CleanDataHistoryService
     {
-        public static void AddCleanDataHistoryService(this WebApplication app, string sqlConnectionStr)
+        public static void AddCleanDataHistoryService(this WebApplication app, string SqlConnectionStr)
         {
             static void ProcessInputValues(ref CleanDataHistoryFilter input)
             {
@@ -27,19 +27,19 @@ namespace BITool.Services
                     input.SortDirection = "desc";
             }
 
-            static int GetTotalCountByFilter(string sqlConnectionStr, ref CleanDataHistoryFilter input)
+            static int GetTotalCountByFilter(string SqlConnectionStr, ref CleanDataHistoryFilter input)
             {
-                using (var conn = new MySqlConnection(sqlConnectionStr))
+                using (var conn = new SqlConnection(SqlConnectionStr))
                 {
                     conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetCleanDataHistoryCountByFilter, conn);
+                    var cmd = new SqlCommand(StoredProcedureName.GetCleanDataHistoryCountByFilter, conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@source", input.Source);
 
                     cmd.Parameters.AddWithValue("@cleanTimeFrom", input.CleanTimeFrom);
                     cmd.Parameters.AddWithValue("@cleanTimeTo", input.CleanTimeTo);
 
-                    MySqlDataReader rdr = cmd.ExecuteReader();
+                    SqlDataReader rdr = cmd.ExecuteReader();
                     int count = 0;
                     while (rdr.Read())
                         count = (int)rdr.GetInt64(0);
@@ -51,7 +51,7 @@ namespace BITool.Services
 
             app.MapGet("cleanDataHistory/getSource", [Authorize] async Task<IResult> () =>
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(SqlConnectionStr);
                 var result = connection.Query<string>("select distinct Source from CleanDataHistory where Source is not null;");
                 return Results.Ok(result);
             });
@@ -59,11 +59,11 @@ namespace BITool.Services
             app.MapPost("cleanDataHistory/paging", [AllowAnonymous] async Task<IResult> ([FromBody] CleanDataHistoryFilter input) =>
             {
                 ProcessInputValues(ref input);
-                var totalCount = GetTotalCountByFilter(sqlConnectionStr, ref input);
-                using (var conn = new MySqlConnection(sqlConnectionStr))
+                var totalCount = GetTotalCountByFilter(SqlConnectionStr, ref input);
+                using (var conn = new SqlConnection(SqlConnectionStr))
                 {
                     conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetCleanDataHistoryByFilter, conn);
+                    var cmd = new SqlCommand(StoredProcedureName.GetCleanDataHistoryByFilter, conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@source", input.Source);
 
@@ -76,7 +76,7 @@ namespace BITool.Services
                     cmd.Parameters.AddWithValue("@exportOffset", input.SkipCount);
                     cmd.Parameters.AddWithValue("@exportLimit", input.RowsPerPage);
 
-                    MySqlDataReader rdr = cmd.ExecuteReader();
+                    SqlDataReader rdr = cmd.ExecuteReader();
                     var items = new List<CleanDataHistory>();
                     while (rdr.Read())
                     {

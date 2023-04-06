@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using MySqlConnector;
 using System.Data;
+using System.Data.SqlClient;
 using System.Security.Claims;
 
 namespace BITool.Services
@@ -30,7 +30,7 @@ namespace BITool.Services
 
         private static List<BaseDropdown> GetBaseDropdown(string sqlConnectionStr)
         {
-            using var connection = new MySqlConnection(sqlConnectionStr);
+            using var connection = new SqlConnection(sqlConnectionStr);
             return connection.Query<BaseDropdown>("select Id, Name from Campaign where IsDeleted = 0").ToList();
         }
 
@@ -110,31 +110,31 @@ namespace BITool.Services
                 entity.LastModificationTime = DateTime.Now;
                 db.SaveChanges();
                 memoryCache.Remove(CacheKeys.GetCampaignsDropdown);
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 connection.Open();
                 var commandStr = $"delete from RecordCustomerExport where CampaignID = {id}";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     myCmd.ExecuteNonQuery();
                 }
 
                 //commandStr = $"update leadmanagementreport set LastUsedCampaignId = null where LastUsedCampaignId = {id}";
-                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                //using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 //{
                 //    myCmd.CommandType = CommandType.Text;
                 //    myCmd.ExecuteNonQuery();
                 //}
 
                 //commandStr = $"update leadmanagementreport set SecondLastUsedCampaignId = null where SecondLastUsedCampaignId = {id}";
-                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                //using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 //{
                 //    myCmd.CommandType = CommandType.Text;
                 //    myCmd.ExecuteNonQuery();
                 //}
 
                 //commandStr = $"update leadmanagementreport set ThirdLastUsedCampaignId = null where ThirdLastUsedCampaignId = {id}";
-                //using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                //using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 //{
                 //    myCmd.CommandType = CommandType.Text;
                 //    myCmd.ExecuteNonQuery();
@@ -152,26 +152,26 @@ namespace BITool.Services
                 ProcessFilterValues(ref input);
                 var query = db.Campaign.AsNoTracking()
                             .Where(p => !p.IsDeleted)
-                            .WhereIf(!string.IsNullOrEmpty(input.Keyword),p=>p.Name.Contains(input.Keyword))
+                            .WhereIf(!string.IsNullOrEmpty(input.Keyword), p => p.Name.Contains(input.Keyword))
                             ;
-                var totalCount= query.Count();
+                var totalCount = query.Count();
                 query = input.SortDirection switch
                 {
                     SortDirection.ASC => input.SortBy switch
                     {
-                        nameof(Campaign.Name)=> query.OrderBy(p=>p.Name),
-                        nameof(Campaign.StartDate)=> query.OrderBy(p=>p.StartDate),
+                        nameof(Campaign.Name) => query.OrderBy(p => p.Name),
+                        nameof(Campaign.StartDate) => query.OrderBy(p => p.StartDate),
                         _ => query.OrderBy(p => p.Id)
                     },
                     _ => input.SortBy switch
                     {
                         nameof(Campaign.Name) => query.OrderByDescending(p => p.Name),
-                        nameof(Campaign.StartDate)=> query.OrderByDescending(p=>p.StartDate),
+                        nameof(Campaign.StartDate) => query.OrderByDescending(p => p.StartDate),
                         _ => query.OrderByDescending(p => p.Id)
                     }
                 };
                 var items = query.Skip(input.SkipCount).Take(input.RowsPerPage).ToList();
-                return Results.Ok(new PagedResultDto<Campaign>(totalCount, items));                
+                return Results.Ok(new PagedResultDto<Campaign>(totalCount, items));
             });
 
             app.MapGet("Campaign/dropdown", [Authorize]
@@ -208,12 +208,12 @@ namespace BITool.Services
                     Console.WriteLine($"new Campaign id: {entity.Id}");
                     input.Id = entity.Id;
                 }
-                
+
                 Console.WriteLine($"Campaign/assign: {input.Id}");
                 //var shouldSendEmail = processAssign.CustomerList.Count > config.GetValue<int>("ShouldSendEmailWhenReachLimit");
                 Parallel.Invoke(
-                    () => { exportDataToQueue.BulkInsertRecordCustomerExport(sqlConnectionStr, userId, input);},
-                    () => { exportDataToQueue.UpdateLastUsedCampaignOnLeadManagement(sqlConnectionStr, input);}
+                    () => { exportDataToQueue.BulkInsertRecordCustomerExport(sqlConnectionStr, userId, input); },
+                    () => { exportDataToQueue.UpdateLastUsedCampaignOnLeadManagement(sqlConnectionStr, input); }
                     );
 
                 return Results.Ok(input);
@@ -222,7 +222,7 @@ namespace BITool.Services
             app.MapGet("Campaign/maxAmount", [Authorize]
             async Task<IResult> () =>
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 var value = connection.QueryFirstOrDefault<int>($"select count(1) from LeadManagementReport;");
                 return Results.Ok(value);
             });
@@ -230,7 +230,7 @@ namespace BITool.Services
             app.MapGet("Campaign/maxTotalPoints", [Authorize]
             async Task<IResult> () =>
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 var value = connection.QueryFirstOrDefault<int>($"select MAX(TotalPoints) from LeadManagementReport;");
                 return Results.Ok(value);
             });

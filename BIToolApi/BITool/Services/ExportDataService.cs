@@ -3,9 +3,9 @@ using BITool.Models;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
 using OfficeOpenXml;
 using System.Data;
+using System.Data.SqlClient;
 using System.Security.Claims;
 
 namespace BITool.Services
@@ -14,15 +14,15 @@ namespace BITool.Services
     {
         #region private
 
-        private static List<long> GetCustomerListByFilter(string sqlConnectionStr,ref ExportDataFilter input)
+        private static List<long> GetCustomerListByFilter(string sqlConnectionStr, ref ExportDataFilter input)
         {
             ProcessInputValues(ref input);
 
-            using (var conn = new MySqlConnection(sqlConnectionStr))
+            using (var conn = new SqlConnection(sqlConnectionStr))
             {
                 conn.Open();
-                var cmd = GetMySqlCommandStoreProcedureFromFilter(conn, StoredProcedureName.GetCustomersByFilter, ref input);
-                MySqlDataReader rdr = cmd.ExecuteReader();
+                var cmd = GetSqlCommandStoreProcedureFromFilter(conn, StoredProcedureName.GetCustomersByFilter, ref input);
+                SqlDataReader rdr = cmd.ExecuteReader();
                 var customerData = new List<long>();
                 while (rdr.Read())
                 {
@@ -36,11 +36,11 @@ namespace BITool.Services
 
         private static long GetTotalCountByFilter(string sqlConnectionStr, ref ExportDataFilter input)
         {
-            using (var conn = new MySqlConnection(sqlConnectionStr))
+            using (var conn = new SqlConnection(sqlConnectionStr))
             {
-                conn.Open();                
-                var cmd = GetMySqlCommandStoreProcedureFromFilter(conn, StoredProcedureName.GetCustomerCountByFilter, ref input);
-                MySqlDataReader rdr = cmd.ExecuteReader();
+                conn.Open();
+                var cmd = GetSqlCommandStoreProcedureFromFilter(conn, StoredProcedureName.GetCustomerCountByFilter, ref input);
+                SqlDataReader rdr = cmd.ExecuteReader();
                 var data = new List<long>();
                 while (rdr.Read())
                     data.Add(rdr.GetInt64(0));
@@ -85,9 +85,9 @@ namespace BITool.Services
                 input.SortDirection = "desc";
         }
 
-        private static MySqlCommand GetMySqlCommandStoreProcedureFromFilter(MySqlConnection mysqlConn, string spName,ref ExportDataFilter input)
+        private static SqlCommand GetSqlCommandStoreProcedureFromFilter(SqlConnection SqlConn, string spName, ref ExportDataFilter input)
         {
-            var cmd = new MySqlCommand(spName, mysqlConn);
+            var cmd = new SqlCommand(spName, SqlConn);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@dateFirstAddedFrom", input.DateFirstAddedFrom);
             cmd.Parameters.AddWithValue("@dateFirstAddedTo", input.DateFirstAddedTo);
@@ -138,14 +138,14 @@ namespace BITool.Services
         public static void AddExportDataService(this WebApplication app, string sqlConnectionStr)
         {
             app.MapPost("data/getCustomerCountBySP", [Authorize]
-            async Task<IResult>([FromBody] ExportDataFilter input) =>
+            async Task<IResult> ([FromBody] ExportDataFilter input) =>
             {
                 Console.WriteLine($"AssignedCampaignID {input.AssignedCampaignID}");
-                ProcessInputValues(ref input);               
+                ProcessInputValues(ref input);
                 var totalCount = GetTotalCountByFilter(sqlConnectionStr, ref input);
                 if (input.AssignedCampaignID != null)
                 {
-                    using var connection = new MySqlConnection(sqlConnectionStr);
+                    using var connection = new SqlConnection(sqlConnectionStr);
                     if (input.AssignedCampaignID.Value == 0)
                     {
                         var recordCount = connection.QueryFirstOrDefault<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport;");
@@ -155,8 +155,8 @@ namespace BITool.Services
                     {
                         var recordCount = connection.QueryFirstOrDefault<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID= {input.AssignedCampaignID.Value} ;");
                         if (recordCount < totalCount) totalCount = recordCount;
-                    }  
-                }     
+                    }
+                }
                 return Results.Ok(new { totalCount });
             });
 
@@ -167,7 +167,7 @@ namespace BITool.Services
                 [FromBody] ExportDataFilter input
                 ) =>
             {
-                var data = GetCustomerListByFilter(sqlConnectionStr,ref input);
+                var data = GetCustomerListByFilter(sqlConnectionStr, ref input);
                 return Results.Ok(data);
             });
 
@@ -186,11 +186,11 @@ namespace BITool.Services
                 var totalRows = input.TotalCount != null ? input.TotalCount.Value : (int)GetTotalCountByFilter(sqlConnectionStr, ref input);
                 var packageCount = (totalRows - 1) / maxSheetCount + 1;
                 var result = new List<string>();
-                using var conn = new MySqlConnection(sqlConnectionStr);
+                using var conn = new SqlConnection(sqlConnectionStr);
                 conn.Open();
                 Console.WriteLine($"AssignedCampaignID: {input.AssignedCampaignID}");
                 Console.WriteLine($"IsRemoveTaggedCampaign: {input.IsRemoveTaggedCampaign}");
-                var cmd = GetMySqlCommandStoreProcedureFromFilter(conn,input.AssignedCampaignID ==null? StoredProcedureName.GetCustomersByFilter:StoredProcedureName.GetRecordCustomerExport, ref input);
+                var cmd = GetSqlCommandStoreProcedureFromFilter(conn, input.AssignedCampaignID == null ? StoredProcedureName.GetCustomersByFilter : StoredProcedureName.GetRecordCustomerExport, ref input);
                 for (int i = 0; i < packageCount; i++)
                 {
                     var itemCount = maxSheetCount;
@@ -206,15 +206,15 @@ namespace BITool.Services
                     sheet.Cells[1, 1, itemCount, 1].LoadFromDataReader(rdr, false);
                     result.Add(await fileService.SaveAndGetFullUrl(package.GetAsByteArray(), $"{nowStr}-customer-page-{i + 1}.xlsx", folder: folderName));
                 }
-                if (input.IsRemoveTaggedCampaign && input.AssignedCampaignID !=null)
+                if (input.IsRemoveTaggedCampaign && input.AssignedCampaignID != null)
                 {
                     var commandStr = $"delete from RecordCustomerExport where CampaignID = {input.AssignedCampaignID} order by {input.SortBy} {input.SortDirection} limit {input.ExportLimit}";
-                    using (MySqlCommand myCmd = new MySqlCommand(commandStr, conn))
+                    using (SqlCommand myCmd = new SqlCommand(commandStr, conn))
                     {
                         myCmd.CommandType = CommandType.Text;
                         myCmd.ExecuteNonQuery();
                     }
-                }                
+                }
                 await conn.CloseAsync();
                 return Results.Ok(new { result });
             });
@@ -229,11 +229,12 @@ namespace BITool.Services
                 if (input.CampaignID is null)
                     throw new Exception("No selected CampaignID");
 
-                var customerList = GetCustomerListByFilter(sqlConnectionStr,ref input);
+                var customerList = GetCustomerListByFilter(sqlConnectionStr, ref input);
                 var userEmail = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-                var processAssign = new ProcessLastUsedCampaign { 
-                    UserEmail = userEmail, 
-                    CampaignID = input.CampaignID.Value, 
+                var processAssign = new ProcessLastUsedCampaign
+                {
+                    UserEmail = userEmail,
+                    CampaignID = input.CampaignID.Value,
                     CustomerList = customerList,
                     SignalRConnectionId = input.SignalRConnectionId
                 };
@@ -242,7 +243,7 @@ namespace BITool.Services
                 int.TryParse(userIdSr, out var userId);
                 processAssign.ShouldSendEmail = processAssign.CustomerList.Count > config.GetValue<int>("ShouldSendEmailWhenReachLimit");
                 Parallel.Invoke(
-                    () => { exportDataToQueue.BulkInsertCustomerCampaignToMySQL(sqlConnectionStr, customerList, input.CampaignID.Value, userId); },
+                    () => { exportDataToQueue.BulkInsertCustomerCampaignToSql(sqlConnectionStr, customerList, input.CampaignID.Value, userId); },
                     () => { exportDataToQueue.UpdateLastUsedCampaign(sqlConnectionStr, processAssign); });
 
                 return Results.Ok(new { processAssign.ShouldSendEmail });
@@ -251,31 +252,31 @@ namespace BITool.Services
             app.MapDelete("data/removeAssignedCampaign/{id:int}", [Authorize]
             async Task<IResult> (int id) =>
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 connection.Open();
                 var commandStr = $"delete from RecordCustomerExport where CampaignID = {id}";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     myCmd.ExecuteNonQuery();
                 }
- 
+
                 commandStr = $"update leadmanagementreport set LastUsedCampaignId = null where LastUsedCampaignId = {id}";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     myCmd.ExecuteNonQuery();
                 }
 
                 commandStr = $"update leadmanagementreport set SecondLastUsedCampaignId = null where SecondLastUsedCampaignId = {id}";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     myCmd.ExecuteNonQuery();
                 }
 
                 commandStr = $"update leadmanagementreport set ThirdLastUsedCampaignId = null where ThirdLastUsedCampaignId = {id}";
-                using (MySqlCommand myCmd = new MySqlCommand(commandStr, connection))
+                using (SqlCommand myCmd = new SqlCommand(commandStr, connection))
                 {
                     myCmd.CommandType = CommandType.Text;
                     myCmd.ExecuteNonQuery();
@@ -285,11 +286,10 @@ namespace BITool.Services
                 return Results.Ok();
             });
 
-
             app.MapGet("data/countCustomersOfTaggedCampagign/{campagignId:int}", [Authorize]
             async Task<IResult> (int campagignId) =>
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 var recordCount = await connection.QueryFirstOrDefaultAsync<int>($"select count(distinct(CustomerMobileNo)) from RecordCustomerExport where CampaignID = {campagignId};");
                 return Results.Ok(recordCount);
             });

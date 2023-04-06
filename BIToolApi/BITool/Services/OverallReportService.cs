@@ -1,11 +1,10 @@
 ﻿using BITool.Enums;
-using BITool.Helpers;
 using BITool.Models;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
 using System.Data;
+using System.Data.SqlClient;
 
 namespace BITool.Services
 {
@@ -15,7 +14,7 @@ namespace BITool.Services
         {
             app.MapGet("overallReport/getTotalLeads", [Authorize] async Task<IResult> () =>
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 var totalCount = connection.QueryFirstOrDefault<int>("select count(1) from leadmanagementreport ;");
                 return Results.Ok(new { totalCount });
             });
@@ -24,14 +23,14 @@ namespace BITool.Services
             {
                 int totalCount = 0;
 
-                using (var conn = new MySqlConnection(sqlConnectionStr))
+                using (var conn = new SqlConnection(sqlConnectionStr))
                 {
                     conn.Open();
-                    var cmd = new MySqlCommand(StoredProcedureName.GetTotalCountByPointsRange, conn);
+                    var cmd = new SqlCommand(StoredProcedureName.GetTotalCountByPointsRange, conn);
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@totalPointsFrom", totalPointsFrom); 
+                    cmd.Parameters.AddWithValue("@totalPointsFrom", totalPointsFrom);
 
-                    MySqlDataReader rdr = cmd.ExecuteReader();
+                    SqlDataReader rdr = cmd.ExecuteReader();
                     var items = new List<CleanDataHistory>();
                     while (rdr.Read())
                     {
@@ -46,7 +45,7 @@ namespace BITool.Services
 
             app.MapGet("overallReport/getTotalCountByLimitedRange/{limitedRange:int}", [AllowAnonymous] async Task<IResult> (int limitedRange) =>
             {
-                using var connection = new MySqlConnection(sqlConnectionStr);
+                using var connection = new SqlConnection(sqlConnectionStr);
                 var counts = await connection.QueryAsync<OverallReportPointsCount>(
                     $"select TotalPoints, count(1) as 'Count' " +
                     $"from leadmanagementreport " +
@@ -59,7 +58,7 @@ namespace BITool.Services
                     result.Add(new OverallReportPointsCountView { TotalPoints = i.ToString(), Count = counts.FirstOrDefault(p => p.TotalPoints == i)?.Count ?? 0 });
                 }
                 var overLimit = await connection.QueryFirstOrDefaultAsync<int>($"select count(1) from leadmanagementreport where TotalPoints > {limitedRange}");
-                result.Add(new OverallReportPointsCountView { TotalPoints = $">{limitedRange}", Count= overLimit });
+                result.Add(new OverallReportPointsCountView { TotalPoints = $">{limitedRange}", Count = overLimit });
                 return Results.Ok(result);
             });
         }
